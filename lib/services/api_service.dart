@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:iprsr/models/user.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.1.11/iprsr';
+  static const String _baseUrl = 'http://192.168.0.100/iprsr';
 
   static Future<User?> register(String email, String password, String username, String gender, String hasDisability, String brand, String type, Map<String, bool> preferences) async {
     final response = await http.post(

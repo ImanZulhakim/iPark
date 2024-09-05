@@ -11,13 +11,24 @@ class VehicleDetailsScreen extends StatelessWidget {
   final ValueNotifier<String?> _brand = ValueNotifier<String?>(null);
   final ValueNotifier<String?> _type = ValueNotifier<String?>(null);
 
+  // Accept the initial values for brand and type from the previous screen
+  final String? initialBrand;
+  final String? initialType;
+
+
   VehicleDetailsScreen({
     required this.userNameController,
     required this.emailController,
     required this.passwordController,
     required this.gender,
     required this.hasDisability,
-  });
+    this.initialBrand,
+    this.initialType,
+  }) {
+    // Set the initial values for brand and type if provided
+    _brand.value = initialBrand;
+    _type.value = initialType;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,40 +85,63 @@ class VehicleDetailsScreen extends StatelessWidget {
               },
             ),
             SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  // Navigate to the Parking Preferences screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => ParkingPreferencesScreen(
-                        userNameController: userNameController,
-                        emailController: emailController,
-                        passwordController: passwordController,
-                        brandController: TextEditingController(text: _brand.value),
-                        typeController: TextEditingController(text: _type.value),
-                        gender: gender,
-                        hasDisability: hasDisability,
-                      ),
-                    ),
-                  );
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('NEXT'),
-                    SizedBox(width: 5),
-                    Icon(Icons.arrow_forward),
-                  ],
-                ),
-                style: ElevatedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: () {
+                    // Pass the selected vehicle brand and type back to RegistrationScreen
+                    Navigator.pop(context, {
+                      'brand': _brand.value,
+                      'type': _type.value,
+                    });
+                  },
+                  child: Row(
+                    children: [
+                      Icon(Icons.arrow_back),
+                      SizedBox(width: 5),
+                      Text('PREV'),
+                    ],
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
                 ),
-              ),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ParkingPreferencesScreen(
+                          userNameController: userNameController,
+                          emailController: emailController,
+                          passwordController: passwordController,
+                          brandController: TextEditingController(text: _brand.value),
+                          typeController: TextEditingController(text: _type.value),
+                          gender: gender,
+                          hasDisability: hasDisability,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Row(
+                    children: [
+                      Text('NEXT'),
+                      SizedBox(width: 5),
+                      Icon(Icons.arrow_forward),
+                    ],
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

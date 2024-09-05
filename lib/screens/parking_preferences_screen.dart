@@ -107,14 +107,25 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                       widget.typeController.text,
                       preferences,
                     );
+
                     if (authService.user != null) {
-                      print(
-                          'Registration successful, navigating to main page...');
+                      // Show a success message
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Registration successful!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+
+                      // Navigate to the main screen immediately after showing the SnackBar
                       Navigator.pushReplacementNamed(context, '/main');
                     } else {
-                      print('Registration failed, showing error message...');
+                      // Show an error message if registration failed
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Registration failed')),
+                        SnackBar(
+                          content: Text('Registration failed'),
+                          backgroundColor: Colors.red,
+                        ),
                       );
                     }
                   },
