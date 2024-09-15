@@ -12,7 +12,7 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> register(String email, String password, String username, String gender, String hasDisability, String brand, String type, Map<String, bool> preferences) async {
+  Future<void> register(String email, String password, String username, bool gender, bool hasDisability, String brand, String type, Map<String, bool> preferences) async {
     _user = await ApiService.register(email, password, username, gender, hasDisability, brand, type, preferences);
     notifyListeners();
   }
