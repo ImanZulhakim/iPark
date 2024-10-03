@@ -63,21 +63,28 @@ class AuthService extends ChangeNotifier {
 
   // Update user details like vehicle and parking preferences
   Future<void> updateUser({
-    String? brand,
-    String? type,
-    Map<String, bool>? preferences,
+    required String userID,
+    required String vehicleBrand,
+    required String vehicleType,
+    required Map<String, bool> preferences,
   }) async {
     if (_user != null) {
       try {
         // Create an updated user instance
         User updatedUser = _user!.copyWith(
-          brand: brand,
-          type: type,
+          brand: vehicleBrand,
+          type: vehicleType,
           preferences: preferences,
         );
 
         // Send the updated user details to the API
-        bool success = await ApiService.updateVehicleDetailsAndParkingPreferences(updatedUser);
+        bool success =
+            await ApiService.updateVehicleDetailsAndParkingPreferences(
+          userID: updatedUser.userID,
+          vehicleBrand: updatedUser.brand,
+          vehicleType: updatedUser.type,
+          preferences: updatedUser.preferences,
+        );
         if (success) {
           _user = updatedUser;
           notifyListeners();
@@ -98,12 +105,14 @@ class AuthService extends ChangeNotifier {
     if (_user != null) {
       try {
         Map<String, dynamic>? fetchedData =
-            await ApiService.fetchVehicleDetailsAndParkingPreferences(_user!.userID);
+            await ApiService.fetchVehicleDetailsAndParkingPreferences(
+                _user!.userID);
         if (fetchedData != null) {
           _user = _user!.copyWith(
             brand: fetchedData['vehicleDetails']['brand'],
             type: fetchedData['vehicleDetails']['type'],
-            preferences: Map<String, bool>.from(fetchedData['parkingPreferences']),
+            preferences:
+                Map<String, bool>.from(fetchedData['parkingPreferences']),
           );
           notifyListeners();
         } else {

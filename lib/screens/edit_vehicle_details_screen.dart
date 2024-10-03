@@ -5,13 +5,13 @@ class EditVehicleDetailsScreen extends StatefulWidget {
   final String userID;
   final String initialBrand;
   final String initialType;
-  final Map<String, bool> initialPreferences; // Add this parameter
+  final Map<String, bool> initialPreferences;
 
   const EditVehicleDetailsScreen({
     required this.userID,
     required this.initialBrand,
     required this.initialType,
-    required this.initialPreferences, // Accept initial preferences
+    required this.initialPreferences,
     Key? key,
   }) : super(key: key);
 
@@ -37,14 +37,14 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Edit Vehicle Details')),
+      appBar: AppBar(title: const Text('Edit Vehicle Details')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             DropdownButtonFormField<String>(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Vehicle Brand',
                 border: OutlineInputBorder(),
               ),
@@ -61,9 +61,9 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 });
               },
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             DropdownButtonFormField<String>(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Vehicle Type',
                 border: OutlineInputBorder(),
               ),
@@ -80,7 +80,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 });
               },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -88,7 +88,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Row(
+                  child: const Row(
                     children: [
                       Icon(Icons.arrow_back),
                       SizedBox(width: 5),
@@ -98,43 +98,28 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, {
-                      'brand': brand,
-                      'type': type,
-                    });
+                    // Navigate to EditParkingPreferencesScreen and pass vehicle details and preferences
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditParkingPreferencesScreen(
+                          initialPreferences: widget.initialPreferences, // Pass parking preferences
+                          userID: widget.userID, // Pass user ID
+                          vehicleBrand: brand, // Pass selected vehicle brand
+                          vehicleType: type, // Pass selected vehicle type
+                        ),
+                      ),
+                    );
                   },
-                  child: Row(
+                  child: const Row(
                     children: [
-                      Text('Save'),
+                      Text('NEXT'),
                       SizedBox(width: 5),
-                      Icon(Icons.check),
+                      Icon(Icons.arrow_forward),
                     ],
                   ),
                 ),
               ],
-            ),
-            SizedBox(height: 20),
-            Center(
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => EditParkingPreferencesScreen(
-                        initialPreferences: widget.initialPreferences, // Pass initial preferences
-                      ),
-                    ),
-                  );
-                },
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Edit Parking Preferences'),
-                    SizedBox(width: 5),
-                    Icon(Icons.edit),
-                  ],
-                ),
-              ),
             ),
           ],
         ),

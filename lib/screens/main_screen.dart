@@ -95,8 +95,6 @@ class MainScreen extends StatelessWidget {
                   if (fetchedData != null) {
                     final fetchedBrand = fetchedData['data']['brand'];
                     final fetchedType = fetchedData['data']['type'];
-                    final fetchedN = fetchedData['data']['isNearest'];
-                    print('Should be 1: $fetchedN');
                     final Map<String, bool> parkingPreferences = {
                       'isNearest': fetchedData['data']['isNearest'] == 1 ? true : false,
                       'isCovered': fetchedData['data']['isCovered'] == 1 ? true : false,
@@ -128,8 +126,10 @@ class MainScreen extends StatelessWidget {
                       String updatedType = result['type'];
 
                       await Provider.of<AuthService>(context, listen: false).updateUser(
-                        brand: updatedBrand,
-                        type: updatedType,
+                        userID: userId, // Pass the userID
+                        vehicleBrand: updatedBrand,
+                        vehicleType: updatedType,
+                        preferences: {}, // You might need to pass the updated preferences as well
                       );
                     }
                   } else {

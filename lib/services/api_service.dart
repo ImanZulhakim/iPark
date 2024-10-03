@@ -4,7 +4,8 @@ import 'package:iprsr/models/user.dart';
 
 class ApiService {
   static const String _baseUrl = 'http://192.168.0.106/iprsr';
-  static const String _flaskUrl = 'http://192.168.0.106:5000'; // Flask backend URL
+  static const String _flaskUrl =
+      'http://192.168.0.106:5000'; // Flask backend URL
 
   // Register user
   static Future<User?> register(
@@ -25,7 +26,8 @@ class ApiService {
           'email': email,
           'password': password,
           'username': username,
-          'gender': gender ? '1' : '0', // Convert boolean to '1'/'0' for backend
+          'gender':
+              gender ? '1' : '0', // Convert boolean to '1'/'0' for backend
           'hasDisability': hasDisability ? '1' : '0',
           'brand': brand,
           'type': type,
@@ -104,64 +106,67 @@ class ApiService {
   }
 
   // Fetch user's vehicle details and parking preferences
-static Future<Map<String, dynamic>?> fetchVehicleDetailsAndParkingPreferences(String userID) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/fetch_user_data.php'),
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {'userID': userID}, // Assuming the backend requires userID
-    );
+  static Future<Map<String, dynamic>?> fetchVehicleDetailsAndParkingPreferences(
+      String userID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/fetch_user_data.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {'userID': userID}, // Assuming the backend requires userID
+      );
 
-    print('Fetch Vehicle Details and Parking Preferences API response status: ${response.statusCode}');
-    print('Fetch Vehicle Details and Parking Preferences API response body: ${response.body}');
+      print(
+          'Fetch Vehicle Details and Parking Preferences API response status: ${response.statusCode}');
+      print(
+          'Fetch Vehicle Details and Parking Preferences API response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        return data;
-      } else {
-        print('Error: ${data['message']}');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data;
+        } else {
+          print('Error: ${data['message']}');
+        }
       }
+    } catch (e) {
+      print('Error fetching vehicle details and parking preferences: $e');
     }
-  } catch (e) {
-    print('Error fetching vehicle details and parking preferences: $e');
+    return null; // Return null if there's an error
   }
-  return null; // Return null if there's an error
-}
 
   // Update user's vehicle details and parking preferences
-static Future<bool> updateVehicleDetailsAndParkingPreferences(User user) async {
-  try {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/update_user_data.php'), // Assuming your endpoint has changed to reflect both updates
-      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-      body: {
-        'userID': user.userID,
-        'email': user.email,
-        'username': user.username,
-        'gender': user.gender ? '1' : '0', // Convert to '1'/'0'
-        'hasDisability': user.hasDisability ? '1' : '0',
-        'brand': user.brand, // Vehicle details
-        'type': user.type, // Vehicle type
-        'preferences': jsonEncode(user.preferences), // Parking preferences
-      },
-    );
+  static Future<bool> updateVehicleDetailsAndParkingPreferences({
+    required String userID,
+    required String vehicleBrand,
+    required String vehicleType,
+    required Map<String, bool> preferences,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_user_data.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'userID': userID,
+          'brand': vehicleBrand,
+          'type': vehicleType,
+          'preferences': jsonEncode(preferences),
+        },
+      );
 
-    print('Update Vehicle Details and Parking Preferences API response status: ${response.statusCode}');
-    print('Update Vehicle Details and Parking Preferences API response body: ${response.body}');
+      print('API response status: ${response.statusCode}');
+      print('API response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        return true; // Successfully updated the user's vehicle and preferences
-      } else {
-        print('Update error: ${data['message']}');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return true;
+        } else {
+          print('Error: ${data['message']}');
+        }
       }
+    } catch (e) {
+      print('Error: $e');
     }
-  } catch (e) {
-    print('Error updating vehicle details and parking preferences: $e');
+    return false;
   }
-  return false;
-}
-
 }

@@ -1,16 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:iprsr/services/api_service.dart';
 
 class EditParkingPreferencesScreen extends StatefulWidget {
   final Map<String, bool> initialPreferences;
+  final String userID;
+  final String vehicleBrand;
+  final String vehicleType;
 
-  EditParkingPreferencesScreen({required this.initialPreferences});
+  EditParkingPreferencesScreen({
+    required this.userID,
+    required this.initialPreferences,
+    required this.vehicleBrand,
+    required this.vehicleType,
+  });
 
   @override
   _ParkingPreferencesEditScreenState createState() =>
       _ParkingPreferencesEditScreenState();
 }
 
-class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScreen> {
+class _ParkingPreferencesEditScreenState
+    extends State<EditParkingPreferencesScreen> {
   late Map<String, bool> preferences;
 
   // Map preference keys to user-friendly names
@@ -36,20 +46,20 @@ class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Edit Parking Preferences'),
+        title: const Text('Edit Parking Preferences'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
+            const Center(
               child: Text(
                 'Update your preferences',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Expanded(
               child: ListView(
                 children: preferences.keys.map((String key) {
@@ -72,7 +82,7 @@ class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScr
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: Row(
+                  child: const Row(
                     children: [
                       Icon(Icons.arrow_back),
                       SizedBox(width: 5),
@@ -83,23 +93,36 @@ class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScr
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    // Handle saving the updated preferences
-                    print('Updated Preferences: $preferences');
-                    // You can perform the API call to save the updated preferences here
-
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Preferences updated successfully!'),
-                        backgroundColor: Colors.green,
-                      ),
+                  onPressed: () async {
+                    final success = await ApiService
+                        .updateVehicleDetailsAndParkingPreferences(
+                      userID: widget.userID,
+                      vehicleBrand: widget.vehicleBrand,
+                      vehicleType: widget.vehicleType,
+                      preferences: preferences,
                     );
+
+                    if (success) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Preferences updated successfully!'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Failed to update preferences.'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
                   },
-                  child: Row(
+                  child: const Row(
                     children: [
                       Text('UPDATE'),
                       SizedBox(width: 5),
@@ -111,7 +134,7 @@ class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScr
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   ),
                 ),
               ],
