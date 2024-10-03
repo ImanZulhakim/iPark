@@ -90,20 +90,22 @@ class MainScreen extends StatelessWidget {
                   // Fetch the latest vehicle details and parking preferences from the API
                   print('Fetching vehicle details for userID: $userId'); // Debug log
                   final fetchedData = await ApiService.fetchVehicleDetailsAndParkingPreferences(userId);
+                  print('Fetched vehicle details: $fetchedData');
 
                   if (fetchedData != null) {
-                    final fetchedBrand = fetchedData['brand'];
-                    final fetchedType = fetchedData['type'];
-                    
+                    final fetchedBrand = fetchedData['data']['brand'];
+                    final fetchedType = fetchedData['data']['type'];
+                    final fetchedN = fetchedData['data']['isNearest'];
+                    print('Should be 1: $fetchedN');
                     final Map<String, bool> parkingPreferences = {
-                      'isNearest': fetchedData['isNearest'] == 1 ? true : false,
-                      'isCovered': fetchedData['isCovered'] == 1 ? true : false,
-                      'requiresLargeSpace': fetchedData['requiresLargeSpace'] == 1 ? true : false,
-                      'requiresWellLitArea': fetchedData['requiresWellLitArea'] == 1 ? true : false,
-                      'requiresEVCharging': fetchedData['requiresEVCharging'] == 1 ? true : false,
-                      'requiresWheelchairAccess': fetchedData['requiresWheelchairAccess'] == 1 ? true : false,
-                      'requiresFamilyParkingArea': fetchedData['requiresFamilyParkingArea'] == 1 ? true : false,
-                      'premiumParking': fetchedData['premiumParking'] == 1 ? true : false,
+                      'isNearest': fetchedData['data']['isNearest'] == 1 ? true : false,
+                      'isCovered': fetchedData['data']['isCovered'] == 1 ? true : false,
+                      'requiresLargeSpace': fetchedData['data']['requiresLargeSpace'] == 1 ? true : false,
+                      'requiresWellLitArea': fetchedData['data']['requiresWellLitArea'] == 1 ? true : false,
+                      'requiresEVCharging': fetchedData['data']['requiresEVCharging'] == 1 ? true : false,
+                      'requiresWheelchairAccess': fetchedData['data']['requiresWheelchairAccess'] == 1 ? true : false,
+                      'requiresFamilyParkingArea': fetchedData['data']['requiresFamilyParkingArea'] == 1 ? true : false,
+                      'premiumParking': fetchedData['data']['premiumParking'] == 1 ? true : false,
                     };
 
 

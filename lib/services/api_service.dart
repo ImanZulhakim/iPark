@@ -118,10 +118,7 @@ static Future<Map<String, dynamic>?> fetchVehicleDetailsAndParkingPreferences(St
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
       if (data['status'] == 'success') {
-        return {
-          'vehicleDetails': data['vehicleDetails'], // Vehicle details object
-          'parkingPreferences': data['parkingPreferences'], // Preferences object
-        };
+        return data;
       } else {
         print('Error: ${data['message']}');
       }
