@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:iprsr/models/user.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.0.105/iprsr';
-  static const String _flaskUrl = 'http://192.168.0.105:5000'; // Flask backend URL
+  static const String _baseUrl = 'http://192.168.0.106/iprsr';
+  static const String _flaskUrl = 'http://192.168.0.106:5000'; // Flask backend URL
 
   // Register user
   static Future<User?> register(
@@ -15,24 +15,24 @@ class ApiService {
     bool hasDisability,
     String brand,
     String type,
-    Map<String, bool> preferences
+    Map<String, bool> preferences,
   ) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/register.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'email': email,
           'password': password,
           'username': username,
-          'gender': gender,
-          'hasDisability': hasDisability,
+          'gender': gender ? '1' : '0', // Convert boolean to '1'/'0' for backend
+          'hasDisability': hasDisability ? '1' : '0',
           'brand': brand,
           'type': type,
           'preferences': jsonEncode(preferences),
         },
       );
 
-      // Log raw response for debugging
       print('Register API response status: ${response.statusCode}');
       print('Register API response body: ${response.body}');
 
@@ -55,6 +55,7 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/login.php'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'email': email,
           'password': password,
@@ -78,52 +79,92 @@ class ApiService {
     return null;
   }
 
-  // // Fetch recommendations (keeping it as it is)
-  // static Future<List<dynamic>> getRecommendations(String userId) async {
-  //   try {
-  //     final response = await http.get(Uri.parse('$_baseUrl/recommendations.php?user_id=$userId'));
-
-  //     print('Recommendations API response status: ${response.statusCode}');
-  //     print('Recommendations API response body: ${response.body}');
-
-  //     if (response.statusCode == 200) {
-  //       final data = jsonDecode(response.body);
-  //       if (data['status'] == 'success') {
-  //         return data['recommendations'];
-  //       } else {
-  //         print('Error fetching recommendations: ${data['message']}');
-  //       }
-  //     }
-  //   } catch (e) {
-  //     print('Error fetching recommendations: $e');
-  //   }
-  //   return [];
-  // }
-
   // Fetch parking suggestions using Flask backend
-  static Future<List<dynamic>> getRecommendations(String userID) async {
+  static Future<String> getRecommendations(String userID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_flaskUrl/suggest-parking'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'userID': userID}),
+      );
+
+      print('Parking Suggestions API response status: ${response.statusCode}');
+      print('Parking Suggestions API response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['parkingSpaceID'] ?? ''; // Return empty string if null
+      } else {
+        print('Error fetching parking suggestions: ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching parking suggestions: $e');
+    }
+    return ''; // Return empty string in case of an exception
+  }
+
+  // Fetch user's vehicle details and parking preferences
+static Future<Map<String, dynamic>?> fetchVehicleDetailsAndParkingPreferences(String userID) async {
   try {
     final response = await http.post(
-      Uri.parse('$_flaskUrl/suggest-parking'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({
-        'userID': userID,  // Pass the userID instead of preferences
-      }),
+      Uri.parse('$_baseUrl/fetch_user_data.php'),
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {'userID': userID}, // Assuming the backend requires userID
     );
 
-    print('Parking Suggestions API response status: ${response.statusCode}');
-    print('Parking Suggestions API response body: ${response.body}');
+    print('Fetch Vehicle Details and Parking Preferences API response status: ${response.statusCode}');
+    print('Fetch Vehicle Details and Parking Preferences API response body: ${response.body}');
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body);
-      return data['recommendations'];  // Return the list of parking suggestions
-    } else {
-      print('Error fetching parking suggestions: ${response.body}');
+      if (data['status'] == 'success') {
+        return {
+          'vehicleDetails': data['vehicleDetails'], // Vehicle details object
+          'parkingPreferences': data['parkingPreferences'], // Preferences object
+        };
+      } else {
+        print('Error: ${data['message']}');
+      }
     }
   } catch (e) {
-    print('Error fetching parking suggestions: $e');
+    print('Error fetching vehicle details and parking preferences: $e');
   }
-  return [];
+  return null; // Return null if there's an error
+}
+
+  // Update user's vehicle details and parking preferences
+static Future<bool> updateVehicleDetailsAndParkingPreferences(User user) async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/update_user_data.php'), // Assuming your endpoint has changed to reflect both updates
+      headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+      body: {
+        'userID': user.userID,
+        'email': user.email,
+        'username': user.username,
+        'gender': user.gender ? '1' : '0', // Convert to '1'/'0'
+        'hasDisability': user.hasDisability ? '1' : '0',
+        'brand': user.brand, // Vehicle details
+        'type': user.type, // Vehicle type
+        'preferences': jsonEncode(user.preferences), // Parking preferences
+      },
+    );
+
+    print('Update Vehicle Details and Parking Preferences API response status: ${response.statusCode}');
+    print('Update Vehicle Details and Parking Preferences API response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        return true; // Successfully updated the user's vehicle and preferences
+      } else {
+        print('Update error: ${data['message']}');
+      }
+    }
+  } catch (e) {
+    print('Error updating vehicle details and parking preferences: $e');
+  }
+  return false;
 }
 
 }

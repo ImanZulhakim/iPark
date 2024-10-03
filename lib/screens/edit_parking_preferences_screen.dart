@@ -1,42 +1,17 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:iprsr/services/auth_service.dart';
 
-class ParkingPreferencesScreen extends StatefulWidget {
-  final TextEditingController userNameController;
-  final TextEditingController emailController;
-  final TextEditingController passwordController;
-  final TextEditingController brandController;
-  final TextEditingController typeController;
-  final String gender;
-  final String hasDisability;
+class EditParkingPreferencesScreen extends StatefulWidget {
+  final Map<String, bool> initialPreferences;
 
-  ParkingPreferencesScreen({
-    required this.userNameController,
-    required this.emailController,
-    required this.passwordController,
-    required this.brandController,
-    required this.typeController,
-    required this.gender,
-    required this.hasDisability,
-  });
+  EditParkingPreferencesScreen({required this.initialPreferences});
 
   @override
-  _ParkingPreferencesScreenState createState() =>
-      _ParkingPreferencesScreenState();
+  _ParkingPreferencesEditScreenState createState() =>
+      _ParkingPreferencesEditScreenState();
 }
 
-class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
-  final Map<String, bool> preferences = {
-    'isNearest': false,
-    'isCovered': false,
-    'requiresWheelchairAccess': false,
-    'requiresLargeSpace': false,
-    'requiresWellLitArea': false,
-    'requiresEVCharging': false,
-    'requiresFamilyParkingArea': false,
-    'premiumParking': false,
-  };
+class _ParkingPreferencesEditScreenState extends State<EditParkingPreferencesScreen> {
+  late Map<String, bool> preferences;
 
   // Map preference keys to user-friendly names
   final Map<String, String> preferenceLabels = {
@@ -51,10 +26,17 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize preferences with the data passed from the previous screen
+    preferences = Map<String, bool>.from(widget.initialPreferences);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Parking Preferences'),
+        title: Text('Edit Parking Preferences'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -63,7 +45,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
           children: [
             Center(
               child: Text(
-                'Please choose your preferences',
+                'Update your preferences',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
             ),
@@ -94,7 +76,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                     children: [
                       Icon(Icons.arrow_back),
                       SizedBox(width: 5),
-                      Text('PREV'),
+                      Text('BACK'),
                     ],
                   ),
                   style: ElevatedButton.styleFrom(
@@ -105,40 +87,21 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () async {
-                    final authService =
-                        Provider.of<AuthService>(context, listen: false);
-                    await authService.register(
-                      widget.emailController.text,
-                      widget.passwordController.text,
-                      widget.userNameController.text,
-                      widget.gender == '0',
-                      widget.hasDisability == '0',
-                      widget.brandController.text,
-                      widget.typeController.text,
-                      preferences,
-                    );
+                  onPressed: () {
+                    // Handle saving the updated preferences
+                    print('Updated Preferences: $preferences');
+                    // You can perform the API call to save the updated preferences here
 
-                    if (authService.user != null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Registration successful!'),
-                          backgroundColor: Colors.green,
-                        ),
-                      );
-                      Navigator.pushReplacementNamed(context, '/main');
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Registration failed'),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Preferences updated successfully!'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
                   },
                   child: Row(
                     children: [
-                      Text('REGISTER'),
+                      Text('UPDATE'),
                       SizedBox(width: 5),
                       Icon(Icons.check),
                     ],
