@@ -23,6 +23,7 @@ class EditVehicleDetailsScreen extends StatefulWidget {
 class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   late String brand;
   late String type;
+  late Map<String, bool> preferences; // To store updated preferences
 
   final List<String> vehicleBrands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla'];
   final List<String> vehicleTypes = ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible'];
@@ -30,8 +31,9 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   @override
   void initState() {
     super.initState();
-    brand = vehicleBrands.contains(widget.initialBrand) ? widget.initialBrand : vehicleBrands.first;
-    type = vehicleTypes.contains(widget.initialType) ? widget.initialType : vehicleTypes.first;
+    brand = widget.initialBrand;
+    type = widget.initialType;
+    preferences = Map<String, bool>.from(widget.initialPreferences); // Initialize preferences
   }
 
   @override
@@ -97,19 +99,26 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   ),
                 ),
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     // Navigate to EditParkingPreferencesScreen and pass vehicle details and preferences
-                    Navigator.push(
+                    final updatedPreferences = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditParkingPreferencesScreen(
-                          initialPreferences: widget.initialPreferences, // Pass parking preferences
-                          userID: widget.userID, // Pass user ID
-                          vehicleBrand: brand, // Pass selected vehicle brand
-                          vehicleType: type, // Pass selected vehicle type
+                          initialPreferences: preferences, // Pass current preferences
+                          userID: widget.userID,
+                          vehicleBrand: brand,
+                          vehicleType: type,
                         ),
                       ),
                     );
+
+                    if (updatedPreferences != null) {
+                      // Update preferences when coming back from the preferences screen
+                      setState(() {
+                        preferences = updatedPreferences;
+                      });
+                    }
                   },
                   child: const Row(
                     children: [

@@ -38,7 +38,6 @@ class _ParkingPreferencesEditScreenState
   @override
   void initState() {
     super.initState();
-    // Initialize preferences with the data passed from the previous screen
     preferences = Map<String, bool>.from(widget.initialPreferences);
   }
 
@@ -80,7 +79,8 @@ class _ParkingPreferencesEditScreenState
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context);
+                    // Pass the updated preferences back when navigating back
+                    Navigator.pop(context, preferences);
                   },
                   child: const Row(
                     children: [
@@ -89,15 +89,15 @@ class _ParkingPreferencesEditScreenState
                       Text('BACK'),
                     ],
                   ),
-                  style: ElevatedButton.styleFrom(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                  ),
                 ),
                 ElevatedButton(
                   onPressed: () async {
+                    print("Sending data to API:");
+                    print("UserID: ${widget.userID}");
+                    print("Vehicle Brand: ${widget.vehicleBrand}");
+                    print("Vehicle Type: ${widget.vehicleType}");
+                    print("Preferences: $preferences");
+
                     final success = await ApiService
                         .updateVehicleDetailsAndParkingPreferences(
                       userID: widget.userID,
@@ -113,6 +113,8 @@ class _ParkingPreferencesEditScreenState
                           backgroundColor: Colors.green,
                         ),
                       );
+                      // Navigate to the main screen after success
+                      Navigator.of(context).popUntil((route) => route.isFirst);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -128,13 +130,6 @@ class _ParkingPreferencesEditScreenState
                       SizedBox(width: 5),
                       Icon(Icons.check),
                     ],
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                   ),
                 ),
               ],

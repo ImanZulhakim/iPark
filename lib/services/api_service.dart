@@ -144,29 +144,35 @@ class ApiService {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/update_user_data.php'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
+        body: jsonEncode({
           'userID': userID,
           'brand': vehicleBrand,
           'type': vehicleType,
-          'preferences': jsonEncode(preferences),
+          'preferences': preferences,
+        }),
+        headers: {
+          'Content-Type': 'application/json',
         },
       );
-
+  
       print('API response status: ${response.statusCode}');
       print('API response body: ${response.body}');
-
+  
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           return true;
         } else {
           print('Error: ${data['message']}');
+          return false;
         }
+      } else {
+        print('Error: ${response.statusCode}');
+        return false;
       }
     } catch (e) {
       print('Error: $e');
+      return false;
     }
-    return false;
   }
 }
