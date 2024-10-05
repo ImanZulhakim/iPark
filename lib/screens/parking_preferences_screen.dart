@@ -108,6 +108,8 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                   onPressed: () async {
                     final authService =
                         Provider.of<AuthService>(context, listen: false);
+
+                    // Use AuthService to register with user input and preferences
                     await authService.register(
                       widget.emailController.text,
                       widget.passwordController.text,

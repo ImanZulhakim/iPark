@@ -1,0 +1,46 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "iprsr",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "iprsr (profile mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "iprsr (release mode)",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        },
+
+        {
+            "name": "Pixel3a",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5554"
+        },
+
+        {
+            "name": "Pixel8Pro",
+            "request": "launch",
+            "type": "dart",
+            "deviceId": "emulator-5556"
+        }
+    ],
+
+    "compounds": [
+        {
+            "name": "All Devices",
+            "configurations": ["Pixel3a", "Pixel8Pro"]
+        }
+    ]
+}
