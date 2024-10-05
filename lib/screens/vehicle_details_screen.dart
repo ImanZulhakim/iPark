@@ -5,8 +5,8 @@ class VehicleDetailsScreen extends StatelessWidget {
   final TextEditingController userNameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
-  final String gender;
-  final String hasDisability;
+  final bool gender;
+  final bool hasDisability;
 
   final ValueNotifier<String?> _brand = ValueNotifier<String?>(null);
   final ValueNotifier<String?> _type = ValueNotifier<String?>(null);

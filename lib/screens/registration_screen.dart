@@ -12,9 +12,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
 
-  // Store values for gender and disability
-  final ValueNotifier<String?> _gender = ValueNotifier<String?>(null);
-  final ValueNotifier<String?> _hasDisability = ValueNotifier<String?>(null);
+  // Store boolean values for gender and disability
+  final ValueNotifier<bool?> _isFemale = ValueNotifier<bool?>(null);  // true for Female, false for Male
+  final ValueNotifier<bool?> _hasDisability = ValueNotifier<bool?>(null);  // true for Yes, false for No
 
   String? vehicleBrand; // Store vehicle brand
   String? vehicleType;  // Store vehicle type
@@ -113,55 +113,68 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   },
                 ),
                 SizedBox(height: 10),
-                ValueListenableBuilder<String?>(
-                  valueListenable: _gender,
+
+                // Gender selection using boolean values
+                ValueListenableBuilder<bool?>(
+                  valueListenable: _isFemale,
                   builder: (context, value, child) {
-                    return DropdownButtonFormField<String>(
+                    return DropdownButtonFormField<bool>(
                       decoration: InputDecoration(
                         labelText: 'Gender',
                         border: OutlineInputBorder(),
                       ),
                       value: value,
-                      items: ['Male', 'Female']
-                          .map((label) => DropdownMenuItem(
-                                child: Text(label),
-                                value: label,
-                              ))
-                          .toList(),
+                      items: [
+                        DropdownMenuItem<bool>(
+                          child: Text('Male'),
+                          value: false, // Male as false
+                        ),
+                        DropdownMenuItem<bool>(
+                          child: Text('Female'),
+                          value: true,  // Female as true
+                        ),
+                      ],
                       onChanged: (newValue) {
-                        _gender.value = newValue;
+                        _isFemale.value = newValue;  // Store as boolean
                       },
                     );
                   },
                 ),
                 SizedBox(height: 10),
-                ValueListenableBuilder<String?>(
+
+                // Disability selection using boolean values
+                ValueListenableBuilder<bool?>(
                   valueListenable: _hasDisability,
                   builder: (context, value, child) {
-                    return DropdownButtonFormField<String>(
+                    return DropdownButtonFormField<bool>(
                       decoration: InputDecoration(
                         labelText: 'Do you have a disability?',
                         border: OutlineInputBorder(),
                       ),
                       value: value,
-                      items: ['Yes', 'No']
-                          .map((label) => DropdownMenuItem(
-                                child: Text(label),
-                                value: label,
-                              ))
-                          .toList(),
+                      items: [
+                        DropdownMenuItem<bool>(
+                          child: Text('No'),
+                          value: false,  // No as false
+                        ),
+                        DropdownMenuItem<bool>(
+                          child: Text('Yes'),
+                          value: true,  // Yes as true
+                        ),
+                      ],
                       onChanged: (newValue) {
-                        _hasDisability.value = newValue;
+                        _hasDisability.value = newValue;  // Store as boolean
                       },
                     );
                   },
                 ),
                 SizedBox(height: 20),
+
                 Center(
                   child: ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
-                        // Navigate to the Vehicle Details screen and await for results
+                        // Navigate to the Vehicle Details screen and await results
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -169,8 +182,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               userNameController: userNameController,
                               emailController: emailController,
                               passwordController: passwordController,
-                              gender: _gender.value ?? 'Male',
-                              hasDisability: _hasDisability.value == 'Yes' ? '1' : '0',
+                              gender: _isFemale.value ?? false, // Default to Male if null
+                              hasDisability: _hasDisability.value ?? false, // Default to No if null
                               initialBrand: vehicleBrand,
                               initialType: vehicleType,
                             ),

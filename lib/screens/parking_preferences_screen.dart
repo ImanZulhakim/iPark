@@ -8,8 +8,8 @@ class ParkingPreferencesScreen extends StatefulWidget {
   final TextEditingController passwordController;
   final TextEditingController brandController;
   final TextEditingController typeController;
-  final String gender;
-  final String hasDisability;
+  final bool gender;
+  final bool hasDisability;
 
   ParkingPreferencesScreen({
     required this.userNameController,
@@ -114,8 +114,8 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                       widget.emailController.text,
                       widget.passwordController.text,
                       widget.userNameController.text,
-                      widget.gender == '0',
-                      widget.hasDisability == '0',
+                      widget.gender, // Pass gender directly
+                      widget.hasDisability, // Pass disability directly
                       widget.brandController.text,
                       widget.typeController.text,
                       preferences,
