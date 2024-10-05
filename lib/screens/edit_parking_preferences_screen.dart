@@ -7,7 +7,7 @@ class EditParkingPreferencesScreen extends StatefulWidget {
   final String vehicleBrand;
   final String vehicleType;
 
-  EditParkingPreferencesScreen({
+  const EditParkingPreferencesScreen({
     required this.userID,
     required this.initialPreferences,
     required this.vehicleBrand,

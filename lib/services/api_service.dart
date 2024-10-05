@@ -175,4 +175,37 @@ class ApiService {
       return false;
     }
   }
+
+  // Fetch parking spaces data
+  // Modify the getRecommendations function to fetch parking space availability
+static Future<List<Map<String, dynamic>>?> getParkingSpaces() async {
+  try {
+    final response = await http.post(
+      Uri.parse('$_baseUrl/fetch_parking_data.php'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    print('Parking Spaces API response status: ${response.statusCode}');
+    print('Parking Spaces API response body: ${response.body}');
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+
+      if (data['status'] == 'success') {
+        // Safely return the list of parking spaces
+        return List<Map<String, dynamic>>.from(data['data']);
+      } else {
+        print('API responded with an error: ${data['message']}');
+      }
+    } else {
+      print('Failed to fetch parking spaces: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Error fetching parking spaces: $e');
+  }
+  return null; // Return null in case of an error
+}
+
+
+
 }
