@@ -33,3 +33,9 @@ flutter:
   assets:
     # Add assets from the images directory to the application.
     - assets/images/google_logo.png
+
+  fonts:
+    - family: Satisfy
+      fonts:
+        - asset: fonts/Satisfy-Regular.ttf
+

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iprsr/screens/edit_parking_preferences_screen.dart';
+import 'package:iprsr/widgets/custom_bottom_navigation_bar.dart';
+import 'package:iprsr/screens/main_screen.dart'; // Import the main screen
 
 class EditVehicleDetailsScreen extends StatefulWidget {
   final String userID;
@@ -23,7 +25,7 @@ class EditVehicleDetailsScreen extends StatefulWidget {
 class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   late String brand;
   late String type;
-  late Map<String, bool> preferences; // To store updated preferences
+  late Map<String, bool> preferences;
 
   final List<String> vehicleBrands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla'];
   final List<String> vehicleTypes = ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible'];
@@ -33,79 +35,145 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     super.initState();
     brand = widget.initialBrand;
     type = widget.initialType;
-    preferences = Map<String, bool>.from(widget.initialPreferences); // Initialize preferences
+    preferences = Map<String, bool>.from(widget.initialPreferences);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Vehicle Details')),
-      body: Padding(
+      // Floating Action Button at the center docked
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: Container(
+        width: 80.0,
+        height: 80.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: const LinearGradient(
+            colors: [
+              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 131, 245, 245),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: FloatingActionButton(
+          onPressed: () {
+            // Redirect to main screen
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => MainScreen()), // Navigate to main screen
+            );
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0, // Remove elevation to avoid shadow over gradient
+          child: const Text(
+            'P',
+            style: TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Satisfy',
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+
+      // Bottom Navigation Bar with Notch for FloatingActionButton
+      bottomNavigationBar: CustomBottomNavigationBar(userId: widget.userID),
+
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 240, 241, 241),
+              Color.fromARGB(255, 131, 245, 245),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center, // Center the elements vertically
+          crossAxisAlignment: CrossAxisAlignment.center, // Center the elements horizontally
           children: [
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Vehicle Brand',
-                border: OutlineInputBorder(),
+            const Center(
+              child: Text(
+                'Lets start with your car',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
-              value: brand,
-              items: vehicleBrands
-                  .map((label) => DropdownMenuItem(
-                        child: Text(label),
-                        value: label,
-                      ))
-                  .toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  brand = newValue!;
-                });
-              },
+            ),
+            const SizedBox(height: 30),
+            Center(
+              child: DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Brand',
+                  border: OutlineInputBorder(),
+                ),
+                value: brand,
+                items: vehicleBrands
+                    .map((label) => DropdownMenuItem(
+                          child: Text(label),
+                          value: label,
+                        ))
+                    .toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    brand = newValue!;
+                  });
+                },
+              ),
             ),
             const SizedBox(height: 10),
-            DropdownButtonFormField<String>(
-              decoration: const InputDecoration(
-                labelText: 'Vehicle Type',
-                border: OutlineInputBorder(),
+            Center(
+              child: DropdownButtonFormField<String>(
+                decoration: const InputDecoration(
+                  labelText: 'Type',
+                  border: OutlineInputBorder(),
+                ),
+                value: type,
+                items: vehicleTypes
+                    .map((label) => DropdownMenuItem(
+                          child: Text(label),
+                          value: label,
+                        ))
+                    .toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    type = newValue!;
+                  });
+                },
               ),
-              value: type,
-              items: vehicleTypes
-                  .map((label) => DropdownMenuItem(
-                        child: Text(label),
-                        value: label,
-                      ))
-                  .toList(),
-              onChanged: (newValue) {
-                setState(() {
-                  type = newValue!;
-                });
-              },
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
+            // The updated row with "PREV" and "NEXT" buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pop(context);
+                    Navigator.pop(context); // Navigate back to the previous screen
                   },
-                  child: const Row(
-                    children: [
-                      Icon(Icons.arrow_back),
-                      SizedBox(width: 5),
-                      Text('Back'),
-                    ],
+                  icon: const Icon(Icons.arrow_back, size: 18),
+                  label: const Text('PREV'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
                 ),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: () async {
-                    // Navigate to EditParkingPreferencesScreen and pass vehicle details and preferences
                     final updatedPreferences = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditParkingPreferencesScreen(
-                          initialPreferences: preferences, // Pass current preferences
+                          initialPreferences: preferences,
                           userID: widget.userID,
                           vehicleBrand: brand,
                           vehicleType: type,
@@ -114,18 +182,16 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     );
 
                     if (updatedPreferences != null) {
-                      // Update preferences when coming back from the preferences screen
                       setState(() {
                         preferences = updatedPreferences;
                       });
                     }
                   },
-                  child: const Row(
-                    children: [
-                      Text('NEXT'),
-                      SizedBox(width: 5),
-                      Icon(Icons.arrow_forward),
-                    ],
+                  icon: const Icon(Icons.arrow_forward, size: 18),
+                  label: const Text('NEXT'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   ),
                 ),
               ],

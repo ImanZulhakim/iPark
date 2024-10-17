@@ -26,14 +26,14 @@
             "name": "Pixel3a",
             "request": "launch",
             "type": "dart",
-            "deviceId": "emulator-5554"
+            "deviceId": "emulator-5556"
         },
 
         {
             "name": "Pixel8Pro",
             "request": "launch",
             "type": "dart",
-            "deviceId": "emulator-5556"
+            "deviceId": "emulator-5554"
         }
     ],
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iprsr/services/api_service.dart';
+import 'package:iprsr/widgets/custom_bottom_navigation_bar.dart';
 
 class EditParkingPreferencesScreen extends StatefulWidget {
   final Map<String, bool> initialPreferences;
@@ -23,7 +24,6 @@ class _ParkingPreferencesEditScreenState
     extends State<EditParkingPreferencesScreen> {
   late Map<String, bool> preferences;
 
-  // Map preference keys to user-friendly names
   final Map<String, String> preferenceLabels = {
     'isNearest': 'Nearest to Destination',
     'isCovered': 'Covered Parking',
@@ -44,18 +44,31 @@ class _ParkingPreferencesEditScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Parking Preferences'),
-      ),
-      body: Padding(
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 240, 241, 241),
+              Color.fromARGB(255, 131, 245, 245),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
-              child: Text(
-                'Update your preferences',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Align(
+              alignment: Alignment.topCenter, // Align to the top center
+              child: Padding(
+                padding: const EdgeInsets.only(
+                    top: 50.0), // Adjust top spacing as needed
+                child: Text(
+                  'Update your preferences',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 20),
@@ -79,7 +92,6 @@ class _ParkingPreferencesEditScreenState
               children: [
                 ElevatedButton(
                   onPressed: () {
-                    // Pass the updated preferences back when navigating back
                     Navigator.pop(context, preferences);
                   },
                   child: const Row(
@@ -92,12 +104,6 @@ class _ParkingPreferencesEditScreenState
                 ),
                 ElevatedButton(
                   onPressed: () async {
-                    print("Sending data to API:");
-                    print("UserID: ${widget.userID}");
-                    print("Vehicle Brand: ${widget.vehicleBrand}");
-                    print("Vehicle Type: ${widget.vehicleType}");
-                    print("Preferences: $preferences");
-
                     final success = await ApiService
                         .updateVehicleDetailsAndParkingPreferences(
                       userID: widget.userID,
@@ -113,7 +119,6 @@ class _ParkingPreferencesEditScreenState
                           backgroundColor: Colors.green,
                         ),
                       );
-                      // Navigate to the main screen after success
                       Navigator.of(context).popUntil((route) => route.isFirst);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -137,6 +142,7 @@ class _ParkingPreferencesEditScreenState
           ],
         ),
       ),
+      bottomNavigationBar: CustomBottomNavigationBar(userId: widget.userID),
     );
   }
 }
