@@ -62,7 +62,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             // Redirect to main screen
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => MainScreen()), // Navigate to main screen
+              MaterialPageRoute(builder: (context) => MainScreen(selectedLocation: 'SoC',)), // Navigate to main screen
             );
           },
           backgroundColor: Colors.transparent,

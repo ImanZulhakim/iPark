@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iprsr/services/auth_service.dart';
+import 'package:iprsr/screens/main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
@@ -75,7 +76,8 @@ class LoginScreen extends StatelessWidget {
                   onPressed: () {
                     // Google sign-in logic
                   },
-                  icon: Image.asset('assets/images/google_logo.png', height: 24),
+                  icon:
+                      Image.asset('assets/images/google_logo.png', height: 24),
                   label: const Text('Google'),
                   style: OutlinedButton.styleFrom(
                     shape: RoundedRectangleBorder(
@@ -112,17 +114,26 @@ class LoginScreen extends StatelessWidget {
 
     try {
       // Trigger login
-      await Provider.of<AuthService>(context, listen: false).login(email, password);
+      await Provider.of<AuthService>(context, listen: false)
+          .login(email, password);
 
       // Check if login was successful and get the user ID
-      final userId = Provider.of<AuthService>(context, listen: false).getUserId();
+      final userId =
+          Provider.of<AuthService>(context, listen: false).getUserId();
       if (userId != null) {
         print('User ID: $userId'); // Print the userId to debug
-        // Navigate to MainScreen and pass userId as an argument
-        Navigator.pushReplacementNamed(
+
+        // Fetch user's last selected location or use a default one
+        final selectedLocation =
+            'SoC'; // Replace this with fetching logic if needed.
+
+        // Navigate to MainScreen and pass userId and selectedLocation
+        Navigator.pushReplacement(
           context,
-          '/main',
-          arguments: userId, // Passing userID to MainScreen
+          MaterialPageRoute(
+            builder: (context) =>
+                MainScreen(selectedLocation: selectedLocation),
+          ),
         );
       } else {
         _showSnackBar(context, 'Login failed');
@@ -133,6 +144,7 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
   }
 }

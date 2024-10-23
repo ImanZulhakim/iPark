@@ -5,6 +5,7 @@ import 'package:iprsr/screens/splash_screen.dart';
 import 'package:iprsr/screens/login_screen.dart';
 import 'package:iprsr/screens/registration_screen.dart';
 import 'package:iprsr/screens/main_screen.dart';
+import 'package:iprsr/screens/parking_location_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,11 +25,29 @@ class IPRSRApp extends StatelessWidget {
           primarySwatch: Colors.blue,
         ),
         initialRoute: '/',
-        routes: {
-          '/': (context) => SplashScreen(),
-          '/login': (context) => LoginScreen(),
-          '/register': (context) => RegistrationScreen(),
-          '/main': (context) => MainScreen(),
+        onGenerateRoute: (settings) {
+          switch (settings.name) {
+            case '/':
+              return MaterialPageRoute(builder: (_) => SplashScreen());
+            case '/login':
+              return MaterialPageRoute(builder: (_) => LoginScreen());
+            case '/register':
+              return MaterialPageRoute(builder: (_) => RegistrationScreen());
+            case '/parking-location':
+              return MaterialPageRoute(builder: (_) => ParkingLocationScreen());
+            case '/main':
+              if (settings.arguments is String) {
+                final selectedLocation = settings.arguments as String;
+                return MaterialPageRoute(
+                  builder: (_) => MainScreen(selectedLocation: selectedLocation),
+                );
+              }
+              return MaterialPageRoute(
+                builder: (_) => MainScreen(selectedLocation: 'SoC'), // Fallback
+              );
+            default:
+              return null;
+          }
         },
       ),
     );

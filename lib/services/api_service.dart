@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:iprsr/models/user.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://172.20.10.3/iprsr';
-  static const String _flaskUrl ='http://172.20.10.3:5000'; 
+  static const String _baseUrl = 'http://192.168.1.3/iprsr';
+  static const String _flaskUrl = 'http://192.168.1.3:5000';
 
   // Register user
   static Future<User?> register(
@@ -81,12 +81,16 @@ class ApiService {
   }
 
   // Fetch parking suggestions using Flask backend
-  static Future<String> getRecommendations(String userID) async {
+  static Future<String> getRecommendations(
+      String userID, String location) async {
     try {
       final response = await http.post(
         Uri.parse('$_flaskUrl/suggest-parking'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'userID': userID}),
+        body: jsonEncode({
+          'userID': userID,
+          'location': location, // Include the location in the request body
+        }),
       );
 
       print('Parking Suggestions API response status: ${response.statusCode}');
@@ -153,10 +157,10 @@ class ApiService {
           'Content-Type': 'application/json',
         },
       );
-  
+
       print('API response status: ${response.statusCode}');
       print('API response body: ${response.body}');
-  
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
@@ -175,36 +179,35 @@ class ApiService {
     }
   }
 
-  // Fetch parking spaces data
-  // Modify the getRecommendations function to fetch parking space availability
-static Future<List<Map<String, dynamic>>?> getParkingSpaces() async {
-  try {
-    final response = await http.post(
-      Uri.parse('$_baseUrl/fetch_parking_data.php'),
-      headers: {'Content-Type': 'application/json'},
-    );
+// Fetch parking spaces data for a specific location
+  static Future<List<Map<String, dynamic>>?> getParkingSpaces(
+      String location) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/fetch_parking_data.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(
+            {'location': location}), // Send the location as part of the request
+      );
 
-    print('Parking Spaces API response status: ${response.statusCode}');
-    print('Parking Spaces API response body: ${response.body}');
+      print('Parking Spaces API response status: ${response.statusCode}');
+      print('Parking Spaces API response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
 
-      if (data['status'] == 'success') {
-        // Safely return the list of parking spaces
-        return List<Map<String, dynamic>>.from(data['data']);
+        if (data['status'] == 'success') {
+          // Safely return the list of parking spaces
+          return List<Map<String, dynamic>>.from(data['data']);
+        } else {
+          print('API responded with an error: ${data['message']}');
+        }
       } else {
-        print('API responded with an error: ${data['message']}');
+        print('Failed to fetch parking spaces: ${response.statusCode}');
       }
-    } else {
-      print('Failed to fetch parking spaces: ${response.statusCode}');
+    } catch (e) {
+      print('Error fetching parking spaces: $e');
     }
-  } catch (e) {
-    print('Error fetching parking spaces: $e');
+    return null; // Return null in case of an error
   }
-  return null; // Return null in case of an error
-}
-
-
-
 }
