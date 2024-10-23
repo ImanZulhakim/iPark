@@ -27,8 +27,20 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   late String type;
   late Map<String, bool> preferences;
 
-  final List<String> vehicleBrands = ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla'];
-  final List<String> vehicleTypes = ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible'];
+  final List<String> vehicleBrands = [
+    'Toyota',
+    'Honda',
+    'Ford',
+    'BMW',
+    'Tesla'
+  ];
+  final List<String> vehicleTypes = [
+    'Sedan',
+    'SUV',
+    'Truck',
+    'Coupe',
+    'Convertible'
+  ];
 
   @override
   void initState() {
@@ -50,8 +62,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
           shape: BoxShape.circle,
           gradient: const LinearGradient(
             colors: [
-              Color.fromARGB(255, 245, 107, 153),
-              Color.fromARGB(255, 131, 245, 245),
+              Color.fromARGB(255, 255, 168, 220),
+              Color.fromARGB(255, 115, 239, 246),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -62,7 +74,10 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             // Redirect to main screen
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => MainScreen(selectedLocation: 'SoC',)), // Navigate to main screen
+              MaterialPageRoute(
+                  builder: (context) => MainScreen(
+                        selectedLocation: 'SoC',
+                      )), // Navigate to main screen
             );
           },
           backgroundColor: Colors.transparent,
@@ -86,9 +101,9 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
+              Color.fromARGB(255, 115, 239, 246),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -96,8 +111,10 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
         ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Center the elements vertically
-          crossAxisAlignment: CrossAxisAlignment.center, // Center the elements horizontally
+          mainAxisAlignment:
+              MainAxisAlignment.center, // Center the elements vertically
+          crossAxisAlignment:
+              CrossAxisAlignment.center, // Center the elements horizontally
           children: [
             const Center(
               child: Text(
@@ -158,13 +175,15 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
               children: [
                 ElevatedButton.icon(
                   onPressed: () {
-                    Navigator.pop(context); // Navigate back to the previous screen
+                    Navigator.pop(
+                        context); // Navigate back to the previous screen
                   },
                   icon: const Icon(Icons.arrow_back, size: 18),
                   label: const Text('PREV'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                   ),
                 ),
                 ElevatedButton.icon(
@@ -191,7 +210,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   label: const Text('NEXT'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 10),
                   ),
                 ),
               ],

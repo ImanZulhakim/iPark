@@ -48,9 +48,9 @@ class _ParkingPreferencesEditScreenState
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
+              Color.fromARGB(255, 115, 239, 246),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,

@@ -37,7 +37,7 @@ class VehicleDetailsScreen extends StatelessWidget {
           gradient: LinearGradient(
             colors: [
               Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 211, 136, 161),
+              Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 240, 241, 241),
               Color.fromARGB(255, 131, 245, 245),
               Color.fromARGB(255, 240, 241, 241),
@@ -53,18 +53,23 @@ class VehicleDetailsScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
+                const Text(
                   'Lets start from your car',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ValueListenableBuilder<String?>(
                   valueListenable: _brand,
                   builder: (context, value, child) {
                     return DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration:  InputDecoration(
                         labelText: 'Vehicle Brand',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
                       ),
                       value: value,
                       items: ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla']
@@ -79,14 +84,19 @@ class VehicleDetailsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 ValueListenableBuilder<String?>(
                   valueListenable: _type,
                   builder: (context, value, child) {
                     return DropdownButtonFormField<String>(
-                      decoration: InputDecoration(
+                      decoration:  InputDecoration(
                         labelText: 'Vehicle Type',
-                        border: OutlineInputBorder(),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: Colors.black),
+                        ),
+                        filled: true, // To enable background color
+                        fillColor: Colors.white, // White background color
                       ),
                       value: value,
                       items: ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible']
@@ -101,7 +111,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                     );
                   },
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -112,7 +122,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                           'type': _type.value,
                         });
                       },
-                      child: Row(
+                      child: const Row(
                         children: [
                           Icon(Icons.arrow_back),
                           SizedBox(width: 5),
@@ -123,7 +133,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       ),
                     ),
                     ElevatedButton(
@@ -143,7 +153,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Row(
+                      child: const Row(
                         children: [
                           Text('NEXT'),
                           SizedBox(width: 5),
@@ -154,7 +164,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       ),
                     ),
                   ],

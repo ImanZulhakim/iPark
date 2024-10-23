@@ -58,7 +58,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 245, 107, 153),
+              Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 240, 241, 241),
               Color.fromARGB(255, 131, 245, 245),
             ],
@@ -124,22 +124,17 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                         },
                         child: Row(
                           children: [
-                            Icon(Icons.arrow_back, color: Colors.white),
+                            Icon(Icons.arrow_back, color: Colors.black),
                             SizedBox(width: 5),
-                            Text('PREV', style: TextStyle(color: Colors.white)),
+                            Text('PREV', style: TextStyle(color: Colors.black)),
                           ],
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color.fromARGB(255, 222, 193, 228),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 15),
-                          elevation: 5,
-                          shadowColor: Colors.black54,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                       ),
                       // Inside ParkingPreferencesScreen's registration flow
                       ElevatedButton(
@@ -195,13 +190,11 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           ],
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
                         ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                       ),
                     ],
                   ),
