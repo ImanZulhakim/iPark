@@ -50,96 +50,131 @@ class _ParkingPreferencesEditScreenState
             colors: [
               Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 115, 239, 246),
+              Color.fromARGB(255, 131, 245, 245),
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
         ),
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Align(
-              alignment: Alignment.topCenter, // Align to the top center
-              child: Padding(
-                padding: const EdgeInsets.only(
-                    top: 50.0), // Adjust top spacing as needed
-                child: Text(
-                  'Update your preferences',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView(
-                children: preferences.keys.map((String key) {
-                  return CheckboxListTile(
-                    title: Text(preferenceLabels[key] ?? key),
-                    value: preferences[key],
-                    onChanged: (bool? value) {
-                      setState(() {
-                        preferences[key] = value!;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context, preferences);
-                  },
-                  child: const Row(
-                    children: [
-                      Icon(Icons.arrow_back),
-                      SizedBox(width: 5),
-                      Text('BACK'),
-                    ],
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Update your preferences',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: () async {
-                    final success = await ApiService
-                        .updateVehicleDetailsAndParkingPreferences(
-                      userID: widget.userID,
-                      vehicleBrand: widget.vehicleBrand,
-                      vehicleType: widget.vehicleType,
-                      preferences: preferences,
-                    );
+                  const SizedBox(height: 20),
+                  Card(
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: preferences.keys.map((String key) {
+                          return CheckboxListTile(
+                            activeColor:
+                                const Color.fromARGB(255, 245, 107, 153),
+                            title: Text(
+                              preferenceLabels[key] ?? key,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            value: preferences[key],
+                            onChanged: (bool? value) {
+                              setState(() {
+                                preferences[key] = value!;
+                              });
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          Navigator.pop(context, preferences);
+                        },
+                        child: const Row(
+                          children: [
+                            Icon(Icons.arrow_back, color: Colors.black),
+                            SizedBox(width: 5),
+                            Text('BACK', style: TextStyle(color: Colors.black)),
+                          ],
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                        ),
+                      ),
+                      ElevatedButton(
+                        onPressed: () async {
+                          final success =
+                              await ApiService.updateVehicleDetailsAndParkingPreferences(
+                            userID: widget.userID,
+                            vehicleBrand: widget.vehicleBrand,
+                            vehicleType: widget.vehicleType,
+                            preferences: preferences,
+                          );
 
-                    if (success) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Preferences updated successfully!'),
-                          backgroundColor: Colors.green,
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Preferences updated successfully!'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Failed to update preferences.'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        },
+                        child: const Row(
+                          children: [
+                            Text('UPDATE'),
+                            SizedBox(width: 5),
+                            Icon(Icons.check),
+                          ],
                         ),
-                      );
-                      Navigator.of(context).popUntil((route) => route.isFirst);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Failed to update preferences.'),
-                          backgroundColor: Colors.red,
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
                         ),
-                      );
-                    }
-                  },
-                  child: const Row(
-                    children: [
-                      Text('UPDATE'),
-                      SizedBox(width: 5),
-                      Icon(Icons.check),
+                      ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
       bottomNavigationBar: CustomBottomNavigationBar(userId: widget.userID),

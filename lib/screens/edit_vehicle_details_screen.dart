@@ -129,9 +129,14 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             const SizedBox(height: 30),
             Center(
               child: DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Brand',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.black),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 value: brand,
                 items: vehicleBrands
@@ -150,9 +155,14 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             const SizedBox(height: 10),
             Center(
               child: DropdownButtonFormField<String>(
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   labelText: 'Type',
-                  border: OutlineInputBorder(),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Colors.black),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
                 ),
                 value: type,
                 items: vehicleTypes

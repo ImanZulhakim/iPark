@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:iprsr/models/user.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.1.3/iprsr';
-  static const String _flaskUrl = 'http://192.168.1.3:5000';
+  static const String _baseUrl = 'http://192.168.0.105/iprsr';
+  static const String _flaskUrl = 'http://192.168.0.105:5000';
 
   // Register user
   static Future<User?> register(
