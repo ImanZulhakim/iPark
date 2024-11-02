@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'package:iprsr/models/user.dart';
 
 class ApiService {
-  static const String _baseUrl = 'http://10.19.111.224/iprsr';
-  static const String _flaskUrl = 'http://10.19.111.224:5000';
+  static const String _baseUrl = 'http://192.168.0.105/iprsr';
+  static const String _flaskUrl = 'http://192.168.0.105:5000';
 
   // Register user
   static Future<User?> register(
@@ -209,5 +209,76 @@ class ApiService {
       print('Error fetching parking spaces: $e');
     }
     return null; // Return null in case of an error
+  }
+
+  // Lock a parking space for a specified duration (in minutes)
+  static Future<bool> lockParkingSpace(String parkingSpaceID,
+      {required int duration}) async {
+    try {
+      // Request to lock the parking space
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_parking_space.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'isAvailable': 0, // Lock the parking space
+        }),
+      );
+
+      // Handle the server response
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Parking space $parkingSpaceID locked for $duration minutes.');
+
+          // Schedule to unlock the space after the specified duration
+          Future.delayed(Duration(minutes: duration), () async {
+            await unlockParkingSpace(parkingSpaceID);
+          });
+
+          return true;
+        } else {
+          print('Error locking parking space: ${data['message']}');
+        }
+      } else {
+        print(
+            'Failed to lock parking space, Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error locking parking space: $e');
+    }
+    return false;
+  }
+
+  // Unlock a parking space
+  static Future<bool> unlockParkingSpace(String parkingSpaceID) async {
+    try {
+      // Request to unlock the parking space
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_parking_space.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'isAvailable': 1, // Unlock the parking space
+        }),
+      );
+
+      // Handle the server response
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Parking space $parkingSpaceID unlocked successfully.');
+          return true;
+        } else {
+          print('Error unlocking parking space: ${data['message']}');
+        }
+      } else {
+        print(
+            'Failed to unlock parking space, Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error unlocking parking space: $e');
+    }
+    return false;
   }
 }

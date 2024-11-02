@@ -6,6 +6,7 @@ import 'package:iprsr/screens/login_screen.dart';
 import 'package:iprsr/screens/registration_screen.dart';
 import 'package:iprsr/screens/main_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
+import 'package:iprsr/providers/countdown_provider.dart'; 
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ class IPRSRApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider(create: (_) => CountdownProvider()), // Add CountdownProvider here
       ],
       child: MaterialApp(
         title: 'IPRSR',

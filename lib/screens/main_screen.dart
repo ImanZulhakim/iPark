@@ -5,6 +5,7 @@ import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/screens/edit_vehicle_details_screen.dart';
 import 'package:iprsr/screens/recommendation_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
+import 'package:iprsr/providers/countdown_provider.dart';
 
 class MainScreen extends StatefulWidget {
   final String selectedLocation;
@@ -21,16 +22,19 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
-    selectedLocation = widget
-        .selectedLocation; // Initialize with the value passed to MainScreen
+    selectedLocation = widget.selectedLocation;
   }
 
   @override
   Widget build(BuildContext context) {
+    final countdownProvider = Provider.of<CountdownProvider>(context);
+    final remainingTime = countdownProvider.remainingTime;
     final user = Provider.of<AuthService>(context).user;
-
-    // Retrieve the user ID directly from the user object
     final String? userId = user?.userID;
+
+    // Determine if the countdown should be visible to the current user
+    bool isCountdownVisible = countdownProvider.isCountingDown &&
+        countdownProvider.activeUserID == userId; // Check if the user IDs match
 
     return Scaffold(
       body: Container(
@@ -51,8 +55,7 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -71,8 +74,7 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(width: 8),
                     Text(
                       selectedLocation,
-                      style:
-                          const TextStyle(fontSize: 16, color: Colors.black87),
+                      style: const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -90,8 +92,7 @@ class _MainScreenState extends State<MainScreen> {
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
                           gradient: const LinearGradient(
@@ -119,6 +120,17 @@ class _MainScreenState extends State<MainScreen> {
                   color: Colors.black87,
                 ),
               ),
+              const SizedBox(height: 30),
+              // Display the countdown timer only for the user who paid for it
+              if (isCountdownVisible)
+                Text(
+                  'Time Remaining: ${remainingTime.inMinutes}:${(remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent,
+                  ),
+                ),
               const SizedBox(height: 30),
               GestureDetector(
                 onTap: () {
@@ -158,28 +170,29 @@ class _MainScreenState extends State<MainScreen> {
                         child: Text(
                           'P',
                           style: TextStyle(
-                              fontSize: constraints.maxHeight * 0.7,
-                              fontFamily: 'Satisfy',
-                              foreground: Paint()
-                                ..shader = const LinearGradient(
-                                  colors: [
-                                    Color.fromARGB(255, 255, 168, 220),
-                                    Color.fromARGB(255, 240, 241, 241),
-                                    Color.fromARGB(255, 115, 239, 246),
-                                  ],
-                                  stops: [
-                                    0.2,
-                                    0.5,
-                                    0.8
-                                  ], // adjust the stops to make the colors more prominent
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ).createShader(Rect.fromLTWH(
-                                  0.0,
-                                  0.0,
-                                  constraints.maxWidth,
-                                  constraints.maxHeight,
-                                ))),
+                            fontSize: constraints.maxHeight * 0.7,
+                            fontFamily: 'Satisfy',
+                            foreground: Paint()
+                              ..shader = const LinearGradient(
+                                colors: [
+                                  Color.fromARGB(255, 255, 168, 220),
+                                  Color.fromARGB(255, 240, 241, 241),
+                                  Color.fromARGB(255, 115, 239, 246),
+                                ],
+                                stops: [
+                                  0.2,
+                                  0.5,
+                                  0.8
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ).createShader(Rect.fromLTWH(
+                                0.0,
+                                0.0,
+                                constraints.maxWidth,
+                                constraints.maxHeight,
+                              )),
+                          ),
                         ),
                       );
                     },
@@ -234,8 +247,7 @@ class _MainScreenState extends State<MainScreen> {
                 onTap: () async {
                   if (userId != null) {
                     print('Fetching vehicle details for userID: $userId');
-                    final fetchedData = await ApiService
-                        .fetchVehicleDetailsAndParkingPreferences(userId);
+                    final fetchedData = await ApiService.fetchVehicleDetailsAndParkingPreferences(userId);
                     print('Fetched vehicle details: $fetchedData');
 
                     if (fetchedData != null) {
@@ -244,20 +256,12 @@ class _MainScreenState extends State<MainScreen> {
                       final Map<String, bool> parkingPreferences = {
                         'isNearest': fetchedData['data']['isNearest'] == 1,
                         'isCovered': fetchedData['data']['isCovered'] == 1,
-                        'requiresLargeSpace':
-                            fetchedData['data']['requiresLargeSpace'] == 1,
-                        'requiresWellLitArea':
-                            fetchedData['data']['requiresWellLitArea'] == 1,
-                        'requiresEVCharging':
-                            fetchedData['data']['requiresEVCharging'] == 1,
-                        'requiresWheelchairAccess': fetchedData['data']
-                                ['requiresWheelchairAccess'] ==
-                            1,
-                        'requiresFamilyParkingArea': fetchedData['data']
-                                ['requiresFamilyParkingArea'] ==
-                            1,
-                        'premiumParking':
-                            fetchedData['data']['premiumParking'] == 1,
+                        'requiresLargeSpace': fetchedData['data']['requiresLargeSpace'] == 1,
+                        'requiresWellLitArea': fetchedData['data']['requiresWellLitArea'] == 1,
+                        'requiresEVCharging': fetchedData['data']['requiresEVCharging'] == 1,
+                        'requiresWheelchairAccess': fetchedData['data']['requiresWheelchairAccess'] == 1,
+                        'requiresFamilyParkingArea': fetchedData['data']['requiresFamilyParkingArea'] == 1,
+                        'premiumParking': fetchedData['data']['premiumParking'] == 1,
                       };
 
                       final result = await Navigator.push(
@@ -285,8 +289,7 @@ class _MainScreenState extends State<MainScreen> {
                         );
                       }
                     } else {
-                      print(
-                          'Failed to fetch vehicle details or preferences from the server.');
+                      print('Failed to fetch vehicle details or preferences from the server.');
                     }
                   } else {
                     print('User ID is null');

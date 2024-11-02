@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:iprsr/services/api_service.dart';
+import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/models/user.dart';
+import 'package:iprsr/providers/countdown_provider.dart';
 
-class RecommendationScreen extends StatelessWidget {
+class RecommendationScreen extends StatefulWidget {
   final User user;
   final String location;
 
@@ -13,13 +16,26 @@ class RecommendationScreen extends StatelessWidget {
   });
 
   @override
+  _RecommendationScreenState createState() => _RecommendationScreenState();
+}
+
+class _RecommendationScreenState extends State<RecommendationScreen> {
+  late Future<Map<String, dynamic>> recommendationsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    recommendationsFuture = fetchRecommendationsAndSpaces();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
-            'Parking Recommendations for $location',
+            'Parking Recommendations for ${widget.location}',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -46,24 +62,30 @@ class RecommendationScreen extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(Icons.accessible, "Special", Colors.blueAccent),
+                    _buildLegendItem(
+                        Icons.accessible, "Special", Colors.blueAccent),
                     SizedBox(width: 8),
                     _buildLegendItem(Icons.female, "Female", Colors.pinkAccent),
                     SizedBox(width: 8),
-                    _buildLegendItem(Icons.family_restroom, "Family", Colors.purpleAccent),
+                    _buildLegendItem(
+                        Icons.family_restroom, "Family", Colors.purpleAccent),
                     SizedBox(width: 8),
-                    _buildLegendItem(Icons.electric_car, "EV Car", Colors.tealAccent),
+                    _buildLegendItem(
+                        Icons.electric_car, "EV Car", Colors.tealAccent),
                     SizedBox(width: 8),
-                    _buildLegendItem(Icons.star, "Premium", const Color(0xFFFFD54F)),
+                    _buildLegendItem(
+                        Icons.star, "Premium", const Color(0xFFFFD54F)),
                   ],
                 ),
                 SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(Icons.local_parking, "Regular", const Color.fromRGBO(158, 158, 158, 1)),
+                    _buildLegendItem(Icons.local_parking, "Regular",
+                        const Color.fromRGBO(158, 158, 158, 1)),
                     SizedBox(width: 8),
-                    _buildLegendItem(Icons.thumb_up, "Recommended", Colors.greenAccent),
+                    _buildLegendItem(
+                        Icons.thumb_up, "Recommended", Colors.greenAccent),
                     SizedBox(width: 8),
                     _buildLegendItem(Icons.block, "Occupied", Colors.redAccent),
                   ],
@@ -93,7 +115,7 @@ class RecommendationScreen extends StatelessWidget {
           ),
           Expanded(
             child: FutureBuilder<Map<String, dynamic>>(
-              future: fetchRecommendationsAndSpaces(),
+              future: recommendationsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -122,12 +144,12 @@ class RecommendationScreen extends StatelessWidget {
                                 ParkingSpace(
                                   space: parkingSpaces[i + j],
                                   isRecommended: parkingSpaces[i + j]
-                                          ['parkingSpaceID'] == recommendedSpace,
+                                          ['parkingSpaceID'] ==
+                                      recommendedSpace,
                                   onShowPaymentDialog: () {
                                     _showPaymentDialog(
                                         context,
-                                        parkingSpaces[i + j]
-                                            ['parkingSpaceID']);
+                                        parkingSpaces[i + j]['parkingSpaceID']);
                                   },
                                 ),
                             ],
@@ -139,23 +161,23 @@ class RecommendationScreen extends StatelessWidget {
               },
             ),
           ),
-      ],
-    ),
-    floatingActionButton: FloatingActionButton(
-      onPressed: () {
-        openGoogleMaps(location);
-      },
-      child: Icon(Icons.navigation, color: Colors.white),
-      backgroundColor: Colors.teal,
-    ),
-  );
-}
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          openGoogleMaps(widget.location);
+        },
+        child: Icon(Icons.navigation, color: Colors.white),
+        backgroundColor: Colors.teal,
+      ),
+    );
+  }
 
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
     try {
-      final parkingSpaces = await ApiService.getParkingSpaces(location);
+      final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
       final recommendedSpace =
-          await ApiService.getRecommendations(user.userID, location);
+          await ApiService.getRecommendations(widget.user.userID, widget.location);
       return {
         'parkingSpaces': parkingSpaces,
         'recommendedSpace': recommendedSpace,
@@ -165,66 +187,87 @@ class RecommendationScreen extends StatelessWidget {
     }
   }
 
-void openGoogleMaps(String locationName) async {
-  // Define a map of your shortened Google Maps links
-  final Map<String, String> locationLinks = {
-    'SoC': 'https://maps.app.goo.gl/fp4eZGT4dvbbiTzj7',
-    'C-mart Changlun': 'https://maps.app.goo.gl/h7v6aZmaSJdRRMoQA',
-    'Aman Central': 'https://maps.app.goo.gl/AH3AXEUqXGrWbME67',
-    'V Mall': 'https://maps.app.goo.gl/d5CZPygW47Ftthwd8',
-  };
+  void openGoogleMaps(String locationName) async {
+    final Map<String, String> locationLinks = {
+      'SoC': 'https://maps.app.goo.gl/fp4eZGT4dvbbiTzj7',
+      'C-mart Changlun': 'https://maps.app.goo.gl/h7v6aZmaSJdRRMoQA',
+      'Aman Central': 'https://maps.app.goo.gl/AH3AXEUqXGrWbME67',
+      'V Mall': 'https://maps.app.goo.gl/d5CZPygW47Ftthwd8',
+    };
 
-  // Get the URL based on the location name
-  final url = locationLinks[locationName];
-
-  // If the URL exists for the location, try to launch it
-  if (url != null) {
-    final Uri uri = Uri.parse(url);
-    try {
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      } else {
-        print('Could not launch $url');
+    final url = locationLinks[locationName];
+    if (url != null) {
+      final Uri uri = Uri.parse(url);
+      try {
+        if (await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          print('Could not launch $url');
+        }
+      } catch (e) {
+        print("Error launching URL: $e");
       }
-    } catch (e) {
-      print("Error launching URL: $e");
+    } else {
+      print('No URL found for location: $locationName');
     }
-  } else {
-    print('No URL found for location: $locationName');
   }
+
+  void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Premium Parking"),
+        content: Text(
+            "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+
+              bool success = await ApiService.lockParkingSpace(parkingSpaceID, duration: 5);
+
+              if (success) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Parking spot $parkingSpaceID locked for 5 minutes.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                // Start the countdown with the current user's userID
+                Provider.of<CountdownProvider>(context, listen: false)
+                    .startCountdown(5, parkingSpaceID, widget.user.userID);
+
+                setState(() {
+                  recommendationsFuture = fetchRecommendationsAndSpaces();
+                });
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Failed to lock the parking spot."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text("Pay"),
+          ),
+        ],
+      );
+    },
+  );
 }
 
 
 
-  void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Premium Parking"),
-          content: const Text("This is a premium parking spot. Proceed with payment?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                  content: Text('Parking spot $parkingSpaceID booked successfully!'),
-                  backgroundColor: Colors.green,
-                ));
-              },
-              child: const Text("Pay"),
-            ),
-          ],
-        );
-      },
-    );
-  }
 
   Widget _buildLegendItem(IconData icon, String label, Color color) {
     return Row(
@@ -253,16 +296,27 @@ class ParkingSpace extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final countdownProvider = Provider.of<CountdownProvider>(context);
+    final authProvider = Provider.of<AuthService>(context, listen: false);
     final bool isAvailable = space['isAvailable'].toString() == '1';
     final String parkingType = space['parkingType']?.toString() ?? 'Regular';
     final String parkingSpaceID = space['parkingSpaceID'];
+
+    // Determine if this is the premium parking space with an active countdown for this user
+    bool isPremiumAndCountingDown = countdownProvider.isCountingDown &&
+        countdownProvider.activeParkingSpaceID == parkingSpaceID &&
+        countdownProvider.activeUserID == authProvider.user?.userID; // Check userID
 
     Color bgColor;
     IconData? icon;
     double iconSize = 24;
 
-    if (!isAvailable) {
-      bgColor = const Color.fromARGB(255, 255, 117, 117);
+    if (isPremiumAndCountingDown) {
+      bgColor = Colors.orangeAccent; // Color for premium with countdown
+      icon = Icons.timer;
+      iconSize = 28;
+    } else if (!isAvailable) {
+      bgColor = const Color.fromARGB(255, 255, 117, 117); // Occupied for others
       icon = Icons.block;
       iconSize = 28;
     } else if (isRecommended) {
@@ -318,13 +372,25 @@ class ParkingSpace extends StatelessWidget {
               size: iconSize,
               color: Colors.white,
             ),
-            if (isAvailable || isRecommended)
+            if (isPremiumAndCountingDown)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  '${countdownProvider.remainingTime.inMinutes}:${(countdownProvider.remainingTime.inSeconds % 60).toString().padLeft(2, '0')}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              )
+            else if (isAvailable || isRecommended)
               Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(
                   parkingSpaceID,
                   textAlign: TextAlign.center,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
