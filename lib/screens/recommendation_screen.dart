@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,11 +22,39 @@ class RecommendationScreen extends StatefulWidget {
 
 class _RecommendationScreenState extends State<RecommendationScreen> {
   late Future<Map<String, dynamic>> recommendationsFuture;
+  Timer? telegramPollingTimer;
 
+  // Fetch recommendations and spaces from the API
   @override
   void initState() {
     super.initState();
     recommendationsFuture = fetchRecommendationsAndSpaces();
+
+    // Listen to changes in the CountdownProvider
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<CountdownProvider>(context, listen: false)
+          .addListener(_onCountdownUpdate);
+    });
+  }
+
+  @override
+  void dispose() {
+    telegramPollingTimer?.cancel();
+    Provider.of<CountdownProvider>(context, listen: false)
+        .removeListener(_onCountdownUpdate);
+    super.dispose();
+  }
+
+  // Callback function to handle countdown updates
+  void _onCountdownUpdate() {
+    final countdownProvider =
+        Provider.of<CountdownProvider>(context, listen: false);
+    if (!countdownProvider.isCountingDown) {
+      // Refresh recommendationsFuture when the countdown ends
+      setState(() {
+        recommendationsFuture = fetchRecommendationsAndSpaces();
+      });
+    }
   }
 
   @override
@@ -36,7 +65,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           fit: BoxFit.scaleDown,
           child: Text(
             'Parking Recommendations for ${widget.location}',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -44,7 +73,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           ),
         ),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -64,29 +93,29 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                   children: [
                     _buildLegendItem(
                         Icons.accessible, "Special", Colors.blueAccent),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(Icons.female, "Female", Colors.pinkAccent),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(
                         Icons.family_restroom, "Family", Colors.purpleAccent),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(
                         Icons.electric_car, "EV Car", Colors.tealAccent),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(
                         Icons.star, "Premium", const Color(0xFFFFD54F)),
                   ],
                 ),
-                SizedBox(height: 4),
+                const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildLegendItem(Icons.local_parking, "Regular",
                         const Color.fromRGBO(158, 158, 158, 1)),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(
                         Icons.thumb_up, "Recommended", Colors.greenAccent),
-                    SizedBox(width: 8),
+                    const SizedBox(width: 8),
                     _buildLegendItem(Icons.block, "Occupied", Colors.redAccent),
                   ],
                 ),
@@ -146,11 +175,24 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                   isRecommended: parkingSpaces[i + j]
                                           ['parkingSpaceID'] ==
                                       recommendedSpace,
-                                  onShowPaymentDialog: () {
-                                    _showPaymentDialog(
-                                        context,
-                                        parkingSpaces[i + j]['parkingSpaceID']);
-                                  },
+                                  onShowPaymentDialog: parkingSpaces[i + j]
+                                              ['parkingType'] ==
+                                          'Premium'
+                                      ? () {
+                                          _showPaymentDialog(
+                                              context,
+                                              parkingSpaces[i + j]
+                                                  ['parkingSpaceID']);
+                                        }
+                                      : () {
+                                          // Show message for non-premium parking spaces
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(const SnackBar(
+                                            content: Text(
+                                                'Payment is only available for Premium parking spots.'),
+                                            backgroundColor: Colors.red,
+                                          ));
+                                        },
                                 ),
                             ],
                           ),
@@ -167,8 +209,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         onPressed: () {
           openGoogleMaps(widget.location);
         },
-        child: Icon(Icons.navigation, color: Colors.white),
+        
         backgroundColor: Colors.teal,
+        child: const Icon(Icons.navigation, color: Colors.white),
       ),
     );
   }
@@ -176,8 +219,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
     try {
       final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
-      final recommendedSpace =
-          await ApiService.getRecommendations(widget.user.userID, widget.location);
+      final recommendedSpace = await ApiService.getRecommendations(
+          widget.user.userID, widget.location);
       return {
         'parkingSpaces': parkingSpaces,
         'recommendedSpace': recommendedSpace,
@@ -212,62 +255,107 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
   }
 
+// Show the payment dialog
   void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Premium Parking"),
-        content: Text(
-            "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Premium Parking"),
+          content: Text(
+              "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Cancel"),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
 
-              bool success = await ApiService.lockParkingSpace(parkingSpaceID, duration: 5);
+                bool success = await ApiService.lockParkingSpace(
+                    parkingSpaceID, widget.user.userID,
+                    duration: 5);
 
-              if (success) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Parking spot $parkingSpaceID locked for 5 minutes.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          'Parking spot $parkingSpaceID locked for 5 minutes.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
 
-                // Start the countdown with the current user's userID
-                Provider.of<CountdownProvider>(context, listen: false)
-                    .startCountdown(5, parkingSpaceID, widget.user.userID);
+                  // Start the countdown with the current user's userID
+                  Provider.of<CountdownProvider>(context, listen: false)
+                      .startCountdown(5, parkingSpaceID, widget.user.userID);
 
-                setState(() {
-                  recommendationsFuture = fetchRecommendationsAndSpaces();
-                });
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text("Failed to lock the parking spot."),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: const Text("Pay"),
-          ),
-        ],
-      );
-    },
-  );
-}
+                  setState(() {
+                    recommendationsFuture = fetchRecommendationsAndSpaces();
+                  });
 
+                  // Check if the chat ID is already saved for this user
+                  final chatId =
+                      await ApiService.getUserChatId(widget.user.userID);
+                  if (chatId == null) {
+                    // Redirect user to Telegram to start chatting with the bot
+                    await openTelegramOrFallback();
 
+                    // Start polling to check for chat ID after opening Telegram
+                    startTelegramPolling(widget.user.userID, parkingSpaceID);
+                  } else {
+                    // Start sending notifications since the chat ID is available
+                    ApiService.startParkingNotification(
+                        widget.user.userID, parkingSpaceID);
+                  }
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Failed to lock the parking spot."),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                }
+              },
+              child: const Text("Pay"),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
+// Function to open Telegram or fallback to web link
+  Future<void> openTelegramOrFallback() async {
+    final Uri botUrl = Uri.parse('https://t.me/iprsr_bot?start');
+    final Uri fallbackUrl = Uri.parse('https://web.telegram.org/');
+
+    if (await canLaunchUrl(botUrl)) {
+      await launchUrl(botUrl, mode: LaunchMode.externalApplication);
+    } else if (await canLaunchUrl(fallbackUrl)) {
+      await launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
+    } else {
+      print("Could not open Telegram.");
+    }
+  }
+
+// Start polling to check for the chat ID
+  void startTelegramPolling(String userID, String parkingSpaceID) {
+    Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
+      final newChatId = await ApiService.getChatIdFromTelegram(userID);
+      if (newChatId != null) {
+        await ApiService.saveChatId(userID, newChatId);
+        print("Chat ID saved successfully.");
+        ApiService.startParkingNotification(
+            userID, parkingSpaceID); // Start notifications
+        timer.cancel(); // Stop polling once the chat ID is saved
+      } else {
+        print("Polling: Chat ID not yet available.");
+      }
+    });
+  }
 
   Widget _buildLegendItem(IconData icon, String label, Color color) {
     return Row(
@@ -305,7 +393,8 @@ class ParkingSpace extends StatelessWidget {
     // Determine if this is the premium parking space with an active countdown for this user
     bool isPremiumAndCountingDown = countdownProvider.isCountingDown &&
         countdownProvider.activeParkingSpaceID == parkingSpaceID &&
-        countdownProvider.activeUserID == authProvider.user?.userID; // Check userID
+        countdownProvider.activeUserID ==
+            authProvider.user?.userID; // Check userID
 
     Color bgColor;
     IconData? icon;

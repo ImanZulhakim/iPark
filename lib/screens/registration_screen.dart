@@ -46,20 +46,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    SizedBox(height: 40),
-                    Text(
+                    const SizedBox(height: 40),
+                    const Text(
                       'Create new account',
                       style:
                           TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     TextFormField(
                       controller: userNameController,
                       decoration: InputDecoration(
                         labelText: 'Username',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -71,14 +71,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     TextFormField(
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email address',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -93,14 +93,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     TextFormField(
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -116,14 +116,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     TextFormField(
                       controller: confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -139,7 +139,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return null;
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     ValueListenableBuilder<bool?>(
                       valueListenable: _isFemale,
                       builder: (context, value, child) {
@@ -148,20 +148,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             labelText: 'Gender',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.black),
+                              borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
                             fillColor: Colors.white,
                           ),
                           value: value,
-                          items: [
-                            DropdownMenuItem<bool>(
-                              child: Text('Male'),
+                          items: const [
+                             DropdownMenuItem<bool>(
                               value: false,
+                              child: Text('Male'),
                             ),
-                            DropdownMenuItem<bool>(
-                              child: Text('Female'),
+                             DropdownMenuItem<bool>(
                               value: true,
+                              child: Text('Female'),
                             ),
                           ],
                           onChanged: (newValue) {
@@ -170,7 +170,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         );
                       },
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     ValueListenableBuilder<bool?>(
                       valueListenable: _hasDisability,
                       builder: (context, value, child) {
@@ -179,20 +179,20 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             labelText: 'Do you have a disability?',
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide(color: Colors.black),
+                              borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
                             fillColor: Colors.white,
                           ),
                           value: value,
-                          items: [
-                            DropdownMenuItem<bool>(
-                              child: Text('No'),
+                          items: const [
+                             DropdownMenuItem<bool>(
                               value: false,
+                              child: Text('No'),
                             ),
-                            DropdownMenuItem<bool>(
-                              child: Text('Yes'),
+                             DropdownMenuItem<bool>(
                               value: true,
+                              child: Text('Yes'),
                             ),
                           ],
                           onChanged: (newValue) {
@@ -201,7 +201,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         );
                       },
                     ),
-                    SizedBox(height: 20),
+                    const SizedBox(height: 20),
                     Center(
                       child: ElevatedButton(
                         onPressed: () async {
@@ -229,7 +229,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             }
                           }
                         },
-                        child: Row(
+                        style: ElevatedButton.styleFrom(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                        ),
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text('NEXT'),
@@ -237,22 +244,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             Icon(Icons.arrow_forward),
                           ],
                         ),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          padding: EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
-                        ),
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Center(
                       child: TextButton(
                         onPressed: () {
                           Navigator.pushReplacementNamed(context, '/login');
                         },
-                        child: Text('Already have an account? Login'),
+                        child: const Text('Already have an account? Login'),
                       ),
                     ),
                   ],

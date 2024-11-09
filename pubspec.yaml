@@ -15,8 +15,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   provider: ^6.1.2  
-  http: ^0.13.3
+  http: ^0.13.6
   url_launcher: ^6.3.1
+  dart_telegram_bot: ^1.0.0
 
 dev_dependencies:
   flutter_test:
