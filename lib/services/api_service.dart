@@ -4,8 +4,10 @@ import 'package:iprsr/models/user.dart';
 import 'dart:async';
 
 class ApiService {
-  static const String _baseUrl = 'http://192.168.1.5/iprsr';
-  static const String _flaskUrl = 'http://192.168.1.5:5000';
+  static const ip = '10.19.86.131';
+  static const String _baseUrl = 'http://$ip/iprsr';
+  static const String _flaskUrl = 'http://$ip:5000';
+  static const String esp8266IpAddress = "http://172.20.10.4/";
   static const String _telegramBotToken =
       "7779399475:AAF091xlVimNGdP46e831oPm32dZGY1HaRc";
 
@@ -217,6 +219,24 @@ class ApiService {
     return null; // Return null in case of an error
   }
 
+// Function to send HTTP request to ESP8266 to control the gate
+  static Future<void> controlGate(String action) async {
+  final String endpoint = action == "close" ? "close_gate" : "open_gate";
+  final String url = "$esp8266IpAddress$endpoint";
+
+  try {
+    final response = await http.get(Uri.parse(url)).timeout(Duration(seconds: 10));
+    if (response.statusCode == 200) {
+      print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
+    } else {
+      print("Failed to ${action == 'close' ? 'close' : 'open'} gate: ${response.body}");
+    }
+  } catch (e) {
+    print("Error controlling gate: $e");
+  }
+}
+
+
   // Method to send a message to a specific chat ID on Telegram
   static Future<void> sendTelegramMessage(String? chatId, String text) async {
     if (chatId == null) {
@@ -379,7 +399,7 @@ class ApiService {
       await notifyPaymentConfirmation(chatId, parkingSpaceID);
       await notifyFiveMinutesRemaining(chatId, parkingSpaceID);
 
-      // Notify expiration after 10 minutes
+      // Notify expiration after 5 minutes
       Timer(Duration(minutes: 5), () async {
         print("Sending expiration notification...");
         await notifyParkingExpired(chatId, parkingSpaceID);

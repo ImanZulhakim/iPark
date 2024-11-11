@@ -257,75 +257,90 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
 // Show the payment dialog
   void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Premium Parking"),
-          content: Text(
-              "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text("Cancel"),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                Navigator.pop(context);
+  showDialog(
+    context: context,
+    builder: (context) {
+      return AlertDialog(
+        title: const Text("Premium Parking"),
+        content: Text(
+            "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            child: const Text("Cancel"),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
 
-                bool success = await ApiService.lockParkingSpace(
-                    parkingSpaceID, widget.user.userID,
-                    duration: 5);
+              // Lock the parking space
+              bool success = await ApiService.lockParkingSpace(
+                  parkingSpaceID, widget.user.userID,
+                  duration: 5);
 
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                          'Parking spot $parkingSpaceID locked for 5 minutes.'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
+              if (success) {
+                // Display success message
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                        'Parking spot $parkingSpaceID locked for 5 minutes.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
 
-                  // Start the countdown with the current user's userID
-                  Provider.of<CountdownProvider>(context, listen: false)
-                      .startCountdown(5, parkingSpaceID, widget.user.userID);
+                // Start the countdown
+                Provider.of<CountdownProvider>(context, listen: false)
+                    .startCountdown(5, parkingSpaceID, widget.user.userID);
 
-                  setState(() {
-                    recommendationsFuture = fetchRecommendationsAndSpaces();
-                  });
+                // Refresh recommendations to update UI
+                setState(() {
+                  recommendationsFuture = fetchRecommendationsAndSpaces();
+                });
 
-                  // Check if the chat ID is already saved for this user
-                  final chatId =
-                      await ApiService.getUserChatId(widget.user.userID);
-                  if (chatId == null) {
-                    // Redirect user to Telegram to start chatting with the bot
-                    await openTelegramOrFallback();
+                // Close the gate by triggering the servo to close
+                await ApiService.controlGate("close");
+                print("Gate closed for parking space $parkingSpaceID.");
 
-                    // Start polling to check for chat ID after opening Telegram
-                    startTelegramPolling(widget.user.userID, parkingSpaceID);
-                  } else {
-                    // Start sending notifications since the chat ID is available
-                    ApiService.startParkingNotification(
-                        widget.user.userID, parkingSpaceID);
-                  }
+                // Check if the chat ID is already saved for this user
+                final chatId =
+                    await ApiService.getUserChatId(widget.user.userID);
+                if (chatId == null) {
+                  // Redirect user to Telegram to start chatting with the bot
+                  await openTelegramOrFallback();
+
+                  // Start polling to check for chat ID after opening Telegram
+                  startTelegramPolling(widget.user.userID, parkingSpaceID);
                 } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text("Failed to lock the parking spot."),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
+                  // Start sending notifications since the chat ID is available
+                  ApiService.startParkingNotification(
+                      widget.user.userID, parkingSpaceID);
                 }
-              },
-              child: const Text("Pay"),
-            ),
-          ],
-        );
-      },
-    );
-  }
+
+                // Schedule the gate to open after the countdown duration ends (5 minutes)
+                Timer(Duration(minutes: 5), () async {
+                  await ApiService.controlGate("open");
+                  print("Gate opened after countdown for parking space $parkingSpaceID.");
+                });
+              } else {
+                // Display failure message if unable to lock the parking space
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Failed to lock the parking spot."),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: const Text("Pay"),
+          ),
+        ],
+      );
+    },
+  );
+}
+
 
 // Function to open Telegram or fallback to web link
   Future<void> openTelegramOrFallback() async {
