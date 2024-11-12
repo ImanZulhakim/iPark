@@ -8,7 +8,7 @@ class EditParkingPreferencesScreen extends StatefulWidget {
   final String vehicleBrand;
   final String vehicleType;
 
-  const EditParkingPreferencesScreen({
+  const EditParkingPreferencesScreen({super.key, 
     required this.userID,
     required this.initialPreferences,
     required this.vehicleBrand,
@@ -63,7 +63,7 @@ class _ParkingPreferencesEditScreenState
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Update your preferences',
                     style: TextStyle(
                       fontSize: 28,
@@ -112,19 +112,19 @@ class _ParkingPreferencesEditScreenState
                         onPressed: () {
                           Navigator.pop(context, preferences);
                         },
-                        child: const Row(
-                          children: [
-                            Icon(Icons.arrow_back, color: Colors.black),
-                            SizedBox(width: 5),
-                            Text('BACK', style: TextStyle(color: Colors.black)),
-                          ],
-                        ),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 30, vertical: 15),
+                        ),
+                        child: const Row(
+                          children: [
+                            Icon(Icons.arrow_back, color: Colors.black),
+                            SizedBox(width: 5),
+                            Text('BACK', style: TextStyle(color: Colors.black)),
+                          ],
                         ),
                       ),
                       ElevatedButton(
@@ -154,19 +154,19 @@ class _ParkingPreferencesEditScreenState
                             );
                           }
                         },
-                        child: const Row(
-                          children: [
-                            Text('UPDATE'),
-                            SizedBox(width: 5),
-                            Icon(Icons.check),
-                          ],
-                        ),
                         style: ElevatedButton.styleFrom(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 30, vertical: 15),
+                        ),
+                        child: const Row(
+                          children: [
+                            Text('UPDATE'),
+                            SizedBox(width: 5),
+                            Icon(Icons.check),
+                          ],
                         ),
                       ),
                     ],

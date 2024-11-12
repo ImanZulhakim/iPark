@@ -5,6 +5,8 @@ import 'package:iprsr/screens/login_screen.dart';
 import 'package:iprsr/screens/main_screen.dart';
 
 class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

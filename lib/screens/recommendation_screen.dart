@@ -11,7 +11,7 @@ class RecommendationScreen extends StatefulWidget {
   final User user;
   final String location;
 
-  const RecommendationScreen({
+  const RecommendationScreen({super.key, 
     required this.user,
     required this.location,
   });
@@ -319,7 +319,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                 }
 
                 // Schedule the gate to open after the countdown duration ends (5 minutes)
-                Timer(Duration(minutes: 5), () async {
+                Timer(const Duration(minutes: 5), () async {
                   await ApiService.controlGate("open");
                   print("Gate opened after countdown for parking space $parkingSpaceID.");
                 });
@@ -391,7 +391,7 @@ class ParkingSpace extends StatelessWidget {
   final bool isRecommended;
   final VoidCallback onShowPaymentDialog;
 
-  const ParkingSpace({
+  const ParkingSpace({super.key, 
     required this.space,
     required this.isRecommended,
     required this.onShowPaymentDialog,

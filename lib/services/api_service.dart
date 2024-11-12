@@ -4,7 +4,7 @@ import 'package:iprsr/models/user.dart';
 import 'dart:async';
 
 class ApiService {
-  static const ip = '10.19.86.131';
+  static const ip = '192.168.1.5';
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://172.20.10.4/";
@@ -18,6 +18,7 @@ class ApiService {
   static Future<User?> register(
     String email,
     String password,
+    String phoneNo,
     String username,
     bool gender,
     bool hasDisability,
@@ -32,6 +33,7 @@ class ApiService {
         body: {
           'email': email,
           'password': password,
+          'phoneNo': phoneNo,
           'username': username,
           'gender':
               gender ? '1' : '0', // Convert boolean to '1'/'0' for backend
@@ -225,7 +227,7 @@ class ApiService {
   final String url = "$esp8266IpAddress$endpoint";
 
   try {
-    final response = await http.get(Uri.parse(url)).timeout(Duration(seconds: 10));
+    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
     if (response.statusCode == 200) {
       print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
     } else {
@@ -244,7 +246,7 @@ class ApiService {
       return;
     }
 
-    final url = '$_telegramApiUrl/sendMessage';
+    const url = '$_telegramApiUrl/sendMessage';
     try {
       final response = await http.post(
         Uri.parse(url),
@@ -400,7 +402,7 @@ class ApiService {
       await notifyFiveMinutesRemaining(chatId, parkingSpaceID);
 
       // Notify expiration after 5 minutes
-      Timer(Duration(minutes: 5), () async {
+      Timer(const Duration(minutes: 5), () async {
         print("Sending expiration notification...");
         await notifyParkingExpired(chatId, parkingSpaceID);
       });
@@ -408,7 +410,7 @@ class ApiService {
       print("Chat ID not found for user $userId.");
 
       // Send welcome message to remind the user to start the bot
-      final welcomeMessage =
+      const welcomeMessage =
           "Please send '/start' to our bot to receive notifications about your premium parking.";
       await sendTelegramMessage(chatId, welcomeMessage);
     }

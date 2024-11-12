@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'vehicle_details_screen.dart';
 
 class RegistrationScreen extends StatefulWidget {
+  const RegistrationScreen({super.key});
+
   @override
   _RegistrationScreenState createState() => _RegistrationScreenState();
 }
@@ -12,6 +14,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
 
   final ValueNotifier<bool?> _isFemale = ValueNotifier<bool?>(null);
   final ValueNotifier<bool?> _hasDisability = ValueNotifier<bool?>(null);
@@ -95,6 +98,39 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                     const SizedBox(height: 10),
                     TextFormField(
+                      controller: phoneController,
+                      decoration: InputDecoration(
+                        labelText: 'Phone Number',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      keyboardType: TextInputType.phone,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a phone number';
+                        }
+
+                        // Check if the number starts with '0' and replace it with '+60'
+                        if (value.startsWith('0')) {
+                          value = '+60${value.substring(1)}';
+                          phoneController.text =
+                              value; // Update the controller with the formatted number
+                        }
+
+                        // Validate Malaysian phone number format: +60 followed by 9-10 digits
+                        if (!RegExp(r'^\+60\d{9,10}$').hasMatch(value)) {
+                          return 'Please enter a valid Malaysian phone number';
+                        }
+
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
@@ -155,11 +191,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           value: value,
                           items: const [
-                             DropdownMenuItem<bool>(
+                            DropdownMenuItem<bool>(
                               value: false,
                               child: Text('Male'),
                             ),
-                             DropdownMenuItem<bool>(
+                            DropdownMenuItem<bool>(
                               value: true,
                               child: Text('Female'),
                             ),
@@ -186,11 +222,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           ),
                           value: value,
                           items: const [
-                             DropdownMenuItem<bool>(
+                            DropdownMenuItem<bool>(
                               value: false,
                               child: Text('No'),
                             ),
-                             DropdownMenuItem<bool>(
+                            DropdownMenuItem<bool>(
                               value: true,
                               child: Text('Yes'),
                             ),
@@ -213,6 +249,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                                   userNameController: userNameController,
                                   emailController: emailController,
                                   passwordController: passwordController,
+                                  phoneController: phoneController,
                                   gender: _isFemale.value ?? false,
                                   hasDisability: _hasDisability.value ?? false,
                                   initialBrand: vehicleBrand,

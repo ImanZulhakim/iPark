@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:iprsr/screens/main_screen.dart';
 
 class ParkingLocationScreen extends StatefulWidget {
+  const ParkingLocationScreen({super.key});
+
   @override
   _ParkingLocationScreenState createState() => _ParkingLocationScreenState();
 }

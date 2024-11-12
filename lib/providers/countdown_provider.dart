@@ -15,9 +15,9 @@ class CountdownProvider with ChangeNotifier {
     activeUserID = userID; // Set the active userID
 
     _timer?.cancel();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (remainingTime.inSeconds > 0) {
-        remainingTime -= Duration(seconds: 1);
+        remainingTime -= const Duration(seconds: 1);
         notifyListeners();
       } else {
         _timer?.cancel();

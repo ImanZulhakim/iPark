@@ -7,15 +7,17 @@ class ParkingPreferencesScreen extends StatefulWidget {
   final TextEditingController userNameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final TextEditingController phoneController;
   final TextEditingController brandController;
   final TextEditingController typeController;
   final bool gender;
   final bool hasDisability;
 
-  ParkingPreferencesScreen({
+  const ParkingPreferencesScreen({super.key, 
     required this.userNameController,
     required this.emailController,
     required this.passwordController,
+    required this.phoneController,
     required this.brandController,
     required this.typeController,
     required this.gender,
@@ -73,7 +75,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     'Please choose your preferences',
                     style: TextStyle(
                       fontSize: 28,
@@ -122,6 +124,12 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                         onPressed: () {
                           Navigator.pop(context);
                         },
+                        style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                         child: Row(
                           children: [
                             Icon(Icons.arrow_back, color: Colors.black),
@@ -129,12 +137,6 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             Text('PREV', style: TextStyle(color: Colors.black)),
                           ],
                         ),
-                        style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
                       ),
                       // Inside ParkingPreferencesScreen's registration flow
                       ElevatedButton(
@@ -146,6 +148,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           await authService.register(
                             widget.emailController.text,
                             widget.passwordController.text,
+                            widget.phoneController.text,
                             widget.userNameController.text,
                             widget.gender,
                             widget.hasDisability,
@@ -156,14 +159,14 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
 
                           if (authService.user != null) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('Registration successful!'),
                                 backgroundColor: Colors.green,
                               ),
                             );
 
                             // Set a default location or navigate the user to select a location
-                            final selectedLocation =
+                            const selectedLocation =
                                 'SoC'; // Or navigate to ParkingLocationScreen first
 
                             Navigator.pushReplacement(
@@ -175,13 +178,19 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             );
                           } else {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
+                              const SnackBar(
                                 content: Text('Registration failed'),
                                 backgroundColor: Colors.red,
                               ),
                             );
                           }
                         },
+                        style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                         child: Row(
                           children: [
                             Text('REGISTER'),
@@ -189,12 +198,6 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             Icon(Icons.check),
                           ],
                         ),
-                        style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
                       ),
                     ],
                   ),

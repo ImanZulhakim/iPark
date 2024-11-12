@@ -5,6 +5,7 @@ class VehicleDetailsScreen extends StatelessWidget {
   final TextEditingController userNameController;
   final TextEditingController emailController;
   final TextEditingController passwordController;
+  final TextEditingController phoneController;
   final bool gender;
   final bool hasDisability;
 
@@ -15,10 +16,11 @@ class VehicleDetailsScreen extends StatelessWidget {
   final String? initialBrand;
   final String? initialType;
 
-  VehicleDetailsScreen({
+  VehicleDetailsScreen({super.key, 
     required this.userNameController,
     required this.emailController,
     required this.passwordController,
+    required this.phoneController,
     required this.gender,
     required this.hasDisability,
     this.initialBrand,
@@ -66,7 +68,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                         labelText: 'Vehicle Brand',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
                         fillColor: Colors.white,
@@ -74,8 +76,8 @@ class VehicleDetailsScreen extends StatelessWidget {
                       value: value,
                       items: ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla']
                           .map((label) => DropdownMenuItem(
-                                child: Text(label),
                                 value: label,
+                                child: Text(label),
                               ))
                           .toList(),
                       onChanged: (newValue) {
@@ -93,7 +95,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                         labelText: 'Vehicle Type',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide(color: Colors.black),
+                          borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true, // To enable background color
                         fillColor: Colors.white, // White background color
@@ -101,8 +103,8 @@ class VehicleDetailsScreen extends StatelessWidget {
                       value: value,
                       items: ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible']
                           .map((label) => DropdownMenuItem(
-                                child: Text(label),
                                 value: label,
+                                child: Text(label),
                               ))
                           .toList(),
                       onChanged: (newValue) {
@@ -122,18 +124,18 @@ class VehicleDetailsScreen extends StatelessWidget {
                           'type': _type.value,
                         });
                       },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                       child: const Row(
                         children: [
                           Icon(Icons.arrow_back),
                           SizedBox(width: 5),
                           Text('PREV'),
                         ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       ),
                     ),
                     ElevatedButton(
@@ -145,6 +147,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                               userNameController: userNameController,
                               emailController: emailController,
                               passwordController: passwordController,
+                              phoneController: phoneController,
                               brandController: TextEditingController(text: _brand.value),
                               typeController: TextEditingController(text: _type.value),
                               gender: gender,
@@ -153,18 +156,18 @@ class VehicleDetailsScreen extends StatelessWidget {
                           ),
                         );
                       },
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                      ),
                       child: const Row(
                         children: [
                           Text('NEXT'),
                           SizedBox(width: 5),
                           Icon(Icons.arrow_forward),
                         ],
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                       ),
                     ),
                   ],

@@ -7,6 +7,8 @@ class LoginScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
+  LoginScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,7 +47,7 @@ class LoginScreen extends StatelessWidget {
                       hintText: 'Enter your email',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       filled: true,
                       fillColor: Colors.white,
@@ -60,7 +62,7 @@ class LoginScreen extends StatelessWidget {
                       hintText: 'Enter your password',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Colors.black),
+                        borderSide: const BorderSide(color: Colors.black),
                       ),
                       filled: true,
                       fillColor: Colors.white,
@@ -149,7 +151,7 @@ class LoginScreen extends StatelessWidget {
         print('User ID: $userId'); // Print the userId to debug
 
         // Fetch user's last selected location or use a default one
-        final selectedLocation =
+        const selectedLocation =
             'SoC'; // Replace this with fetching logic if needed.
 
         // Navigate to MainScreen and pass userId and selectedLocation

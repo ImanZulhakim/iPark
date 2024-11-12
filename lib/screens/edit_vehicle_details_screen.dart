@@ -14,8 +14,8 @@ class EditVehicleDetailsScreen extends StatefulWidget {
     required this.initialBrand,
     required this.initialType,
     required this.initialPreferences,
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   _EditVehicleDetailsScreenState createState() =>
@@ -58,9 +58,9 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
       floatingActionButton: Container(
         width: 80.0,
         height: 80.0,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             colors: [
               Color.fromARGB(255, 255, 168, 220),
               Color.fromARGB(255, 115, 239, 246),
@@ -133,7 +133,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Brand',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.black),
+                    borderSide: const BorderSide(color: Colors.black),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -141,8 +141,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 value: brand,
                 items: vehicleBrands
                     .map((label) => DropdownMenuItem(
-                          child: Text(label),
                           value: label,
+                          child: Text(label),
                         ))
                     .toList(),
                 onChanged: (newValue) {
@@ -159,7 +159,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Type',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Colors.black),
+                    borderSide: const BorderSide(color: Colors.black),
                   ),
                   filled: true,
                   fillColor: Colors.white,
@@ -167,8 +167,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 value: type,
                 items: vehicleTypes
                     .map((label) => DropdownMenuItem(
-                          child: Text(label),
                           value: label,
+                          child: Text(label),
                         ))
                     .toList(),
                 onChanged: (newValue) {

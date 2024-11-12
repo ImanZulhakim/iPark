@@ -1,6 +1,7 @@
 class User {
   final String userID;
   final String email;
+  final String phoneNo;
   final String username;
   final String userType;
   final bool gender; // true for male, false for female
@@ -12,6 +13,7 @@ class User {
   User({
     required this.userID,
     required this.email,
+    required this.phoneNo,
     required this.username,
     required this.userType,
     required this.gender,
@@ -25,6 +27,7 @@ class User {
   User copyWith({
     String? userID,
     String? email,
+    String? phoneNo,
     String? username,
     String? userType,
     bool? gender,
@@ -36,6 +39,7 @@ class User {
     return User(
       userID: userID ?? this.userID,
       email: email ?? this.email,
+      phoneNo: phoneNo ?? this.phoneNo,
       username: username ?? this.username,
       userType: userType ?? this.userType,
       gender: gender ?? this.gender,
@@ -51,6 +55,7 @@ class User {
     return User(
       userID: json['userID'] ?? '',
       email: json['email'] ?? '',
+      phoneNo: json['phoneNo'] ?? '',
       username: json['username'] ?? '',
       userType: json['userType'] ?? '',
       gender: json['gender'] == '1', // Convert '1' to true and '0' to false
@@ -68,6 +73,7 @@ class User {
     return {
       'userID': userID,
       'email': email,
+      'phoneNo': phoneNo,
       'username': username,
       'userType': userType,
       'gender': gender ? '1' : '0', // Convert bool to '1' or '0'

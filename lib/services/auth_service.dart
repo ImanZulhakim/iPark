@@ -31,6 +31,7 @@ class AuthService extends ChangeNotifier {
   Future<void> register(
     String email,
     String password,
+    String phoneNo,
     String username,
     bool gender,
     bool hasDisability,
@@ -42,6 +43,7 @@ class AuthService extends ChangeNotifier {
       User? registeredUser = await ApiService.register(
         email,
         password,
+        phoneNo,
         username,
         gender,
         hasDisability,

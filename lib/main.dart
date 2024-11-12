@@ -10,10 +10,12 @@ import 'package:iprsr/providers/countdown_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(IPRSRApp());
+  runApp(const IPRSRApp());
 }
 
 class IPRSRApp extends StatelessWidget {
+  const IPRSRApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
@@ -30,13 +32,13 @@ class IPRSRApp extends StatelessWidget {
         onGenerateRoute: (settings) {
           switch (settings.name) {
             case '/':
-              return MaterialPageRoute(builder: (_) => SplashScreen());
+              return MaterialPageRoute(builder: (_) => const SplashScreen());
             case '/login':
               return MaterialPageRoute(builder: (_) => LoginScreen());
             case '/register':
-              return MaterialPageRoute(builder: (_) => RegistrationScreen());
+              return MaterialPageRoute(builder: (_) => const RegistrationScreen());
             case '/parking-location':
-              return MaterialPageRoute(builder: (_) => ParkingLocationScreen());
+              return MaterialPageRoute(builder: (_) => const ParkingLocationScreen());
             case '/main':
               if (settings.arguments is String) {
                 final selectedLocation = settings.arguments as String;
@@ -45,7 +47,7 @@ class IPRSRApp extends StatelessWidget {
                 );
               }
               return MaterialPageRoute(
-                builder: (_) => MainScreen(selectedLocation: 'SoC'), // Fallback
+                builder: (_) => const MainScreen(selectedLocation: 'SoC'), // Fallback
               );
             default:
               return null;

@@ -10,7 +10,7 @@ import 'package:iprsr/providers/countdown_provider.dart';
 class MainScreen extends StatefulWidget {
   final String selectedLocation;
 
-  MainScreen({required this.selectedLocation});
+  const MainScreen({super.key, required this.selectedLocation});
 
   @override
   _MainScreenState createState() => _MainScreenState();
