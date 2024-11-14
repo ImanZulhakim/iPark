@@ -23,6 +23,7 @@ class RecommendationScreen extends StatefulWidget {
 class _RecommendationScreenState extends State<RecommendationScreen> {
   late Future<Map<String, dynamic>> recommendationsFuture;
   Timer? telegramPollingTimer;
+  late final CountdownProvider _providerInstance;
 
   // Fetch recommendations and spaces from the API
   @override
@@ -38,10 +39,15 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _providerInstance = Provider.of<CountdownProvider>(context, listen: false);
+  }
+
+  @override
   void dispose() {
     telegramPollingTimer?.cancel();
-    Provider.of<CountdownProvider>(context, listen: false)
-        .removeListener(_onCountdownUpdate);
+    _providerInstance.removeListener(_onCountdownUpdate);
     super.dispose();
   }
 
@@ -221,6 +227,31 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
       final recommendedSpace = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
+      
+      // Show dialog if no suitable parking space is found
+      if (recommendedSpace.isEmpty) {
+        // Use Future.delayed to avoid BuildContext sync issues
+        Future.delayed(Duration.zero, () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('No Suitable Parking'),
+                content: const Text('No suitable parking space found based on your preferences.'),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        });
+      }
+      
       return {
         'parkingSpaces': parkingSpaces,
         'recommendedSpace': recommendedSpace,
@@ -291,8 +322,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                 );
 
                 // Start the countdown
-                Provider.of<CountdownProvider>(context, listen: false)
-                    .startCountdown(5, parkingSpaceID, widget.user.userID);
+                _providerInstance.startCountdown(5, parkingSpaceID, widget.user.userID);
 
                 // Refresh recommendations to update UI
                 setState(() {

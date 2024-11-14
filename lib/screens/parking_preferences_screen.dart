@@ -10,10 +10,11 @@ class ParkingPreferencesScreen extends StatefulWidget {
   final TextEditingController phoneController;
   final TextEditingController brandController;
   final TextEditingController typeController;
-  final bool gender;
+  final bool gender; // true for female, false for male
   final bool hasDisability;
 
-  const ParkingPreferencesScreen({super.key, 
+  const ParkingPreferencesScreen({
+    super.key,
     required this.userNameController,
     required this.emailController,
     required this.passwordController,
@@ -41,7 +42,6 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
     'premiumParking': false,
   };
 
-  // Map preference keys to user-friendly names
   final Map<String, String> preferenceLabels = {
     'isNearest': 'Nearest to Destination',
     'isCovered': 'Covered Parking',
@@ -52,6 +52,28 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
     'requiresFamilyParkingArea': 'Family Parking Area',
     'premiumParking': 'Premium Parking',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    _initializePreferences();
+  }
+
+  void _initializePreferences() {
+    // Auto-tick preferences based on conditions
+    if (widget.hasDisability) {
+      preferences['isNearest'] = true;
+      preferences['requiresWheelchairAccess'] = true;
+      preferences['requiresLargeSpace'] = true;
+    }
+    if (widget.gender) { // Female
+      preferences['isNearest'] = true;
+      preferences['requiresWellLitArea'] = true;
+    }
+    if (widget.brandController.text == 'Tesla') {
+      preferences['requiresEVCharging'] = true;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -125,26 +147,24 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
                         child: Row(
-                          children: [
+                          children: const [
                             Icon(Icons.arrow_back, color: Colors.black),
                             SizedBox(width: 5),
                             Text('PREV', style: TextStyle(color: Colors.black)),
                           ],
                         ),
                       ),
-                      // Inside ParkingPreferencesScreen's registration flow
                       ElevatedButton(
                         onPressed: () async {
                           final authService =
                               Provider.of<AuthService>(context, listen: false);
 
-                          // Use AuthService to register with user input and preferences
                           await authService.register(
                             widget.emailController.text,
                             widget.passwordController.text,
@@ -165,9 +185,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                               ),
                             );
 
-                            // Set a default location or navigate the user to select a location
-                            const selectedLocation =
-                                'SoC'; // Or navigate to ParkingLocationScreen first
+                            const selectedLocation = 'SoC';
 
                             Navigator.pushReplacement(
                               context,
@@ -186,13 +204,13 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                         ),
-                        padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                      ),
                         child: Row(
-                          children: [
+                          children: const [
                             Text('REGISTER'),
                             SizedBox(width: 5),
                             Icon(Icons.check),
