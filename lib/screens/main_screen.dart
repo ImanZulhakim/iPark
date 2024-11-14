@@ -295,10 +295,14 @@ class _MainScreenState extends State<MainScreen> {
                     print('User ID is null');
                   }
                 },
-                child: const Column(
+                child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.settings, color: Colors.black54, size: 28),
+                    Image.asset(
+                      'assets/images/preferences.png',
+                      width: 28,
+                      height: 28,
+                    ),
                     Text(
                       'Preferences',
                       style: TextStyle(color: Colors.black54, fontSize: 12),
