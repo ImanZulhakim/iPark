@@ -34,9 +34,20 @@ class LoginScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const SizedBox(height: 40),
+                  Image.asset(
+                    'assets/icon/icon.png',
+                    height: 120,
+                    width: 120,
+                  ),
+                  const SizedBox(height: 24),
                   const Text(
                     'Login to your account',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                      color: Color(0xFF333333),
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
