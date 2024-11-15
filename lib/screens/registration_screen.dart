@@ -28,17 +28,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surface,
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -50,10 +40,13 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 40),
-                    const Text(
+                    Text(
                       'Create new account',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 24, 
+                        fontWeight: FontWeight.bold,
+                        color: Theme.of(context).colorScheme.onSurface,
+                      ),
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -65,7 +58,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -84,7 +77,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -106,7 +99,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
@@ -139,7 +132,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -162,7 +155,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -187,7 +180,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Theme.of(context).colorScheme.surface,
                           ),
                           value: value,
                           items: const [
@@ -218,7 +211,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
-                            fillColor: Colors.white,
+                            fillColor: Theme.of(context).colorScheme.surface,
                           ),
                           value: value,
                           items: const [
@@ -238,7 +231,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       },
                     ),
                     const SizedBox(height: 20),
-                    Center(
+                    Align(
+                      alignment: Alignment.centerRight,
                       child: ElevatedButton(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
@@ -270,15 +264,30 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
+                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Theme.of(context).colorScheme.onPrimary,
                         ),
-                        child: const Row(
+                        child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('NEXT'),
-                            SizedBox(width: 5),
-                            Icon(Icons.arrow_forward),
+                            Text(
+                              'NEXT',
+                              style: TextStyle(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.onPrimary,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Icon(
+                              Icons.arrow_forward,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.onPrimary,
+                            ),
                           ],
                         ),
                       ),
@@ -289,7 +298,27 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         onPressed: () {
                           Navigator.pushReplacementNamed(context, '/login');
                         },
-                        child: const Text('Already have an account? Login'),
+                        child: RichText(
+                          text: TextSpan(
+                            text: 'Already have an account? ',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.normal,
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Login',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ],

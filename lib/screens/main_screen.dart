@@ -6,6 +6,7 @@ import 'package:iprsr/screens/edit_vehicle_details_screen.dart';
 import 'package:iprsr/screens/recommendation_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
+import 'package:iprsr/screens/settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String selectedLocation;
@@ -25,6 +26,21 @@ class _MainScreenState extends State<MainScreen> {
     selectedLocation = widget.selectedLocation;
   }
 
+  void _showSuccessSnackBar() {
+    final snackBar = SnackBar(
+      content: const Text('Registration successful!'),
+      backgroundColor: Colors.green,
+      duration: const Duration(seconds: 2),
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
+
+  void _onRegistrationSuccess() {
+    _showSuccessSnackBar();
+    // Additional logic for successful registration
+  }
+
   @override
   Widget build(BuildContext context) {
     final countdownProvider = Provider.of<CountdownProvider>(context);
@@ -38,17 +54,7 @@ class _MainScreenState extends State<MainScreen> {
 
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 115, 239, 246),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surface,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -82,7 +88,7 @@ class _MainScreenState extends State<MainScreen> {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => ParkingLocationScreen(),
+                            builder: (context) => const ParkingLocationScreen(),
                           ),
                         );
                         if (result != null) {
@@ -95,12 +101,19 @@ class _MainScreenState extends State<MainScreen> {
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          gradient: const LinearGradient(
-                            colors: [
-                              Color.fromARGB(255, 255, 168, 220),
-                              Color.fromARGB(255, 131, 245, 245),
-                            ],
-                          ),
+                          gradient: Theme.of(context).brightness == Brightness.dark
+                              ? const LinearGradient(
+                                  colors: [
+                                    Colors.teal,
+                                    Colors.tealAccent,
+                                  ],
+                                )
+                              : const LinearGradient(
+                                  colors: [
+                                    Color(0xFF00B4D8), // Lighter blue
+                                    Color(0xFF0077B6), // Darker blue
+                                  ],
+                                ),
                         ),
                         child: const Text(
                           'Change',
@@ -112,12 +125,14 @@ class _MainScreenState extends State<MainScreen> {
                 ),
               ),
               const SizedBox(height: 30),
-              const Text(
+              Text(
                 'Tap for Recommendation',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).brightness == Brightness.dark 
+                      ? Colors.white 
+                      : Colors.black,
                 ),
               ),
               const SizedBox(height: 30),
@@ -173,15 +188,18 @@ class _MainScreenState extends State<MainScreen> {
                             fontSize: constraints.maxHeight * 0.7,
                             fontFamily: 'Satisfy',
                             foreground: Paint()
-                              ..shader = const LinearGradient(
-                                colors: [
-                                  Color.fromARGB(255, 255, 168, 220),
-                                  Color.fromARGB(255, 240, 241, 241),
-                                  Color.fromARGB(255, 115, 239, 246),
-                                ],
-                                stops: [
+                              ..shader = LinearGradient(
+                                colors: Theme.of(context).brightness == Brightness.dark
+                                    ? const [
+                                        Colors.teal,
+                                        Colors.tealAccent,
+                                      ]
+                                    : const [
+                                        Color(0xFF00B4D8), // Turquoise blue
+                                        Color(0xFF0077B6), // Darker blue
+                                      ],
+                                stops: const [
                                   0.2,
-                                  0.5,
                                   0.8
                                 ],
                                 begin: Alignment.topCenter,
@@ -207,126 +225,172 @@ class _MainScreenState extends State<MainScreen> {
       floatingActionButton: Container(
         width: 80.0,
         height: 80.0,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 115, 239, 246),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? const LinearGradient(
+                  colors: [
+                    Colors.teal,
+                    Colors.tealAccent,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )
+              : LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    const Color(0xFF00B4D8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
         ),
         child: FloatingActionButton(
           onPressed: () {
-            print('Floating action button tapped');
+            // Navigate to the main screen or perform the intended action
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MainScreen(selectedLocation: selectedLocation),
+              ),
+            );
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: const Text(
+          child: Text(
             'P',
             style: TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.bold,
               fontFamily: 'Satisfy',
-              color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.white,
             ),
           ),
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              GestureDetector(
-                onTap: () async {
-                  if (userId != null) {
-                    print('Fetching vehicle details for userID: $userId');
-                    final fetchedData = await ApiService.fetchVehicleDetailsAndParkingPreferences(userId);
-                    print('Fetched vehicle details: $fetchedData');
+      bottomNavigationBar: Theme(
+        data: Theme.of(context).copyWith(
+          bottomAppBarTheme: BottomAppBarTheme(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[900] // Dark theme
+                : const Color(0xFF0077B6), // Blue theme
+          ),
+        ),
+        child: BottomAppBar(
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8.0,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                GestureDetector(
+                  onTap: () async {
+                    if (userId != null) {
+                      print('Fetching vehicle details for userID: $userId');
+                      final fetchedData = await ApiService.fetchVehicleDetailsAndParkingPreferences(userId);
+                      print('Fetched vehicle details: $fetchedData');
 
-                    if (fetchedData != null) {
-                      final fetchedBrand = fetchedData['data']['brand'];
-                      final fetchedType = fetchedData['data']['type'];
-                      final Map<String, bool> parkingPreferences = {
-                        'isNearest': fetchedData['data']['isNearest'] == 1,
-                        'isCovered': fetchedData['data']['isCovered'] == 1,
-                        'requiresLargeSpace': fetchedData['data']['requiresLargeSpace'] == 1,
-                        'requiresWellLitArea': fetchedData['data']['requiresWellLitArea'] == 1,
-                        'requiresEVCharging': fetchedData['data']['requiresEVCharging'] == 1,
-                        'requiresWheelchairAccess': fetchedData['data']['requiresWheelchairAccess'] == 1,
-                        'requiresFamilyParkingArea': fetchedData['data']['requiresFamilyParkingArea'] == 1,
-                        'premiumParking': fetchedData['data']['premiumParking'] == 1,
-                      };
+                      if (fetchedData != null) {
+                        final fetchedBrand = fetchedData['data']['brand'];
+                        final fetchedType = fetchedData['data']['type'];
+                        final Map<String, bool> parkingPreferences = {
+                          'isNearest': fetchedData['data']['isNearest'] == 1,
+                          'isCovered': fetchedData['data']['isCovered'] == 1,
+                          'requiresLargeSpace': fetchedData['data']['requiresLargeSpace'] == 1,
+                          'requiresWellLitArea': fetchedData['data']['requiresWellLitArea'] == 1,
+                          'requiresEVCharging': fetchedData['data']['requiresEVCharging'] == 1,
+                          'requiresWheelchairAccess': fetchedData['data']['requiresWheelchairAccess'] == 1,
+                          'requiresFamilyParkingArea': fetchedData['data']['requiresFamilyParkingArea'] == 1,
+                          'premiumParking': fetchedData['data']['premiumParking'] == 1,
+                        };
 
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => EditVehicleDetailsScreen(
-                            userID: userId,
-                            initialBrand: fetchedBrand,
-                            initialType: fetchedType,
-                            initialPreferences: parkingPreferences,
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => EditVehicleDetailsScreen(
+                              userID: userId,
+                              initialBrand: fetchedBrand,
+                              initialType: fetchedType,
+                              initialPreferences: parkingPreferences,
+                            ),
                           ),
-                        ),
-                      );
-
-                      if (result != null) {
-                        String updatedBrand = result['brand'];
-                        String updatedType = result['type'];
-
-                        await Provider.of<AuthService>(context, listen: false)
-                            .updateUser(
-                          userID: userId,
-                          vehicleBrand: updatedBrand,
-                          vehicleType: updatedType,
-                          preferences: {},
                         );
+
+                        if (result != null) {
+                          String updatedBrand = result['brand'];
+                          String updatedType = result['type'];
+
+                          await Provider.of<AuthService>(context, listen: false)
+                              .updateUser(
+                            userID: userId,
+                            vehicleBrand: updatedBrand,
+                            vehicleType: updatedType,
+                            preferences: {},
+                          );
+                        }
+                      } else {
+                        print('Failed to fetch vehicle details or preferences from the server.');
                       }
                     } else {
-                      print('Failed to fetch vehicle details or preferences from the server.');
+                      print('User ID is null');
                     }
-                  } else {
-                    print('User ID is null');
-                  }
-                },
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.asset(
-                      'assets/images/preferences.png',
-                      width: 28,
-                      height: 28,
-                    ),
-                    Text(
-                      'Preferences',
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
-                  ],
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Image.asset(
+                        'assets/images/preferences.png',
+                        width: 28,
+                        height: 28,
+                      ),
+                      Text(
+                        'Preferences',
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white
+                              : Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Provider.of<AuthService>(context, listen: false).logout();
-                  Navigator.pushReplacementNamed(context, '/login');
-                },
-                child: const Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.logout, color: Colors.black54, size: 28),
-                    Text(
-                      'Log out',
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
-                  ],
+                GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
+                    );
+                  },
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.settings,
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white // Changed to white for dark theme
+                            : Colors.white,
+                        size: 28,
+                      ),
+                      Text(
+                        'Settings',
+                        style: TextStyle(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white // Changed to white for dark theme
+                              : Colors.white,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

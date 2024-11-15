@@ -73,23 +73,17 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
     if (widget.brandController.text == 'Tesla') {
       preferences['requiresEVCharging'] = true;
     }
+
+    if (widget.typeController.text == 'Truck') {
+      preferences['requiresLargeSpace'] = true;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surface,
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -97,17 +91,18 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
-                    'Please choose your preferences',
+                  Text(
+                    'Update your preferences',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   Card(
+                    color: Colors.grey[850],
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -117,13 +112,13 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                       child: Column(
                         children: preferences.keys.map((String key) {
                           return CheckboxListTile(
-                            activeColor:
-                                const Color.fromARGB(255, 245, 107, 153),
+                            activeColor: Theme.of(context).colorScheme.primary,
                             title: Text(
                               preferenceLabels[key] ?? key,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
+                                color: Theme.of(context).colorScheme.onSurface,
                               ),
                             ),
                             value: preferences[key],
@@ -151,12 +146,14 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
                         ),
                         child: Row(
-                          children: const [
-                            Icon(Icons.arrow_back, color: Colors.black),
-                            SizedBox(width: 5),
-                            Text('PREV', style: TextStyle(color: Colors.black)),
+                          children: [
+                            Icon(Icons.arrow_back, color: Colors.white),
+                            const SizedBox(width: 5),
+                            Text('BACK', style: TextStyle(color: Colors.white)),
                           ],
                         ),
                       ),
@@ -208,12 +205,14 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          foregroundColor: Colors.white,
                         ),
                         child: Row(
-                          children: const [
-                            Text('REGISTER'),
-                            SizedBox(width: 5),
-                            Icon(Icons.check),
+                          children: [
+                            Text('REGISTER', style: TextStyle(color: Colors.white)),
+                            const SizedBox(width: 5),
+                            Icon(Icons.check, color: Colors.white),
                           ],
                         ),
                       ),

@@ -13,18 +13,8 @@ class LoginScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
-              Color.fromARGB(255, 240, 241, 241),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: Center(
           child: SingleChildScrollView(
@@ -40,13 +30,11 @@ class LoginScreen extends StatelessWidget {
                     width: 120,
                   ),
                   const SizedBox(height: 24),
-                  const Text(
+                  Text(
                     'Login to your account',
-                    style: TextStyle(
-                      fontSize: 24,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                       letterSpacing: 0.5,
-                      color: Color(0xFF333333),
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -58,10 +46,10 @@ class LoginScreen extends StatelessWidget {
                       hintText: 'Enter your email',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.black),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).colorScheme.surface,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -73,20 +61,20 @@ class LoginScreen extends StatelessWidget {
                       hintText: 'Enter your password',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: Colors.black),
+                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                       ),
                       filled: true,
-                      fillColor: Colors.white,
+                      fillColor: Theme.of(context).colorScheme.surface,
                       suffixText: 'Forgot password?',
-                      suffixStyle: const TextStyle(color: Colors.blue),
+                      suffixStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
                     ),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => _handleLogin(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.pink,
-                      foregroundColor: Colors.white,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -110,12 +98,10 @@ class LoginScreen extends StatelessWidget {
                     onPressed: () {
                       // Google sign-in logic
                     },
-                    icon: Image.asset('assets/images/google_logo.png',
-                        height: 24),
+                    icon: Image.asset('assets/images/google_logo.png', height: 24),
                     label: const Text('Google'),
                     style: OutlinedButton.styleFrom(
-                      backgroundColor:
-                          Colors.white, // Set background color to white
+                      backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -127,13 +113,18 @@ class LoginScreen extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("Don't have an account? "),
+                      Text(
+                        "Don't have an account? ",
+                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                      ),
                       TextButton(
                         onPressed: () {
                           Navigator.pushNamed(context, '/register');
                         },
-                        child: const Text('Register',
-                            style: TextStyle(color: Colors.pink)),
+                        child: Text(
+                          'Register',
+                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                        ),
                       ),
                     ],
                   ),

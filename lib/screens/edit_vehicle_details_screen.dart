@@ -53,21 +53,40 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Floating Action Button at the center docked
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: CustomBottomNavigationBar(
+        userId: widget.userID,
+        onFloatingActionButtonPressed: () {
+          // Redirect to main screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainScreen(selectedLocation: 'SoC'),
+            ),
+          );
+        },
+      ),
       floatingActionButton: Container(
         width: 80.0,
         height: 80.0,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           shape: BoxShape.circle,
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 115, 239, 246),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? const LinearGradient(
+                  colors: [
+                    Colors.teal,
+                    Colors.tealAccent,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )
+              : LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    const Color(0xFF00B4D8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
         ),
         child: FloatingActionButton(
           onPressed: () {
@@ -75,56 +94,35 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                  builder: (context) => MainScreen(
-                        selectedLocation: 'SoC',
-                      )), // Navigate to main screen
+                builder: (context) => MainScreen(selectedLocation: 'SoC'),
+              ),
             );
           },
           backgroundColor: Colors.transparent,
-          elevation: 0, // Remove elevation to avoid shadow over gradient
-          child: const Text(
+          elevation: 0,
+          child: Text(
             'P',
             style: TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.bold,
               fontFamily: 'Satisfy',
-              color: Colors.white,
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.white,
             ),
           ),
         ),
       ),
-
-      // Bottom Navigation Bar with Notch for FloatingActionButton
-      bottomNavigationBar: CustomBottomNavigationBar(userId: widget.userID),
-
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 115, 239, 246),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center, // Center the elements vertically
-          crossAxisAlignment:
-              CrossAxisAlignment.center, // Center the elements horizontally
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Center(
-              child: Text(
-                'Lets start with your car',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
-              ),
+            Text(
+              'Lets start with your car',
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 30),
             Center(
@@ -133,10 +131,10 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Brand',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.black),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                 ),
                 value: brand,
                 items: vehicleBrands
@@ -159,10 +157,10 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Type',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: const BorderSide(color: Colors.black),
+                    borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
                   ),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: Theme.of(context).colorScheme.surface,
                 ),
                 value: type,
                 items: vehicleTypes
@@ -183,20 +181,34 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(
-                        context); // Navigate back to the previous screen
+                    Navigator.pop(context);
                   },
-                  icon: const Icon(Icons.arrow_back, size: 18),
-                  label: const Text('PREV'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                        horizontal: 20, vertical: 12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back, size: 20),
+                      SizedBox(width: 4),
+                      Text('BACK', 
+                        style: TextStyle(
+                          fontSize: 16,
+                        )
+                      ),
+                    ],
                   ),
                 ),
-                ElevatedButton.icon(
+                ElevatedButton(
                   onPressed: () async {
                     final updatedPreferences = await Navigator.push(
                       context,
@@ -216,12 +228,27 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.arrow_forward, size: 18),
-                  label: const Text('NEXT'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 10),
+                        horizontal: 20, vertical: 12),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('NEXT',
+                        style: TextStyle(
+                          fontSize: 16,
+                        )
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward, size: 20),
+                    ],
                   ),
                 ),
               ],

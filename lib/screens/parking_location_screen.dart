@@ -25,12 +25,12 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
+              Theme.of(context).colorScheme.primary,
+              Theme.of(context).colorScheme.background,
+              Theme.of(context).colorScheme.secondary,
             ],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
@@ -46,10 +46,10 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
                 selectedState == null
                     ? 'Select Your State'
                     : 'Available Parking Lots in $selectedState',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
                 textAlign: TextAlign.center,
               ),

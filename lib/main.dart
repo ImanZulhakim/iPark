@@ -8,6 +8,8 @@ import 'package:iprsr/screens/login_screen.dart';
 import 'package:iprsr/screens/registration_screen.dart';
 import 'package:iprsr/screens/main_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
+import 'package:iprsr/theme/app_theme.dart';
+import 'package:iprsr/providers/theme_provider.dart';
 
 void main() {
   runZonedGuarded(() async {
@@ -18,7 +20,12 @@ void main() {
       print('Stack trace: ${details.stack}');
     };
 
-    runApp(const IPRSRApp());
+    runApp(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: const IPRSRApp(),
+      ),
+    );
   }, (error, stackTrace) {
     print('Error caught by runZonedGuarded: $error');
     print('Stack trace: $stackTrace');
@@ -40,49 +47,60 @@ class IPRSRApp extends StatelessWidget {
           create: (context) => CountdownProvider(),
           lazy: false,
         ),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'IPRSR',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        initialRoute: '/',
-        onGenerateRoute: (settings) {
-          try {
-            switch (settings.name) {
-              case '/':
-                return MaterialPageRoute(builder: (context) => const SplashScreen());
-              case '/login':
-                return MaterialPageRoute(builder: (context) => LoginScreen());
-              case '/register':
-                return MaterialPageRoute(builder: (context) => const RegistrationScreen());
-              case '/parking-location':
-                return MaterialPageRoute(builder: (context) => const ParkingLocationScreen());
-              case '/main':
-                final selectedLocation = settings.arguments as String? ?? 'SoC';
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          ThemeData currentTheme;
+          switch (themeProvider.currentTheme) {
+            case ThemeType.light:
+              currentTheme = AppTheme.lightTheme;
+            case ThemeType.dark:
+              currentTheme = AppTheme.darkTheme;
+          }
+
+          return MaterialApp(
+            title: 'IPRSR',
+            theme: currentTheme,
+            initialRoute: '/',
+            onGenerateRoute: (settings) {
+              try {
+                switch (settings.name) {
+                  case '/':
+                    return MaterialPageRoute(builder: (context) => const SplashScreen());
+                  case '/login':
+                    return MaterialPageRoute(builder: (context) => LoginScreen());
+                  case '/register':
+                    return MaterialPageRoute(builder: (context) => const RegistrationScreen());
+                  case '/parking-location':
+                    return MaterialPageRoute(builder: (context) => const ParkingLocationScreen());
+                  case '/main':
+                    final selectedLocation = settings.arguments as String? ?? 'SoC';
+                    return MaterialPageRoute(
+                      builder: (context) => MainScreen(selectedLocation: selectedLocation),
+                    );
+                  default:
+                    return MaterialPageRoute(
+                      builder: (context) => const Scaffold(
+                        body: Center(
+                          child: Text('Route not found'),
+                        ),
+                      ),
+                    );
+                }
+              } catch (e, stack) {
+                print('Navigation error: $e');
+                print('Stack trace: $stack');
                 return MaterialPageRoute(
-                  builder: (context) => MainScreen(selectedLocation: selectedLocation),
-                );
-              default:
-                return MaterialPageRoute(
-                  builder: (context) => const Scaffold(
+                  builder: (context) => Scaffold(
                     body: Center(
-                      child: Text('Route not found'),
+                      child: Text('Error: $e'),
                     ),
                   ),
                 );
-            }
-          } catch (e, stack) {
-            print('Navigation error: $e');
-            print('Stack trace: $stack');
-            return MaterialPageRoute(
-              builder: (context) => Scaffold(
-                body: Center(
-                  child: Text('Error: $e'),
-                ),
-              ),
-            );
-          }
+              }
+            },
+          );
         },
       ),
     );

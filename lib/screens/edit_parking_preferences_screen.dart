@@ -8,7 +8,8 @@ class EditParkingPreferencesScreen extends StatefulWidget {
   final String vehicleBrand;
   final String vehicleType;
 
-  const EditParkingPreferencesScreen({super.key, 
+  const EditParkingPreferencesScreen({
+    super.key,
     required this.userID,
     required this.initialPreferences,
     required this.vehicleBrand,
@@ -44,18 +45,50 @@ class _ParkingPreferencesEditScreenState
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+      floatingActionButton: Container(
+        width: 80.0,
+        height: 80.0,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: Theme.of(context).brightness == Brightness.dark
+              ? const LinearGradient(
+                  colors: [
+                    Colors.teal,
+                    Colors.tealAccent,
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                )
+              : LinearGradient(
+                  colors: [
+                    Theme.of(context).primaryColor,
+                    const Color(0xFF00B4D8),
+                  ],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+        ),
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          },
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Text(
+            'P',
+            style: TextStyle(
+              fontSize: 40,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Satisfy',
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white
+                  : Colors.white,
+            ),
           ),
         ),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      body: Container(
         child: Center(
           child: SingleChildScrollView(
             child: Padding(
@@ -63,18 +96,23 @@ class _ParkingPreferencesEditScreenState
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     'Update your preferences',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.white // White text in dark mode
+                          : Colors.black, // Black text in light mode
                     ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   Card(
                     elevation: 4,
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850] // Dark grey in dark mode
+                        : Colors.white, // White in light mode
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
@@ -83,13 +121,16 @@ class _ParkingPreferencesEditScreenState
                       child: Column(
                         children: preferences.keys.map((String key) {
                           return CheckboxListTile(
-                            activeColor:
-                                const Color.fromARGB(255, 245, 107, 153),
+                            activeColor: Theme.of(context).primaryColor,
                             title: Text(
                               preferenceLabels[key] ?? key,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w500,
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
+                                    ? Colors.white // White text in dark mode
+                                    : Colors.black, // Black text in light mode
                               ),
                             ),
                             value: preferences[key],
@@ -113,24 +154,36 @@ class _ParkingPreferencesEditScreenState
                           Navigator.pop(context, preferences);
                         },
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
+                              horizontal: 20, vertical: 12),
                         ),
                         child: const Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.arrow_back, color: Colors.black),
-                            SizedBox(width: 5),
-                            Text('BACK', style: TextStyle(color: Colors.black)),
+                            Icon(Icons.arrow_back, 
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                            SizedBox(width: 4),
+                            Text('BACK', 
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              )
+                            ),
                           ],
                         ),
                       ),
                       ElevatedButton(
                         onPressed: () async {
-                          final success =
-                              await ApiService.updateVehicleDetailsAndParkingPreferences(
+                          final success = await ApiService
+                              .updateVehicleDetailsAndParkingPreferences(
                             userID: widget.userID,
                             vehicleBrand: widget.vehicleBrand,
                             vehicleType: widget.vehicleType,
@@ -142,6 +195,7 @@ class _ParkingPreferencesEditScreenState
                               const SnackBar(
                                 content: Text('Preferences updated successfully!'),
                                 backgroundColor: Colors.green,
+                                duration: Duration(seconds: 2),
                               ),
                             );
                             Navigator.of(context).popUntil((route) => route.isFirst);
@@ -155,17 +209,26 @@ class _ParkingPreferencesEditScreenState
                           }
                         },
                         style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          elevation: 2,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 30, vertical: 15),
+                              horizontal: 20, vertical: 12),
                         ),
-                        child: const Row(
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text('UPDATE'),
-                            SizedBox(width: 5),
-                            Icon(Icons.check),
+                            const Text('UPDATE',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.white,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(Icons.check, size: 20, color: Colors.white),
                           ],
                         ),
                       ),

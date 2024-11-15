@@ -65,16 +65,19 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDarkTheme = theme.brightness == Brightness.dark;
+    final backgroundColor = isDarkTheme ? Colors.grey[700] : theme.colorScheme.surface;
+    final textColor = isDarkTheme ? Colors.white : Colors.black87;
+
     return Scaffold(
       appBar: AppBar(
         title: FittedBox(
           fit: BoxFit.scaleDown,
           child: Text(
             'Parking Recommendations for ${widget.location}',
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: theme.appBarTheme.foregroundColor ?? Colors.white,
             ),
           ),
         ),
@@ -84,45 +87,39 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             Navigator.pop(context);
           },
         ),
-        backgroundColor: Colors.teal,
+        backgroundColor: isDarkTheme ? Colors.grey[800] : theme.appBarTheme.backgroundColor ?? Colors.teal,
       ),
       body: Column(
         children: [
           Container(
             width: double.infinity,
-            color: Colors.grey[200],
+            color: backgroundColor,
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(
-                        Icons.accessible, "Special", Colors.blueAccent),
+                    _buildLegendItem(Icons.accessible, "Special", Colors.blueAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.female, "Female", Colors.pinkAccent),
+                    _buildLegendItem(Icons.female, "Female", Colors.pinkAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.family_restroom, "Family", Colors.purpleAccent),
+                    _buildLegendItem(Icons.family_restroom, "Family", Colors.purpleAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.electric_car, "EV Car", Colors.tealAccent),
+                    _buildLegendItem(Icons.electric_car, "EV Car", Colors.tealAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.star, "Premium", const Color(0xFFFFD54F)),
+                    _buildLegendItem(Icons.star, "Premium", const Color(0xFFFFD54F), textColor),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(Icons.local_parking, "Regular",
-                        const Color.fromRGBO(158, 158, 158, 1)),
+                    _buildLegendItem(Icons.local_parking, "Regular", const Color.fromRGBO(158, 158, 158, 1), textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.thumb_up, "Recommended", Colors.greenAccent),
+                    _buildLegendItem(Icons.thumb_up, "Recommended", Colors.greenAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.block, "Occupied", Colors.redAccent),
+                    _buildLegendItem(Icons.block, "Occupied", Colors.redAccent, textColor),
                   ],
                 ),
               ],
@@ -215,8 +212,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         onPressed: () {
           openGoogleMaps(widget.location);
         },
-        
-        backgroundColor: Colors.teal,
+        backgroundColor: theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
         child: const Icon(Icons.navigation, color: Colors.white),
       ),
     );
@@ -402,14 +398,14 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     });
   }
 
-  Widget _buildLegendItem(IconData icon, String label, Color color) {
+  Widget _buildLegendItem(IconData icon, String label, Color color, Color textColor) {
     return Row(
       children: [
         Icon(icon, color: color, size: 16),
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.black87, fontSize: 12),
+          style: TextStyle(color: textColor, fontSize: 12),
         ),
       ],
     );

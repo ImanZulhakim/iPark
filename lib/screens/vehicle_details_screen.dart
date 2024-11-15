@@ -35,19 +35,7 @@ class VehicleDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 255, 168, 220),
-              Color.fromARGB(255, 240, 241, 241),
-              Color.fromARGB(255, 131, 245, 245),
-              Color.fromARGB(255, 240, 241, 241),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
+        color: Theme.of(context).colorScheme.surface,
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
@@ -55,9 +43,13 @@ class VehicleDetailsScreen extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   'Lets start from your car',
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24, 
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(height: 20),
                 ValueListenableBuilder<String?>(
@@ -71,7 +63,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Colors.white,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       value: value,
                       items: ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla']
@@ -97,8 +89,8 @@ class VehicleDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
                         ),
-                        filled: true, // To enable background color
-                        fillColor: Colors.white, // White background color
+                        filled: true,
+                        fillColor: Theme.of(context).colorScheme.surface,
                       ),
                       value: value,
                       items: ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible']
@@ -129,12 +121,14 @@ class VehicleDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
                       ),
                       child: const Row(
                         children: [
                           Icon(Icons.arrow_back),
                           SizedBox(width: 5),
-                          Text('PREV'),
+                          Text('BACK'),
                         ],
                       ),
                     ),
@@ -161,6 +155,8 @@ class VehicleDetailsScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                        backgroundColor: Theme.of(context).colorScheme.primary,
+                        foregroundColor: Colors.white,
                       ),
                       child: const Row(
                         children: [
