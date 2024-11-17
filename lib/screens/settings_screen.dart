@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/providers/theme_provider.dart';
+import 'package:iprsr/screens/main_screen.dart';
+import 'package:iprsr/providers/tutorial_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -129,6 +131,7 @@ class SettingsScreen extends StatelessWidget {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
+                  backgroundColor: Colors.white,
                   title: const Text(
                     'Log out',
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
@@ -156,6 +159,23 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+              );
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('View Tutorial'),
+            onTap: () {
+              final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
+              tutorialProvider.setManualTutorial(true);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainScreen(
+                    selectedLocation: 'SoC',
+                    showTutorial: true,
+                  ),
                 ),
               );
             },

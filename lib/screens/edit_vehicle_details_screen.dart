@@ -131,11 +131,24 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Brand',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
+                  fillColor: Theme.of(context).brightness == Brightness.light 
+                      ? Colors.white 
+                      : Theme.of(context).colorScheme.surface,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                  ),
                 ),
+                dropdownColor: Theme.of(context).brightness == Brightness.light 
+                    ? Colors.white 
+                    : Theme.of(context).colorScheme.surface,
                 value: brand,
                 items: vehicleBrands
                     .map((label) => DropdownMenuItem(
@@ -157,11 +170,24 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Type',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).colorScheme.surface,
+                  fillColor: Theme.of(context).brightness == Brightness.light 
+                      ? Colors.white 
+                      : Theme.of(context).colorScheme.surface,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                  ),
                 ),
+                dropdownColor: Theme.of(context).brightness == Brightness.light 
+                    ? Colors.white 
+                    : Theme.of(context).colorScheme.surface,
                 value: type,
                 items: vehicleTypes
                     .map((label) => DropdownMenuItem(

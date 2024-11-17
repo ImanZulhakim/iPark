@@ -7,9 +7,9 @@ class AppTheme {
     colorScheme: const ColorScheme.light(
       primary: Color(0xFF0077B6),
       secondary: Color(0xFF00B4D8),
-      surface: Colors.white,
+      surface: Color(0xFFCAF0F8),
     ),
-    scaffoldBackgroundColor: Colors.white,
+    scaffoldBackgroundColor: const Color(0xFFCAF0F8),
     appBarTheme: const AppBarTheme(
       backgroundColor: Color(0xFF0077B6),
       foregroundColor: Colors.white,

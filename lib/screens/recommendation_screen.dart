@@ -31,10 +31,21 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     super.initState();
     recommendationsFuture = fetchRecommendationsAndSpaces();
 
-    // Listen to changes in the CountdownProvider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<CountdownProvider>(context, listen: false)
-          .addListener(_onCountdownUpdate);
+    // Check for active premium parking session on init
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final countdownProvider = Provider.of<CountdownProvider>(context, listen: false);
+      final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
+      
+      if (activeSession != null) {
+        // Restore countdown if there's an active session
+        countdownProvider.restoreCountdown(
+          activeSession['remaining_time'], 
+          activeSession['parking_space_id'],
+          widget.user.userID,
+        );
+      }
+      
+      countdownProvider.addListener(_onCountdownUpdate);
     });
   }
 
@@ -52,11 +63,17 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   // Callback function to handle countdown updates
-  void _onCountdownUpdate() {
+  void _onCountdownUpdate() async {
     final countdownProvider =
         Provider.of<CountdownProvider>(context, listen: false);
     if (!countdownProvider.isCountingDown) {
-      // Refresh recommendationsFuture when the countdown ends
+      // Unlock the parking space when countdown ends
+      final parkingSpaceID = countdownProvider.activeParkingSpaceID;
+      if (parkingSpaceID != null) {
+        await ApiService.unlockParkingSpace(parkingSpaceID);
+      }
+      
+      // Refresh recommendationsFuture
       setState(() {
         recommendationsFuture = fetchRecommendationsAndSpaces();
       });
@@ -67,7 +84,6 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkTheme = theme.brightness == Brightness.dark;
-    final backgroundColor = isDarkTheme ? Colors.grey[700] : theme.colorScheme.surface;
     final textColor = isDarkTheme ? Colors.white : Colors.black87;
 
     return Scaffold(
@@ -93,7 +109,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         children: [
           Container(
             width: double.infinity,
-            color: backgroundColor,
+            color: Theme.of(context).brightness == Brightness.dark 
+                ? Colors.grey[700] 
+                : const Color(0xFFADE8F4), // Slightly darker blue for light theme
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Column(
               children: [
@@ -182,19 +200,15 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                               ['parkingType'] ==
                                           'Premium'
                                       ? () {
-                                          _showPaymentDialog(
-                                              context,
+                                          _handleParkingSpaceSelection(
                                               parkingSpaces[i + j]
-                                                  ['parkingSpaceID']);
+                                                  ['parkingSpaceID'],
+                                              parkingSpaces[i + j]
+                                                  ['parkingType'] ==
+                                              'Premium');
                                         }
                                       : () {
-                                          // Show message for non-premium parking spaces
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(const SnackBar(
-                                            content: Text(
-                                                'Payment is only available for Premium parking spots.'),
-                                            backgroundColor: Colors.red,
-                                          ));
+                                          // Do nothing for non-premium parking spaces
                                         },
                                 ),
                             ],
@@ -224,27 +238,43 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       final recommendedSpace = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
       
-      // Show dialog if no suitable parking space is found
-      if (recommendedSpace.isEmpty) {
-        // Use Future.delayed to avoid BuildContext sync issues
-        Future.delayed(Duration.zero, () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('No Suitable Parking'),
-                content: const Text('No suitable parking space found based on your preferences.'),
-                actions: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('OK'),
-                  ),
-                ],
-              );
-            },
-          );
+      if (mounted) {
+        // Store dialog context reference
+        BuildContext? dialogContext;
+        
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (BuildContext context) {
+            dialogContext = context;
+            return AlertDialog(
+              backgroundColor: Colors.white,
+              title: const Text(
+                'Recommended Parking',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              content: Text(
+                recommendedSpace.isEmpty
+                  ? 'No suitable parking space found based on your preferences.'
+                  : 'Your recommended parking space is: $recommendedSpace',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.black,
+                ),
+              ),
+            );
+          },
+        );
+
+        // Dismiss dialog after delay if still mounted
+        Future.delayed(const Duration(seconds: 2), () {
+          if (mounted && dialogContext != null && Navigator.canPop(dialogContext!)) {
+            Navigator.pop(dialogContext!);
+          }
         });
       }
       
@@ -282,93 +312,108 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
   }
 
-// Show the payment dialog
-  void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text("Premium Parking"),
-        content: Text(
-            "This is a premium parking spot for $parkingSpaceID. Proceed with payment?"),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: const Text("Cancel"),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-
-              // Lock the parking space
-              bool success = await ApiService.lockParkingSpace(
-                  parkingSpaceID, widget.user.userID,
-                  duration: 5);
-
-              if (success) {
-                // Display success message
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                        'Parking spot $parkingSpaceID locked for 5 minutes.'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-
-                // Start the countdown
-                _providerInstance.startCountdown(5, parkingSpaceID, widget.user.userID);
-
-                // Refresh recommendations to update UI
-                setState(() {
-                  recommendationsFuture = fetchRecommendationsAndSpaces();
-                });
-
-                // Close the gate by triggering the servo to close
-                await ApiService.controlGate("close");
-                print("Gate closed for parking space $parkingSpaceID.");
-
-                // Check if the chat ID is already saved for this user
-                final chatId =
-                    await ApiService.getUserChatId(widget.user.userID);
-                if (chatId == null) {
-                  // Redirect user to Telegram to start chatting with the bot
-                  await openTelegramOrFallback();
-
-                  // Start polling to check for chat ID after opening Telegram
-                  startTelegramPolling(widget.user.userID, parkingSpaceID);
-                } else {
-                  // Start sending notifications since the chat ID is available
-                  ApiService.startParkingNotification(
-                      widget.user.userID, parkingSpaceID);
-                }
-
-                // Schedule the gate to open after the countdown duration ends (5 minutes)
-                Timer(const Duration(minutes: 5), () async {
-                  await ApiService.controlGate("open");
-                  print("Gate opened after countdown for parking space $parkingSpaceID.");
-                });
-              } else {
-                // Display failure message if unable to lock the parking space
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text("Failed to lock the parking spot."),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: const Text("Pay"),
-          ),
-        ],
+  void _handlePremiumParking(String parkingSpaceID) async {
+    try {
+      print('Starting premium parking process for space: $parkingSpaceID'); // Debug log
+      
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        },
       );
-    },
-  );
-}
 
+      print('Calling API to create premium parking'); // Debug log
+      
+      // Create premium parking session
+      bool success = await ApiService.createPremiumParking(
+        parkingSpaceID,
+        widget.user.userID,
+      );
 
-// Function to open Telegram or fallback to web link
+      print('API response success: $success'); // Debug log
+
+      // Remove loading indicator
+      if (mounted) {
+        Navigator.pop(context);
+      }
+
+      if (success) {
+        print('Premium parking activated successfully'); // Debug log
+        
+        // Start the countdown
+        Provider.of<CountdownProvider>(context, listen: false)
+            .startCountdown(5, parkingSpaceID, widget.user.userID);
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Premium parking activated successfully'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Close the gate
+        await ApiService.controlGate("close");
+
+        // Handle Telegram notifications
+        final chatId = await ApiService.getUserChatId(widget.user.userID);
+        if (chatId == null) {
+          await openTelegramOrFallback();
+          startTelegramPolling(widget.user.userID, parkingSpaceID);
+        } else {
+          ApiService.startParkingNotification(widget.user.userID, parkingSpaceID);
+        }
+
+        // Schedule cleanup after 5 minutes
+        Timer(const Duration(minutes: 5), () async {
+          await ApiService.controlGate("open");
+          
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Premium parking session ended'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        });
+      } else {
+        print('Failed to activate premium parking - API returned false'); // Debug log
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to activate premium parking'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error in _handlePremiumParking: $e'); // Debug log
+      
+      // Remove loading indicator if still showing
+      if (mounted && Navigator.canPop(context)) {
+        Navigator.pop(context);
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  // Function to open Telegram or fallback to web link
   Future<void> openTelegramOrFallback() async {
     final Uri botUrl = Uri.parse('https://t.me/iprsr_bot?start');
     final Uri fallbackUrl = Uri.parse('https://web.telegram.org/');
@@ -382,7 +427,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
   }
 
-// Start polling to check for the chat ID
+  // Start polling to check for the chat ID
   void startTelegramPolling(String userID, String parkingSpaceID) {
     Timer.periodic(const Duration(seconds: 10), (Timer timer) async {
       final newChatId = await ApiService.getChatIdFromTelegram(userID);
@@ -401,7 +446,22 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Widget _buildLegendItem(IconData icon, String label, Color color, Color textColor) {
     return Row(
       children: [
-        Icon(icon, color: color, size: 16),
+        Stack(
+          children: [
+            // Black outline
+            Icon(
+              icon,
+              color: Colors.black,
+              size: 18, // Slightly larger for outline
+            ),
+            // Colored icon
+            Icon(
+              icon,
+              color: color,
+              size: 16,
+            ),
+          ],
+        ),
         const SizedBox(width: 4),
         Text(
           label,
@@ -409,6 +469,90 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         ),
       ],
     );
+  }
+
+  void _handleParkingSpaceSelection(String parkingSpaceID, bool isPremium) {
+    if (isPremium) {
+      // Show payment dialog for premium parking
+      _showPaymentDialog(context, parkingSpaceID);
+    } else {
+      // Handle regular parking
+      // ... your existing regular parking logic ...
+    }
+  }
+
+  void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: const Text(
+            "Premium Parking",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            "This is a premium parking spot. Proceed with payment?",
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "Cancel",
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context); // Close dialog
+                _handlePremiumParking(parkingSpaceID); // Process premium parking
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Pay"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleRecommendationButton() async {
+    // First check if user has active premium parking
+    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
+    
+    if (activeSession != null) {
+      // User has active premium parking
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Active Premium Parking'),
+            content: Text(
+              'You currently have an active premium parking session at ${activeSession['parking_space_id']}. '
+              'Please wait for your current session to end before requesting new recommendations.'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } else {
+      // No active session, proceed with normal recommendation logic
+      setState(() {
+        recommendationsFuture = fetchRecommendationsAndSpaces();
+      });
+    }
   }
 }
 

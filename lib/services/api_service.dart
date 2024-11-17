@@ -4,7 +4,7 @@ import 'package:iprsr/models/user.dart';
 import 'dart:async';
 
 class ApiService {
-  static const ip = '192.168.1.5';
+  static const ip = '192.168.1.2';
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://172.20.10.4/";
@@ -397,14 +397,17 @@ class ApiService {
       print("Chat ID found: $chatId");
 
       // Notify the user about payment confirmation
-      print("Sending payment confirmation...");
       await notifyPaymentConfirmation(chatId, parkingSpaceID);
       await notifyFiveMinutesRemaining(chatId, parkingSpaceID);
 
-      // Notify expiration after 5 minutes
+      // Notify expiration and unlock parking space after 5 minutes
       Timer(const Duration(minutes: 5), () async {
         print("Sending expiration notification...");
         await notifyParkingExpired(chatId, parkingSpaceID);
+        // Unlock the parking space
+        await unlockParkingSpace(parkingSpaceID);
+        // Update premium parking status if needed
+        await updatePremiumParkingStatus(parkingSpaceID, false);
       });
     } else {
       print("Chat ID not found for user $userId.");
@@ -413,6 +416,25 @@ class ApiService {
       const welcomeMessage =
           "Please send '/start' to our bot to receive notifications about your premium parking.";
       await sendTelegramMessage(chatId, welcomeMessage);
+    }
+  }
+
+  // Add this new method to update premium parking status
+  static Future<bool> updatePremiumParkingStatus(String parkingSpaceID, bool isActive) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_premium_status.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'isActive': isActive ? 1 : 0,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating premium status: $e');
+      return false;
     }
   }
 
@@ -484,5 +506,110 @@ class ApiService {
       print('Error unlocking parking space: $e');
     }
     return false;
+  }
+
+  // Create premium parking session
+  static Future<bool> createPremiumParking(
+    String parkingSpaceID, 
+    String userID,
+  ) async {
+    try {
+      print('Creating premium parking with:');
+      print('Parking Space ID: $parkingSpaceID');
+      print('User ID: $userID');
+      
+      final response = await http.post(
+        Uri.parse('$_baseUrl/create_premium_parking.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'userID': userID,
+        }),
+      );
+
+      print('API Response Status Code: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['status'] == 'success';
+      }
+      return false;
+    } catch (e) {
+      print('Error in createPremiumParking: $e');
+      return false;
+    }
+  }
+
+  // Check premium parking status
+  static Future<Map<String, dynamic>?> checkPremiumParkingStatus(
+    String parkingSpaceID
+  ) async {
+    try {
+      print('Checking premium parking status for space: $parkingSpaceID');
+      
+      final response = await http.get(
+        Uri.parse('$_baseUrl/check_premium_parking.php?spaceId=$parkingSpaceID'),
+      );
+
+      print('API Response Status Code: ${response.statusCode}');
+      print('API Response Body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error checking premium parking status: $e');
+      return null;
+    }
+  }
+
+  // Helper method to format remaining time
+  static String formatRemainingTime(int seconds) {
+    final minutes = (seconds / 60).floor();
+    final remainingSeconds = seconds % 60;
+    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  }
+
+  // Add a method to check user's active sessions
+  static Future<Map<String, dynamic>?> checkUserActivePremiumParking(String userID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/check_user_premium_parking.php?userId=$userID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data['data'];
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error checking user premium parking: $e');
+      return null;
+    }
+  }
+}
+
+// Example usage in your UI
+Future<void> checkPremiumStatus(String parkingSpaceID) async {
+  final status = await ApiService.checkPremiumParkingStatus(parkingSpaceID);
+  
+  if (status != null) {
+    // Space has active premium parking
+    final remainingSeconds = status['remaining_seconds'] as int;
+    final formattedTime = ApiService.formatRemainingTime(remainingSeconds);
+    
+    print('Premium parking active');
+    print('User: ${status['username']}');
+    print('Time remaining: $formattedTime');
+  } else {
+    // Space is not in premium parking mode
+    print('No active premium parking');
   }
 }

@@ -218,17 +218,17 @@ class _ParkingPreferencesEditScreenState
                           padding: const EdgeInsets.symmetric(
                               horizontal: 20, vertical: 12),
                         ),
-                        child: Row(
+                        child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Text('UPDATE',
+                            Text('UPDATE',
                               style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            const Icon(Icons.check, size: 20, color: Colors.white),
+                             SizedBox(width: 4),
+                             Icon(Icons.check, size: 20, color: Colors.white),
                           ],
                         ),
                       ),

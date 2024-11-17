@@ -101,15 +101,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   ),
                 );
               },
-              child: Column(
+              child: const Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(
+                  Icon(
                     Icons.settings,
                     color: Colors.white,
                     size: 28,
                   ),
-                  const Text(
+                  Text(
                     'Settings',
                     style: TextStyle(
                       color: Colors.white,

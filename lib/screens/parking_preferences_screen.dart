@@ -75,7 +75,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
     }
 
     if (widget.typeController.text == 'Truck') {
-      preferences['requiresLargeSpace'] = true;
+      preferences['la'] = true;
     }
   }
 
@@ -102,7 +102,6 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                   ),
                   const SizedBox(height: 20),
                   Card(
-                    color: Colors.grey[850],
                     elevation: 4,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
@@ -187,8 +186,9 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => MainScreen(
-                                    selectedLocation: selectedLocation),
+                                builder: (context) => const MainScreen(
+                                    selectedLocation: selectedLocation,
+                                    showTutorial: true),
                               ),
                             );
                           } else {

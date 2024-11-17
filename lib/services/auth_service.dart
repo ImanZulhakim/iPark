@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iprsr/models/user.dart';
 import 'package:iprsr/services/api_service.dart';
+import 'package:iprsr/providers/tutorial_provider.dart';
 
 class AuthService extends ChangeNotifier {
   User? _user;
@@ -135,7 +136,9 @@ class AuthService extends ChangeNotifier {
   }
 
   // Logout function to clear the user and notify listeners
-  void logout() {
+  void logout() async {
+    final tutorialProvider = TutorialProvider();
+    await tutorialProvider.checkTutorialStatus(); // Reset tutorial state
     _user = null;
     notifyListeners();
   }

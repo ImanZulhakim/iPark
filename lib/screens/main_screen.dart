@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:iprsr/providers/tutorial_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:iprsr/services/api_service.dart';
 import 'package:iprsr/services/auth_service.dart';
@@ -7,11 +8,17 @@ import 'package:iprsr/screens/recommendation_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/screens/settings_screen.dart';
+import 'package:iprsr/widgets/tutorial_overlay.dart';
 
 class MainScreen extends StatefulWidget {
   final String selectedLocation;
+  final bool showTutorial;
 
-  const MainScreen({super.key, required this.selectedLocation});
+  const MainScreen({
+    super.key, 
+    required this.selectedLocation,
+    this.showTutorial = false,
+  });
 
   @override
   _MainScreenState createState() => _MainScreenState();
@@ -24,6 +31,32 @@ class _MainScreenState extends State<MainScreen> {
   void initState() {
     super.initState();
     selectedLocation = widget.selectedLocation;
+    
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      
+      final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
+      await tutorialProvider.checkTutorialStatus();
+      
+      // Show tutorial if either:
+      // 1. It's a manual tutorial request (from settings)
+      // 2. It's a first-time user (showTutorial true and hasn't shown before)
+      if (mounted && (tutorialProvider.isManualTutorial || 
+          (widget.showTutorial && !tutorialProvider.hasShownTutorial))) {
+        await showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => TutorialOverlay(parentContext: context),
+        );
+        
+        // Reset manual tutorial flag after showing
+        if (tutorialProvider.isManualTutorial) {
+          tutorialProvider.setManualTutorial(false);
+        }
+        
+        await tutorialProvider.markTutorialAsShown();
+      }
+    });
   }
 
   void _showSuccessSnackBar() {
@@ -88,7 +121,9 @@ class _MainScreenState extends State<MainScreen> {
                         final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const ParkingLocationScreen(),
+                            builder: (context) => ParkingLocationScreen(
+                              selectedLocation: selectedLocation,
+                            ),
                           ),
                         );
                         if (result != null) {

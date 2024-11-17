@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:iprsr/screens/main_screen.dart';
 
 class ParkingLocationScreen extends StatefulWidget {
-  const ParkingLocationScreen({super.key});
+  final String selectedLocation;
+
+  const ParkingLocationScreen({super.key, required this.selectedLocation});
 
   @override
   _ParkingLocationScreenState createState() => _ParkingLocationScreenState();
@@ -25,142 +27,190 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Theme.of(context).colorScheme.primary,
-              Theme.of(context).colorScheme.background,
-              Theme.of(context).colorScheme.secondary,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // Custom Header with Dynamic Title
-              Text(
-                selectedState == null
-                    ? 'Select Your State'
-                    : 'Available Parking Lots in $selectedState',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onSurface,
-                ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 20),
-
-              // Back to State Selection Button (only shown when a state is selected)
-              if (selectedState != null)
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      selectedState = null; // Go back to state selection
-                    });
-                  },
-                  child: const Text(
-                    'Back to State Selection',
+        color: Theme.of(context).colorScheme.surface,
+        child: Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    selectedState == null
+                        ? 'Select Your State'
+                        : 'Available Parking Lots in $selectedState',
                     style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.blueAccent,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
-
-              const SizedBox(height: 20),
-              Expanded(
-                child: GridView.builder(
-                  itemCount: selectedState == null
-                      ? stateLocations.keys.length
-                      : stateLocations[selectedState]!.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16.0,
-                    mainAxisSpacing: 16.0,
-                    childAspectRatio: 1.2,
-                  ),
-                  itemBuilder: (context, index) {
-                    if (selectedState == null) {
-                      // Display states as the first level
-                      String state = stateLocations.keys.elementAt(index);
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedState = state;
-                          });
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                spreadRadius: 3,
-                                blurRadius: 5,
+                  const SizedBox(height: 20),
+                  Expanded(
+                    child: GridView.builder(
+                      itemCount: selectedState == null
+                          ? stateLocations.keys.length
+                          : stateLocations[selectedState]!.length,
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16.0,
+                        mainAxisSpacing: 16.0,
+                        childAspectRatio: 1.2,
+                      ),
+                      itemBuilder: (context, index) {
+                        if (selectedState == null) {
+                          // Display states as the first level
+                          String state = stateLocations.keys.elementAt(index);
+                          return GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                selectedState = state;
+                              });
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              state,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
+                              child: Center(
+                                child: Text(
+                                  state,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        ),
-                      );
-                    } else {
-                      // Display locations within the selected state
-                      String location = stateLocations[selectedState]![index];
-                      return GestureDetector(
-                        onTap: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  MainScreen(selectedLocation: location),
                             ),
                           );
-                        },
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(10),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
-                                spreadRadius: 3,
-                                blurRadius: 5,
+                        } else {
+                          // Display locations within the selected state
+                          String location = stateLocations[selectedState]![index];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      MainScreen(selectedLocation: location),
+                                ),
+                              );
+                            },
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.grey.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              location,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w500,
+                              child: Center(
+                                child: Text(
+                                  location,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
                             ),
-                          ),
-                        ),
-                      );
-                    }
+                          );
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (selectedState != null)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      selectedState = null;
+                    });
                   },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back, size: 20),
+                      SizedBox(width: 4),
+                      Text('BACK',
+                        style: TextStyle(
+                          fontSize: 16,
+                        )
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
+            if (selectedState == null)
+              Positioned(
+                bottom: 16,
+                left: 16,
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => MainScreen(selectedLocation: widget.selectedLocation),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.arrow_back, size: 20),
+                      SizedBox(width: 4),
+                      Text('BACK',
+                        style: TextStyle(
+                          fontSize: 16,
+                        )
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );
