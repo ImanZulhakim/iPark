@@ -120,10 +120,14 @@ class _TutorialOverlayState extends State<TutorialOverlay> with SingleTickerProv
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(_tutorialSteps[_currentStep]['description']!),
+                    Text(
+                      _tutorialSteps[_currentStep]['description']!,
+                      style: const TextStyle(color: Colors.black),
+                    ),
                     const SizedBox(height: 8),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.end,

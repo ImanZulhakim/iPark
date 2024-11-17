@@ -56,14 +56,24 @@ class SettingsScreen extends StatelessWidget {
             },
           ),
           ListTile(
-            leading: const Icon(Icons.notifications_outlined, size: 26),
+            leading: const Icon(Icons.help_outline, size: 26),
             title: const Text(
-              'Notifications',
+              'Tutorial',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
             ),
             trailing: const Icon(Icons.chevron_right, size: 26),
             onTap: () {
-              // Navigate to notifications settings
+              final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
+              tutorialProvider.setManualTutorial(true);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainScreen(
+                    selectedLocation: 'SoC',
+                    showTutorial: true,
+                  ),
+                ),
+              );
             },
           ),
           ListTile(
@@ -159,23 +169,6 @@ class SettingsScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-              );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.help_outline),
-            title: const Text('View Tutorial'),
-            onTap: () {
-              final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
-              tutorialProvider.setManualTutorial(true);
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MainScreen(
-                    selectedLocation: 'SoC',
-                    showTutorial: true,
-                  ),
                 ),
               );
             },
