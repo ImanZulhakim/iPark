@@ -14,7 +14,9 @@ class LoginScreen extends StatelessWidget {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).brightness == Brightness.dark
+              ? Colors.grey[850]
+              : Theme.of(context).colorScheme.surface,
         ),
         child: Center(
           child: SingleChildScrollView(
@@ -41,9 +43,18 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 40),
                   TextField(
                     controller: emailController,
+                    style: Theme.of(context).brightness == Brightness.dark
+                        ? const TextStyle(color: Colors.black)
+                        : null,
                     decoration: InputDecoration(
                       labelText: 'Email',
+                      labelStyle: Theme.of(context).brightness == Brightness.dark
+                          ? const TextStyle(color: Colors.black54)
+                          : null,
                       hintText: 'Enter your email',
+                      hintStyle: Theme.of(context).brightness == Brightness.dark
+                          ? const TextStyle(color: Colors.black38)
+                          : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
@@ -60,9 +71,18 @@ class LoginScreen extends StatelessWidget {
                   TextField(
                     controller: passwordController,
                     obscureText: true,
+                    style: Theme.of(context).brightness == Brightness.dark
+                        ? const TextStyle(color: Colors.black)
+                        : null,
                     decoration: InputDecoration(
                       labelText: 'Password',
+                      labelStyle: Theme.of(context).brightness == Brightness.dark
+                          ? const TextStyle(color: Colors.black54)
+                          : null,
                       hintText: 'Enter your password',
+                      hintStyle: Theme.of(context).brightness == Brightness.dark
+                          ? const TextStyle(color: Colors.black38)
+                          : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
