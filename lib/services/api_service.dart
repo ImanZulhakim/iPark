@@ -4,7 +4,7 @@ import 'package:iprsr/models/user.dart';
 import 'dart:async';
 
 class ApiService {
-  static const ip = '10.19.116.207';
+  static const ip = '192.168.1.5';
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://172.20.10.4/";
@@ -91,7 +91,7 @@ class ApiService {
   }
 
   // Fetch parking suggestions using Flask backend
-  static Future<String> getRecommendations(
+  static Future<Map<String, dynamic>> getRecommendations(
       String userID, String location) async {
     try {
       final response = await http.post(
@@ -99,7 +99,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userID': userID,
-          'location': location, // Include the location in the request body
+          'location': location,
         }),
       );
 
@@ -108,14 +108,22 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['parkingSpaceID'] ?? ''; // Return empty string if null
+        return {
+          'parkingSpaceID': data['parkingSpaceID'] ?? '',
+          'message': data['message'] ?? '',
+          'alternativeLocation': data['alternativeLocation'],
+        };
       } else {
         print('Error fetching parking suggestions: ${response.body}');
       }
     } catch (e) {
       print('Error fetching parking suggestions: $e');
     }
-    return ''; // Return empty string in case of an exception
+    return {
+      'parkingSpaceID': '',
+      'message': 'Failed to get recommendations',
+      'alternativeLocation': null
+    };
   }
 
   // Fetch user's vehicle details and parking preferences

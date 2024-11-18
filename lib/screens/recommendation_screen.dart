@@ -76,14 +76,27 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: FittedBox(
-          fit: BoxFit.scaleDown,
-          child: Text(
-            'Parking Recommendations for ${widget.location}',
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: theme.appBarTheme.foregroundColor ?? Colors.white,
-            ),
-          ),
+        title: Consumer<CountdownProvider>(
+          builder: (context, provider, child) {
+            return FutureBuilder<Map<String, dynamic>>(
+              future: recommendationsFuture,
+              builder: (context, snapshot) {
+                String displayLocation = widget.location;
+                if (snapshot.hasData && snapshot.data!['currentLocation'] != null) {
+                  displayLocation = snapshot.data!['currentLocation'];
+                }
+                return FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    'Parking Recommendations for $displayLocation',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: theme.appBarTheme.foregroundColor ?? Colors.white,
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -223,11 +236,21 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
     try {
       final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
-      final recommendedSpace = await ApiService.getRecommendations(
+      final recommendations = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
       
+      String currentLocation = widget.location;
+      List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
+      
+      // If an alternative location is suggested
+      if (recommendations['alternativeLocation'] != null) {
+        // Fetch parking spaces for the alternative location
+        currentParkingSpaces = await ApiService.getParkingSpaces(
+            recommendations['alternativeLocation']);
+        currentLocation = recommendations['alternativeLocation'];
+      }
+      
       if (mounted) {
-        // Store dialog context reference
         BuildContext? dialogContext;
         
         showDialog(
@@ -238,28 +261,58 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             return AlertDialog(
               backgroundColor: Colors.white,
               title: const Text(
-                'Recommended Parking',
+                'Parking Recommendation',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
-              content: Text(
-                recommendedSpace.isEmpty
-                  ? 'No suitable parking space found based on your preferences.'
-                  : 'Your recommended parking space is: $recommendedSpace',
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (recommendations['alternativeLocation'] != null)
+                    Text(
+                      'Original location full.\nAlternative parking found at: ${recommendations['alternativeLocation']}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.orange,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Text(
+                    recommendations['parkingSpaceID'].isEmpty
+                      ? 'No suitable parking space found.'
+                      : 'Recommended space: ${recommendations['parkingSpaceID']}',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      color: Colors.black,
+                    ),
+                  ),
+                ],
               ),
+              actions: [
+                if (recommendations['alternativeLocation'] != null)
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      openGoogleMaps(recommendations['alternativeLocation']);
+                    },
+                    child: const Text('Get Directions'),
+                  ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
             );
           },
         );
 
-        // Dismiss dialog after delay if still mounted
-        Future.delayed(const Duration(seconds: 2), () {
+        // Dismiss dialog after delay
+        Future.delayed(const Duration(seconds: 3), () {
           if (mounted && dialogContext != null && Navigator.canPop(dialogContext!)) {
             Navigator.pop(dialogContext!);
           }
@@ -267,8 +320,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       }
       
       return {
-        'parkingSpaces': parkingSpaces,
-        'recommendedSpace': recommendedSpace,
+        'parkingSpaces': currentParkingSpaces,
+        'recommendedSpace': recommendations['parkingSpaceID'],
+        'currentLocation': currentLocation,
       };
     } catch (e) {
       throw Exception('Failed to fetch data: $e');
