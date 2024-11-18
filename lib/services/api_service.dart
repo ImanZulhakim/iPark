@@ -4,7 +4,7 @@ import 'package:iprsr/models/user.dart';
 import 'dart:async';
 
 class ApiService {
-  static const ip = '192.168.1.2';
+  static const ip = '10.19.116.207';
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://172.20.10.4/";
@@ -398,10 +398,9 @@ class ApiService {
 
       // Notify the user about payment confirmation
       await notifyPaymentConfirmation(chatId, parkingSpaceID);
-      await notifyFiveMinutesRemaining(chatId, parkingSpaceID);
-
-      // Notify expiration and unlock parking space after 5 minutes
-      Timer(const Duration(minutes: 5), () async {
+      
+      // Changed from 5 minutes to 10 seconds for debugging
+      Timer(const Duration(seconds: 10), () async {
         print("Sending expiration notification...");
         await notifyParkingExpired(chatId, parkingSpaceID);
         // Unlock the parking space
@@ -494,18 +493,34 @@ class ApiService {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           print('Parking space $parkingSpaceID unlocked successfully.');
+          
+          // Double-check the space was actually unlocked
+          final verifyResponse = await http.get(
+            Uri.parse('$_baseUrl/check_parking_space.php?id=$parkingSpaceID'),
+          );
+          
+          if (verifyResponse.statusCode == 200) {
+            final verifyData = jsonDecode(verifyResponse.body);
+            if (verifyData['isAvailable'] != 1) {
+              // If space is still locked, try unlocking one more time
+              await http.post(
+                Uri.parse('$_baseUrl/update_parking_space.php'),
+                headers: {'Content-Type': 'application/json'},
+                body: jsonEncode({
+                  'parkingSpaceID': parkingSpaceID,
+                  'isAvailable': 1,
+                }),
+              );
+            }
+          }
           return true;
-        } else {
-          print('Error unlocking parking space: ${data['message']}');
         }
-      } else {
-        print(
-            'Failed to unlock parking space, Status code: ${response.statusCode}');
       }
+      return false;
     } catch (e) {
       print('Error unlocking parking space: $e');
+      return false;
     }
-    return false;
   }
 
   // Create premium parking session
@@ -591,6 +606,37 @@ class ApiService {
       return null;
     } catch (e) {
       print('Error checking user premium parking: $e');
+      return null;
+    }
+  }
+
+  static Future<Map<String, dynamic>?> startPremiumParking(String parkingSpaceID, String userID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/start_premium_parking.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'userID': userID,
+          // Change this to 10 seconds for debugging
+          'duration': 10,  // This was probably 300 (5 minutes) before
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          // Start notification process
+          startParkingNotification(userID, parkingSpaceID);
+          return {
+            'remaining_time': 10,  // Change this to 10 seconds as well
+            'parking_space_id': parkingSpaceID
+          };
+        }
+      }
+      return null;
+    } catch (e) {
+      print('Error starting premium parking: $e');
       return null;
     }
   }

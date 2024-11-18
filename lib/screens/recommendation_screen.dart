@@ -30,23 +30,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   void initState() {
     super.initState();
     recommendationsFuture = fetchRecommendationsAndSpaces();
-
-    // Check for active premium parking session on init
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final countdownProvider = Provider.of<CountdownProvider>(context, listen: false);
-      final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
-      
-      if (activeSession != null) {
-        // Restore countdown if there's an active session
-        countdownProvider.restoreCountdown(
-          activeSession['remaining_time'], 
-          activeSession['parking_space_id'],
-          widget.user.userID,
-        );
-      }
-      
-      countdownProvider.addListener(_onCountdownUpdate);
-    });
+    
+    // Only check for active session on first load
+    if (!Provider.of<CountdownProvider>(context, listen: false).isCountingDown) {
+      checkAndRestoreSession();
+    }
   }
 
   @override
@@ -415,15 +403,46 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   // Function to open Telegram or fallback to web link
   Future<void> openTelegramOrFallback() async {
-    final Uri botUrl = Uri.parse('https://t.me/iprsr_bot?start');
-    final Uri fallbackUrl = Uri.parse('https://web.telegram.org/');
-
-    if (await canLaunchUrl(botUrl)) {
-      await launchUrl(botUrl, mode: LaunchMode.externalApplication);
-    } else if (await canLaunchUrl(fallbackUrl)) {
-      await launchUrl(fallbackUrl, mode: LaunchMode.externalApplication);
-    } else {
-      print("Could not open Telegram.");
+    // Try multiple Telegram deep link formats
+    final List<Uri> telegramUris = [
+      Uri.parse('telegram://resolve?domain=iprsr_bot'),
+      Uri.parse('org.telegram.messenger://resolve?domain=iprsr_bot'),
+      Uri.parse('tg://resolve?domain=iprsr_bot'),
+    ];
+    
+    try {
+      bool launched = false;
+      // Try each URI until one works
+      for (Uri uri in telegramUris) {
+        if (await canLaunchUrl(uri)) {
+          launched = await launchUrl(
+            uri,
+            mode: LaunchMode.externalNonBrowserApplication,
+          );
+          if (launched) break;
+        }
+      }
+      
+      if (!launched) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not open Telegram app. Please check if it is installed.'),
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Error launching Telegram: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Error opening Telegram. Please try again.'),
+            duration: Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -552,6 +571,20 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       setState(() {
         recommendationsFuture = fetchRecommendationsAndSpaces();
       });
+    }
+  }
+
+  Future<void> checkAndRestoreSession() async {
+    final countdownProvider = Provider.of<CountdownProvider>(context, listen: false);
+    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
+    
+    if (activeSession != null && activeSession['remaining_time'] > 0) {
+      // Only restore if there's actual time remaining
+      countdownProvider.restoreCountdown(
+        activeSession['remaining_time'], 
+        activeSession['parking_space_id'],
+        widget.user.userID,
+      );
     }
   }
 }

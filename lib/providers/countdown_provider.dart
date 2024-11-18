@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:iprsr/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class CountdownProvider extends ChangeNotifier {
@@ -47,7 +48,7 @@ class CountdownProvider extends ChangeNotifier {
   bool get isCountingDown => _timer != null;
 
   void startCountdown(int minutes, String parkingSpaceID, String userID) async {
-    remainingTime = Duration(minutes: minutes);
+    remainingTime = Duration(seconds: 10);
     activeParkingSpaceID = parkingSpaceID;
     activeUserID = userID;
 
@@ -60,11 +61,21 @@ class CountdownProvider extends ChangeNotifier {
   void stopCountdown() async {
     _timer?.cancel();
     _timer = null;
+    
+    // Store the parking space ID before clearing it
+    final spaceToUnlock = activeParkingSpaceID;
+    
     activeParkingSpaceID = null;
     activeUserID = null;
 
     // Clear SharedPreferences
     _saveState();
+    
+    // Unlock the parking space if there was an active one
+    if (spaceToUnlock != null) {
+      await ApiService.unlockParkingSpace(spaceToUnlock);
+      await ApiService.updatePremiumParkingStatus(spaceToUnlock, false);
+    }
     
     notifyListeners();
   }
@@ -93,11 +104,23 @@ class CountdownProvider extends ChangeNotifier {
 
   void _startTimer() {
     _timer?.cancel();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) async {
       if (remainingTime.inSeconds > 0) {
         remainingTime -= const Duration(seconds: 1);
+        _saveState();
         notifyListeners();
       } else {
+        // Make sure to unlock the space when timer reaches zero
+        final spaceToUnlock = activeParkingSpaceID;
+        if (spaceToUnlock != null) {
+          try {
+            await ApiService.unlockParkingSpace(spaceToUnlock);
+            await ApiService.updatePremiumParkingStatus(spaceToUnlock, false);
+            print('Successfully unlocked space: $spaceToUnlock');
+          } catch (e) {
+            print('Error unlocking space: $e');
+          }
+        }
         stopCountdown();
       }
     });
@@ -105,7 +128,7 @@ class CountdownProvider extends ChangeNotifier {
   }
 
   void restoreCountdown(int remainingSeconds, String parkingSpaceId, String userId) {
-    remainingTime = Duration(seconds: remainingSeconds);
+    remainingTime = const Duration(seconds: 10);
     activeParkingSpaceID = parkingSpaceId;
     activeUserID = userId;
     _startTimer();
