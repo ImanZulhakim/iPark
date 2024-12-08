@@ -13,7 +13,7 @@ class ParkingLocationScreen extends StatefulWidget {
 class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
   // Define a map of states to their respective parking locations
   final Map<String, List<String>> stateLocations = {
-    'Kedah': ['SoC', 'V Mall', 'C-mart Changlun', 'Aman Central'],
+    'Kedah': ['SoC', 'V Mall', 'Dewan MAS', 'DTSO'],
     'Penang': ['Penang Times Square', 'Queensbay Mall'],
     'Selangor': ['Sunway Pyramid', 'IOI City Mall'],
     'Kuala Lumpur': ['Pavilion KL', 'Suria KLCC'],

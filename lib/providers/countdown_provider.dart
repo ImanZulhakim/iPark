@@ -48,7 +48,7 @@ class CountdownProvider extends ChangeNotifier {
   bool get isCountingDown => _timer != null;
 
   void startCountdown(int minutes, String parkingSpaceID, String userID) async {
-    remainingTime = Duration(seconds: 10);
+    remainingTime = Duration(seconds: 30);
     activeParkingSpaceID = parkingSpaceID;
     activeUserID = userID;
 
@@ -128,7 +128,7 @@ class CountdownProvider extends ChangeNotifier {
   }
 
   void restoreCountdown(int remainingSeconds, String parkingSpaceId, String userId) {
-    remainingTime = const Duration(seconds: 10);
+    remainingTime = const Duration(seconds: 30);
     activeParkingSpaceID = parkingSpaceId;
     activeUserID = userId;
     _startTimer();

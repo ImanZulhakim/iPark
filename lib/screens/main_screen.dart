@@ -9,6 +9,7 @@ import 'package:iprsr/screens/parking_location_screen.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/screens/settings_screen.dart';
 import 'package:iprsr/widgets/tutorial_overlay.dart';
+import 'package:iprsr/screens/parking_map_screen.dart';
 
 class MainScreen extends StatefulWidget {
   final String selectedLocation;
@@ -282,26 +283,21 @@ class _MainScreenState extends State<MainScreen> {
         ),
         child: FloatingActionButton(
           onPressed: () {
-            // Navigate to the main screen or perform the intended action
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MainScreen(selectedLocation: selectedLocation),
+                builder: (context) => ParkingMapScreen(
+                  location: selectedLocation,
+                ),
               ),
             );
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
-          child: Text(
-            'P',
-            style: TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Satisfy',
-              color: Theme.of(context).brightness == Brightness.dark
-                  ? Colors.white
-                  : Colors.white,
-            ),
+          child: const Icon(
+            Icons.map_outlined,  // or Icons.location_on
+            size: 40,
+            color: Colors.white,
           ),
         ),
       ),

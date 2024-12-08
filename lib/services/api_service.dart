@@ -1,18 +1,23 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:iprsr/models/user.dart';
 import 'dart:async';
+import 'dart:io';
 
 class ApiService {
-  static const ip = '192.168.1.5';
+  static const ip = '192.168.0.106'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
-  static const String esp8266IpAddress = "http://172.20.10.4/";
+  static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
   static const String _telegramBotToken =
       "7779399475:AAF091xlVimNGdP46e831oPm32dZGY1HaRc";
 
   static const String _telegramApiUrl =
       "https://api.telegram.org/bot$_telegramBotToken";
+
+  static const int ESP8266_PORT = 80;  // Default HTTP port
+  static const Duration CONNECTION_TIMEOUT = Duration(seconds: 2);
 
   // Register user
   static Future<User?> register(
@@ -229,23 +234,79 @@ class ApiService {
     return null; // Return null in case of an error
   }
 
-// Function to send HTTP request to ESP8266 to control the gate
-  static Future<void> controlGate(String action) async {
-  final String endpoint = action == "close" ? "close_gate" : "open_gate";
-  final String url = "$esp8266IpAddress$endpoint";
-
+// Check if ESP8266 is available
+static Future<bool> isEsp8266Available() async {
   try {
-    final response = await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
-    if (response.statusCode == 200) {
-      print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
-    } else {
-      print("Failed to ${action == 'close' ? 'close' : 'open'} gate: ${response.body}");
-    }
+    final response = await http.get(
+      Uri.parse(esp8266IpAddress),
+      headers: {'Accept': '*/*'},
+    ).timeout(const Duration(seconds: 2));
+    
+    return response.statusCode == 200;
   } catch (e) {
-    print("Error controlling gate: $e");
+    print("ESP8266 not available: $e");
+    return false;
   }
 }
 
+// Function to send HTTP request to ESP8266 to control the gate
+  static Future<void> controlGate(String action) async {
+    // First verify ESP8266 connection
+    final bool isConnected = await verifyEsp8266Connection();
+    if (!isConnected) {
+      throw Exception('ESP8266 is not accessible. Please check the device connection.');
+    }
+
+    final String endpoint = action == "close" ? "close_gate" : "open_gate";
+    final String url = "$esp8266IpAddress$endpoint";
+    
+    print("Attempting to control gate - URL: $url");
+    
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Accept': '*/*',
+          'Connection': 'keep-alive',
+        },
+      ).timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {
+          throw TimeoutException('Gate control request timed out');
+        },
+      );
+
+      print("Gate control response status: ${response.statusCode}");
+      print("Gate control response body: ${response.body}");
+
+      if (response.statusCode == 200) {
+        print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
+      } else {
+        if (response.body.contains("<!DOCTYPE HTML")) {
+          throw Exception("ESP8266 endpoint not found. Please verify the URL: $url");
+        } else {
+          throw Exception(
+            "Failed to ${action} gate: Status ${response.statusCode} - ${response.body}"
+          );
+        }
+      }
+    } catch (e) {
+      print("Error controlling gate: $e");
+      rethrow;
+    }
+  }
+
+  // Add a method to handle gate control with proper error handling
+  static Future<bool> safeControlGate(String action) async {
+    try {
+      await controlGate(action);
+      return true;
+    } catch (e) {
+      print('Safe gate control failed: $e');
+      // You might want to show a user-friendly error message here
+      return false;
+    }
+  }
 
   // Method to send a message to a specific chat ID on Telegram
   static Future<void> sendTelegramMessage(String? chatId, String text) async {
@@ -406,9 +467,9 @@ class ApiService {
 
       // Notify the user about payment confirmation
       await notifyPaymentConfirmation(chatId, parkingSpaceID);
-      
+
       // Changed from 5 minutes to 10 seconds for debugging
-      Timer(const Duration(seconds: 10), () async {
+      Timer(const Duration(seconds: 30), () async {
         print("Sending expiration notification...");
         await notifyParkingExpired(chatId, parkingSpaceID);
         // Unlock the parking space
@@ -427,7 +488,8 @@ class ApiService {
   }
 
   // Add this new method to update premium parking status
-  static Future<bool> updatePremiumParkingStatus(String parkingSpaceID, bool isActive) async {
+  static Future<bool> updatePremiumParkingStatus(
+      String parkingSpaceID, bool isActive) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/update_premium_status.php'),
@@ -501,12 +563,12 @@ class ApiService {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           print('Parking space $parkingSpaceID unlocked successfully.');
-          
+
           // Double-check the space was actually unlocked
           final verifyResponse = await http.get(
             Uri.parse('$_baseUrl/check_parking_space.php?id=$parkingSpaceID'),
           );
-          
+
           if (verifyResponse.statusCode == 200) {
             final verifyData = jsonDecode(verifyResponse.body);
             if (verifyData['isAvailable'] != 1) {
@@ -533,14 +595,14 @@ class ApiService {
 
   // Create premium parking session
   static Future<bool> createPremiumParking(
-    String parkingSpaceID, 
+    String parkingSpaceID,
     String userID,
   ) async {
     try {
       print('Creating premium parking with:');
       print('Parking Space ID: $parkingSpaceID');
       print('User ID: $userID');
-      
+
       final response = await http.post(
         Uri.parse('$_baseUrl/create_premium_parking.php'),
         headers: {'Content-Type': 'application/json'},
@@ -566,13 +628,13 @@ class ApiService {
 
   // Check premium parking status
   static Future<Map<String, dynamic>?> checkPremiumParkingStatus(
-    String parkingSpaceID
-  ) async {
+      String parkingSpaceID) async {
     try {
       print('Checking premium parking status for space: $parkingSpaceID');
-      
+
       final response = await http.get(
-        Uri.parse('$_baseUrl/check_premium_parking.php?spaceId=$parkingSpaceID'),
+        Uri.parse(
+            '$_baseUrl/check_premium_parking.php?spaceId=$parkingSpaceID'),
       );
 
       print('API Response Status Code: ${response.statusCode}');
@@ -599,7 +661,8 @@ class ApiService {
   }
 
   // Add a method to check user's active sessions
-  static Future<Map<String, dynamic>?> checkUserActivePremiumParking(String userID) async {
+  static Future<Map<String, dynamic>?> checkUserActivePremiumParking(
+      String userID) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/check_user_premium_parking.php?userId=$userID'),
@@ -618,7 +681,9 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>?> startPremiumParking(String parkingSpaceID, String userID) async {
+  // Start premium parking
+  static Future<Map<String, dynamic>?> startPremiumParking(
+      String parkingSpaceID, String userID) async {
     try {
       final response = await http.post(
         Uri.parse('$_baseUrl/start_premium_parking.php'),
@@ -626,8 +691,8 @@ class ApiService {
         body: jsonEncode({
           'parkingSpaceID': parkingSpaceID,
           'userID': userID,
-          // Change this to 10 seconds for debugging
-          'duration': 10,  // This was probably 300 (5 minutes) before
+          // Change this to 30 seconds
+          'duration': 30, // Duration in seconds
         }),
       );
 
@@ -637,7 +702,7 @@ class ApiService {
           // Start notification process
           startParkingNotification(userID, parkingSpaceID);
           return {
-            'remaining_time': 10,  // Change this to 10 seconds as well
+            'remaining_time': 30, // Change this to 30 seconds as well
             'parking_space_id': parkingSpaceID
           };
         }
@@ -648,17 +713,117 @@ class ApiService {
       return null;
     }
   }
+
+  // Get parking lot coordinates
+  static Future<Map<String, LatLng>> getParkingLotCoordinates() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_parking_lot_coordinates.php'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          Map<String, LatLng> coordinates = {};
+
+          // Map for converting display names to database keys
+          const locationMapping = {
+            'SoC': 'SOC',
+            'V Mall': 'VMALL',
+            'Dewan MAS': 'DMAS',
+            'DTSO': 'DTSO',
+          };
+
+          data['data'].forEach((location, lotData) {
+            // Convert the database location key to display name
+            String displayName = locationMapping.entries
+                .firstWhere((entry) => entry.value == location,
+                    orElse: () => MapEntry(location, location))
+                .key;
+
+            List<String> coords = lotData['coordinates'].split(',');
+            coordinates[displayName] = LatLng(
+              double.parse(coords[0].trim()),
+              double.parse(coords[1].trim()),
+            );
+          });
+          return coordinates;
+        }
+      }
+      return {};
+    } catch (e) {
+      print('Error fetching parking lot coordinates: $e');
+      return {};
+    }
+  }
+
+  // Get parking lot boundary
+  static Future<List<LatLng>> getParkingLotBoundary(String locationCode) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_parking_lot_boundaries.php'),
+      );
+
+      if (response.statusCode == 200) {
+        print('Boundary response: ${response.body}'); // Debug log
+        final data = jsonDecode(response.body);
+
+        if (data['status'] == 'success' && 
+            data['data'].containsKey(locationCode)) {
+          List<dynamic> boundaryPoints = data['data'][locationCode]['coordinates'];
+          print('Found boundary points: $boundaryPoints'); // Debug log
+          return boundaryPoints.map((point) => LatLng(
+            point['lat'].toDouble(),
+            point['lng'].toDouble(),
+          )).toList();
+        } else {
+          print('No data found for location code: $locationCode');
+          print('Available locations: ${data['data'].keys.toList()}');
+        }
+      }
+      return [];
+    } catch (e) {
+      print('Error fetching parking lot boundary: $e');
+      return [];
+    }
+  }
+
+  // Map for converting display names to database location codes
+  static const locationMapping = {
+    'SoC': 'SOC_01',
+    'V Mall': 'VMALL_01',
+    'Dewan MAS': 'DMAS_01',
+    'DTSO': 'DTSO_01',
+  };
+
+  // Add this method to verify ESP8266 connection
+  static Future<bool> verifyEsp8266Connection() async {
+    try {
+      // Parse the IP address from the ESP8266 URL
+      final uri = Uri.parse(esp8266IpAddress);
+      final socket = await Socket.connect(
+        uri.host, 
+        ESP8266_PORT,
+        timeout: CONNECTION_TIMEOUT
+      );
+      socket.destroy();
+      return true;
+    } catch (e) {
+      print('ESP8266 connection failed: $e');
+      return false;
+    }
+  }
 }
 
 // Example usage in your UI
 Future<void> checkPremiumStatus(String parkingSpaceID) async {
   final status = await ApiService.checkPremiumParkingStatus(parkingSpaceID);
-  
+
   if (status != null) {
     // Space has active premium parking
     final remainingSeconds = status['remaining_seconds'] as int;
     final formattedTime = ApiService.formatRemainingTime(remainingSeconds);
-    
+
     print('Premium parking active');
     print('User: ${status['username']}');
     print('Time remaining: $formattedTime');

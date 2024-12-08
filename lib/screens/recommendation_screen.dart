@@ -11,7 +11,8 @@ class RecommendationScreen extends StatefulWidget {
   final User user;
   final String location;
 
-  const RecommendationScreen({super.key, 
+  const RecommendationScreen({
+    super.key,
     required this.user,
     required this.location,
   });
@@ -24,17 +25,34 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   late Future<Map<String, dynamic>> recommendationsFuture;
   Timer? telegramPollingTimer;
   late final CountdownProvider _providerInstance;
+  late NavigatorState _navigator;
+  Timer? _refreshTimer;
 
   // Fetch recommendations and spaces from the API
   @override
   void initState() {
     super.initState();
+    // Store navigator reference when widget initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigator = Navigator.of(context);
+    });
+    _startRefreshTimer();
     recommendationsFuture = fetchRecommendationsAndSpaces();
-    
+
     // Only check for active session on first load
-    if (!Provider.of<CountdownProvider>(context, listen: false).isCountingDown) {
+    if (!Provider.of<CountdownProvider>(context, listen: false)
+        .isCountingDown) {
       checkAndRestoreSession();
     }
+  }
+
+  void _startRefreshTimer() {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (mounted) {
+        fetchRecommendationsAndSpaces();
+      }
+    });
   }
 
   @override
@@ -47,6 +65,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   void dispose() {
     telegramPollingTimer?.cancel();
     _providerInstance.removeListener(_onCountdownUpdate);
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
@@ -60,7 +79,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       if (parkingSpaceID != null) {
         await ApiService.unlockParkingSpace(parkingSpaceID);
       }
-      
+
       // Refresh recommendationsFuture
       setState(() {
         recommendationsFuture = fetchRecommendationsAndSpaces();
@@ -82,7 +101,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
               future: recommendationsFuture,
               builder: (context, snapshot) {
                 String displayLocation = widget.location;
-                if (snapshot.hasData && snapshot.data!['currentLocation'] != null) {
+                if (snapshot.hasData &&
+                    snapshot.data!['currentLocation'] != null) {
                   displayLocation = snapshot.data!['currentLocation'];
                 }
                 return FittedBox(
@@ -104,41 +124,52 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             Navigator.pop(context);
           },
         ),
-        backgroundColor: isDarkTheme ? Colors.grey[800] : theme.appBarTheme.backgroundColor ?? Colors.teal,
+        backgroundColor: isDarkTheme
+            ? Colors.grey[800]
+            : theme.appBarTheme.backgroundColor ?? Colors.teal,
       ),
       body: Column(
         children: [
           Container(
             width: double.infinity,
-            color: Theme.of(context).brightness == Brightness.dark 
-                ? Colors.grey[700] 
-                : const Color(0xFFADE8F4), // Slightly darker blue for light theme
+            color: Theme.of(context).brightness == Brightness.dark
+                ? Colors.grey[700]
+                : const Color(
+                    0xFFADE8F4), // Slightly darker blue for light theme
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Column(
               children: [
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(Icons.accessible, "Special", Colors.blueAccent, textColor),
+                    _buildLegendItem(Icons.accessible, "Special",
+                        Colors.blueAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.female, "Female", Colors.pinkAccent, textColor),
+                    _buildLegendItem(
+                        Icons.female, "Female", Colors.pinkAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.family_restroom, "Family", Colors.purpleAccent, textColor),
+                    _buildLegendItem(Icons.family_restroom, "Family",
+                        Colors.purpleAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.electric_car, "EV Car", Colors.tealAccent, textColor),
+                    _buildLegendItem(Icons.electric_car, "EV Car",
+                        Colors.tealAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.star, "Premium", const Color(0xFFFFD54F), textColor),
+                    _buildLegendItem(Icons.star, "Premium",
+                        const Color(0xFFFFD54F), textColor),
                   ],
                 ),
                 const SizedBox(height: 4),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    _buildLegendItem(Icons.local_parking, "Regular", const Color.fromRGBO(158, 158, 158, 1), textColor),
+                    _buildLegendItem(Icons.local_parking, "Regular",
+                        const Color.fromRGBO(158, 158, 158, 1), textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.thumb_up, "Recommended", Colors.greenAccent, textColor),
+                    _buildLegendItem(Icons.thumb_up, "Recommended",
+                        Colors.greenAccent, textColor),
                     const SizedBox(width: 8),
-                    _buildLegendItem(Icons.block, "Occupied", Colors.redAccent, textColor),
+                    _buildLegendItem(
+                        Icons.block, "Occupied", Colors.redAccent, textColor),
                   ],
                 ),
               ],
@@ -205,8 +236,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                               parkingSpaces[i + j]
                                                   ['parkingSpaceID'],
                                               parkingSpaces[i + j]
-                                                  ['parkingType'] ==
-                                              'Premium');
+                                                      ['parkingType'] ==
+                                                  'Premium');
                                         }
                                       : () {
                                           // Do nothing for non-premium parking spaces
@@ -223,41 +254,73 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          openGoogleMaps(widget.location);
+      floatingActionButton: FutureBuilder<Map<String, dynamic>>(
+        future: recommendationsFuture,
+        builder: (context, snapshot) {
+          return FloatingActionButton(
+            onPressed: () {
+              if (snapshot.hasData) {
+                final parkingSpaces = snapshot.data!['parkingSpaces']
+                    as List<Map<String, dynamic>>;
+                final recommendedSpaceId =
+                    snapshot.data!['recommendedSpace'] as String;
+
+                // Find recommended space coordinates
+                final recommendedSpace = parkingSpaces.firstWhere(
+                  (space) => space['parkingSpaceID'] == recommendedSpaceId,
+                  orElse: () => {'coordinates': null},
+                );
+
+                if (recommendedSpace['coordinates'] != null) {
+                  List<String> coords =
+                      recommendedSpace['coordinates'].split(',');
+                  if (coords.length == 2) {
+                    final url =
+                        'https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}';
+                    launchUrl(
+                      Uri.parse(url),
+                      mode: LaunchMode.externalApplication,
+                    );
+                    return;
+                  }
+                }
+              }
+              // Fallback to location navigation if no coordinates found
+              openGoogleMaps(widget.location);
+            },
+            backgroundColor:
+                theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
+            child: const Icon(Icons.navigation, color: Colors.white),
+          );
         },
-        backgroundColor: theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
-        child: const Icon(Icons.navigation, color: Colors.white),
       ),
     );
   }
 
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
+    if (!mounted) return {};
+
     try {
       final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
       final recommendations = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
-      
+
       String currentLocation = widget.location;
       List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
-      
-      // If an alternative location is suggested
+
       if (recommendations['alternativeLocation'] != null) {
-        // Fetch parking spaces for the alternative location
         currentParkingSpaces = await ApiService.getParkingSpaces(
             recommendations['alternativeLocation']);
         currentLocation = recommendations['alternativeLocation'];
       }
-      
+
       if (mounted) {
         BuildContext? dialogContext;
-        
+
         showDialog(
           context: context,
           barrierDismissible: true,
           builder: (BuildContext context) {
-            dialogContext = context;
             return AlertDialog(
               backgroundColor: Colors.white,
               title: const Text(
@@ -284,8 +347,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                   const SizedBox(height: 8),
                   Text(
                     recommendations['parkingSpaceID'].isEmpty
-                      ? 'No suitable parking space found.'
-                      : 'Recommended space: ${recommendations['parkingSpaceID']}',
+                        ? 'No suitable parking space found.'
+                        : 'Recommended space: ${recommendations['parkingSpaceID']}',
                     style: const TextStyle(
                       fontSize: 16,
                       color: Colors.black,
@@ -310,22 +373,16 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             );
           },
         );
-
-        // Dismiss dialog after delay
-        Future.delayed(const Duration(seconds: 3), () {
-          if (mounted && dialogContext != null && Navigator.canPop(dialogContext!)) {
-            Navigator.pop(dialogContext!);
-          }
-        });
       }
-      
+
       return {
         'parkingSpaces': currentParkingSpaces,
         'recommendedSpace': recommendations['parkingSpaceID'],
         'currentLocation': currentLocation,
       };
     } catch (e) {
-      throw Exception('Failed to fetch data: $e');
+      print('Error fetching recommendations: $e');
+      return {};
     }
   }
 
@@ -356,8 +413,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   void _handlePremiumParking(String parkingSpaceID) async {
     try {
-      print('Starting premium parking process for space: $parkingSpaceID'); // Debug log
-      
+      print('Starting premium parking process for space: $parkingSpaceID');
+
       // Show loading indicator
       showDialog(
         context: context,
@@ -369,15 +426,22 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         },
       );
 
-      print('Calling API to create premium parking'); // Debug log
-      
+      // First verify ESP8266 connection
+      final bool isEsp8266Connected = await ApiService.isEsp8266Available();
+      if (!isEsp8266Connected) {
+        throw Exception(
+            'Gate control system is not accessible. Please try again later.');
+      }
+
+      print('Calling API to create premium parking');
+
       // Create premium parking session
       bool success = await ApiService.createPremiumParking(
         parkingSpaceID,
         widget.user.userID,
       );
 
-      print('API response success: $success'); // Debug log
+      print('API response success: $success');
 
       // Remove loading indicator
       if (mounted) {
@@ -385,13 +449,39 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       }
 
       if (success) {
-        print('Premium parking activated successfully'); // Debug log
-        
+        print('Premium parking activated successfully');
+
         // Start the countdown
         Provider.of<CountdownProvider>(context, listen: false)
             .startCountdown(5, parkingSpaceID, widget.user.userID);
 
-        // Show success message
+        // Try to close the gate safely
+        try {
+          final gateSuccess = await ApiService.safeControlGate('close');
+          if (!gateSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text(
+                    'Warning: Gate control system not responding. Please contact staff if needed.'),
+                backgroundColor: Colors.orange,
+                duration: Duration(seconds: 5),
+              ),
+            );
+          }
+        } catch (gateError) {
+          print('Gate control error: $gateError');
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Gate control error: ${gateError.toString()}'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 5),
+              ),
+            );
+          }
+        }
+
+        // Show success message for parking activation
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Premium parking activated successfully'),
@@ -399,22 +489,34 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           ),
         );
 
-        // Close the gate
-        await ApiService.controlGate("close");
-
         // Handle Telegram notifications
         final chatId = await ApiService.getUserChatId(widget.user.userID);
         if (chatId == null) {
           await openTelegramOrFallback();
           startTelegramPolling(widget.user.userID, parkingSpaceID);
         } else {
-          ApiService.startParkingNotification(widget.user.userID, parkingSpaceID);
+          ApiService.startParkingNotification(
+              widget.user.userID, parkingSpaceID);
         }
 
-        // Schedule cleanup after 5 minutes
-        Timer(const Duration(minutes: 5), () async {
-          await ApiService.controlGate("open");
-          
+        // Schedule cleanup after 30 seconds
+        Timer(const Duration(seconds: 30), () async {
+          try {
+            final openSuccess = await ApiService.safeControlGate('open');
+            if (!openSuccess && mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                      'Warning: Unable to open gate automatically. Please contact staff.'),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 5),
+                ),
+              );
+            }
+          } catch (gateError) {
+            print('Gate opening error: $gateError');
+          }
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -425,8 +527,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           }
         });
       } else {
-        print('Failed to activate premium parking - API returned false'); // Debug log
-        
+        print('Failed to activate premium parking - API returned false');
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -437,8 +539,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         }
       }
     } catch (e) {
-      print('Error in _handlePremiumParking: $e'); // Debug log
-      
+      print('Error in _handlePremiumParking: $e');
+
       // Remove loading indicator if still showing
       if (mounted && Navigator.canPop(context)) {
         Navigator.pop(context);
@@ -457,34 +559,47 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   // Function to open Telegram or fallback to web link
   Future<void> openTelegramOrFallback() async {
-    // Try multiple Telegram deep link formats
-    final List<Uri> telegramUris = [
-      Uri.parse('telegram://resolve?domain=iprsr_bot'),
-      Uri.parse('org.telegram.messenger://resolve?domain=iprsr_bot'),
-      Uri.parse('tg://resolve?domain=iprsr_bot'),
-    ];
-    
+    final webUri = Uri.parse('https://t.me/iprsr_bot');
+
     try {
-      bool launched = false;
-      // Try each URI until one works
+      // First try to launch Telegram app with deep links
+      final List<Uri> telegramUris = [
+        Uri.parse('telegram://resolve?domain=iprsr_bot'),
+        Uri.parse('org.telegram.messenger://resolve?domain=iprsr_bot'),
+        Uri.parse('tg://resolve?domain=iprsr_bot'),
+      ];
+
+      bool appLaunched = false;
+
+      // Try each deep link
       for (Uri uri in telegramUris) {
         if (await canLaunchUrl(uri)) {
-          launched = await launchUrl(
-            uri,
-            mode: LaunchMode.externalNonBrowserApplication,
-          );
-          if (launched) break;
+          try {
+            appLaunched = await launchUrl(
+              uri,
+              mode: LaunchMode.externalNonBrowserApplication,
+            );
+            if (appLaunched) break;
+          } catch (e) {
+            print('Deep link launch failed: $e');
+          }
         }
       }
-      
-      if (!launched) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Could not open Telegram app. Please check if it is installed.'),
-              duration: Duration(seconds: 3),
-            ),
+
+      // If app launch failed, immediately try web version
+      if (!appLaunched) {
+        print('App launch failed, trying web version...');
+        if (await canLaunchUrl(webUri)) {
+          final launched = await launchUrl(
+            webUri,
+            mode: LaunchMode.externalApplication,
+            webOnlyWindowName: '_blank',
           );
+          if (!launched) {
+            throw 'Could not launch web version';
+          }
+        } else {
+          throw 'Could not launch web version';
         }
       }
     } catch (e) {
@@ -492,8 +607,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Error opening Telegram. Please try again.'),
-            duration: Duration(seconds: 3),
+            content: Text(
+                'Error opening Telegram. Please visit https://t.me/iprsr_bot directly'),
+            duration: Duration(seconds: 5),
           ),
         );
       }
@@ -516,7 +632,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     });
   }
 
-  Widget _buildLegendItem(IconData icon, String label, Color color, Color textColor) {
+  Widget _buildLegendItem(
+      IconData icon, String label, Color color, Color textColor) {
     return Row(
       children: [
         Stack(
@@ -582,7 +699,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             ElevatedButton(
               onPressed: () {
                 Navigator.pop(context); // Close dialog
-                _handlePremiumParking(parkingSpaceID); // Process premium parking
+                _handlePremiumParking(
+                    parkingSpaceID); // Process premium parking
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
@@ -598,8 +716,9 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
   Future<void> _handleRecommendationButton() async {
     // First check if user has active premium parking
-    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
-    
+    final activeSession =
+        await ApiService.checkPremiumParkingStatus(widget.user.userID);
+
     if (activeSession != null) {
       // User has active premium parking
       if (mounted) {
@@ -608,9 +727,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           builder: (context) => AlertDialog(
             title: const Text('Active Premium Parking'),
             content: Text(
-              'You currently have an active premium parking session at ${activeSession['parking_space_id']}. '
-              'Please wait for your current session to end before requesting new recommendations.'
-            ),
+                'You currently have an active premium parking session at ${activeSession['parking_space_id']}. '
+                'Please wait for your current session to end before requesting new recommendations.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
@@ -621,21 +739,27 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         );
       }
     } else {
-      // No active session, proceed with normal recommendation logic
-      setState(() {
-        recommendationsFuture = fetchRecommendationsAndSpaces();
-      });
+      // No active session, fetch recommendations once
+      final recommendations = await fetchRecommendationsAndSpaces();
+
+      if (mounted) {
+        setState(() {
+          recommendationsFuture = Future.value(recommendations);
+        });
+      }
     }
   }
 
   Future<void> checkAndRestoreSession() async {
-    final countdownProvider = Provider.of<CountdownProvider>(context, listen: false);
-    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
-    
+    final countdownProvider =
+        Provider.of<CountdownProvider>(context, listen: false);
+    final activeSession =
+        await ApiService.checkPremiumParkingStatus(widget.user.userID);
+
     if (activeSession != null && activeSession['remaining_time'] > 0) {
       // Only restore if there's actual time remaining
       countdownProvider.restoreCountdown(
-        activeSession['remaining_time'], 
+        activeSession['remaining_time'],
         activeSession['parking_space_id'],
         widget.user.userID,
       );
@@ -648,7 +772,8 @@ class ParkingSpace extends StatelessWidget {
   final bool isRecommended;
   final VoidCallback onShowPaymentDialog;
 
-  const ParkingSpace({super.key, 
+  const ParkingSpace({
+    super.key,
     required this.space,
     required this.isRecommended,
     required this.onShowPaymentDialog,
