@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 class ApiService {
-  static const ip = '192.168.1.19'; // ip wifi
+  static const ip = '192.168.1.14'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
@@ -203,36 +203,25 @@ class ApiService {
   }
 
 // Fetch parking spaces data for a specific location
-  static Future<List<Map<String, dynamic>>?> getParkingSpaces(
-      String location) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/fetch_parking_data.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(
-            {'location': location}), // Send the location as part of the request
-      );
+static Future<List<Map<String, dynamic>>> getParkingData() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/fetch_parking_data.php'),
+    );
 
-      print('Parking Spaces API response status: ${response.statusCode}');
-      print('Parking Spaces API response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['status'] == 'success') {
-          // Safely return the list of parking spaces
-          return List<Map<String, dynamic>>.from(data['data']);
-        } else {
-          print('API responded with an error: ${data['message']}');
-        }
-      } else {
-        print('Failed to fetch parking spaces: ${response.statusCode}');
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        return List<Map<String, dynamic>>.from(data['data']);
       }
-    } catch (e) {
-      print('Error fetching parking spaces: $e');
     }
-    return null; // Return null in case of an error
+    throw Exception('Failed to load parking data');
+  } catch (e) {
+    print('Error fetching parking data: $e');
+    throw Exception('Failed to load parking data');
   }
+}
+
 
 // Check if ESP8266 is available
 static Future<bool> isEsp8266Available() async {

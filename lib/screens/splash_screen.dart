@@ -15,7 +15,10 @@ class SplashScreen extends StatelessWidget {
           builder: (context, auth, child) {
             if (auth.user != null) {
               // Provide a default selectedLocation when the user is already authenticated
-              return MainScreen(selectedLocation: 'SoC'); // Replace 'SoC' with a desired default location if needed.
+              return const MainScreen(selectedLocation: {
+                'lotID': 'SOC_01', // Replace with the actual lotID
+                'lot_name': 'SOC', // Replace with the actual lot name
+              });
             } else {
               return LoginScreen();
             }

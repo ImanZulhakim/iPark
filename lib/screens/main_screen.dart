@@ -12,11 +12,11 @@ import 'package:iprsr/widgets/tutorial_overlay.dart';
 import 'package:iprsr/screens/parking_map_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final String selectedLocation;
+  final Map<String, String> selectedLocation;
   final bool showTutorial;
 
   const MainScreen({
-    super.key, 
+    super.key,
     required this.selectedLocation,
     this.showTutorial = false,
   });
@@ -26,35 +26,39 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late String selectedLocation;
+  late String selectedLotID;
+  late String selectedLotName;
 
   @override
   void initState() {
     super.initState();
-    selectedLocation = widget.selectedLocation;
-    
+    selectedLotID = widget.selectedLocation['lotID'] ?? 'Unknown Lot ID';
+    selectedLotName = widget.selectedLocation['lot_name'] ?? 'Unknown Lot Name';
+
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
-      
-      final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
+
+      final tutorialProvider =
+          Provider.of<TutorialProvider>(context, listen: false);
       await tutorialProvider.checkTutorialStatus();
-      
+
       // Show tutorial if either:
       // 1. It's a manual tutorial request (from settings)
       // 2. It's a first-time user (showTutorial true and hasn't shown before)
-      if (mounted && (tutorialProvider.isManualTutorial || 
-          (widget.showTutorial && !tutorialProvider.hasShownTutorial))) {
+      if (mounted &&
+          (tutorialProvider.isManualTutorial ||
+              (widget.showTutorial && !tutorialProvider.hasShownTutorial))) {
         await showDialog(
           context: context,
           barrierDismissible: false,
           builder: (context) => TutorialOverlay(parentContext: context),
         );
-        
+
         // Reset manual tutorial flag after showing
         if (tutorialProvider.isManualTutorial) {
           tutorialProvider.setManualTutorial(false);
         }
-        
+
         await tutorialProvider.markTutorialAsShown();
       }
     });
@@ -95,7 +99,8 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -113,8 +118,9 @@ class _MainScreenState extends State<MainScreen> {
                     const Icon(Icons.location_on, color: Colors.black87),
                     const SizedBox(width: 8),
                     Text(
-                      selectedLocation,
-                      style: const TextStyle(fontSize: 16, color: Colors.black87),
+                      selectedLotName, // Display lot name instead of lotID
+                      style:
+                          const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -123,33 +129,36 @@ class _MainScreenState extends State<MainScreen> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => ParkingLocationScreen(
-                              selectedLocation: selectedLocation,
+                              selectedLocation: selectedLotID,
                             ),
                           ),
                         );
                         if (result != null) {
                           setState(() {
-                            selectedLocation = result;
+                            selectedLotID = result['lotID'];
+                            selectedLotName = result['lot_name'];
                           });
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          gradient: Theme.of(context).brightness == Brightness.dark
-                              ? const LinearGradient(
-                                  colors: [
-                                    Colors.teal,
-                                    Colors.tealAccent,
-                                  ],
-                                )
-                              : const LinearGradient(
-                                  colors: [
-                                    Color(0xFF00B4D8), // Lighter blue
-                                    Color(0xFF0077B6), // Darker blue
-                                  ],
-                                ),
+                          gradient:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? const LinearGradient(
+                                      colors: [
+                                        Colors.teal,
+                                        Colors.tealAccent,
+                                      ],
+                                    )
+                                  : const LinearGradient(
+                                      colors: [
+                                        Color(0xFF00B4D8), // Lighter blue
+                                        Color(0xFF0077B6), // Darker blue
+                                      ],
+                                    ),
                         ),
                         child: const Text(
                           'Change',
@@ -166,8 +175,8 @@ class _MainScreenState extends State<MainScreen> {
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).brightness == Brightness.dark 
-                      ? Colors.white 
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white
                       : Colors.black,
                 ),
               ),
@@ -192,7 +201,7 @@ class _MainScreenState extends State<MainScreen> {
                       MaterialPageRoute(
                         builder: (context) => RecommendationScreen(
                           user: user,
-                          location: selectedLocation,
+                          location: selectedLotID,
                         ),
                       ),
                     );
@@ -225,7 +234,8 @@ class _MainScreenState extends State<MainScreen> {
                             fontFamily: 'Satisfy',
                             foreground: Paint()
                               ..shader = LinearGradient(
-                                colors: Theme.of(context).brightness == Brightness.dark
+                                colors: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? const [
                                         Colors.teal,
                                         Colors.tealAccent,
@@ -234,10 +244,7 @@ class _MainScreenState extends State<MainScreen> {
                                         Color(0xFF00B4D8), // Turquoise blue
                                         Color(0xFF0077B6), // Darker blue
                                       ],
-                                stops: const [
-                                  0.2,
-                                  0.8
-                                ],
+                                stops: const [0.2, 0.8],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ).createShader(Rect.fromLTWH(
@@ -287,7 +294,7 @@ class _MainScreenState extends State<MainScreen> {
               context,
               MaterialPageRoute(
                 builder: (context) => ParkingMapScreen(
-                  location: selectedLocation,
+                  location: selectedLotID,
                 ),
               ),
             );
@@ -295,7 +302,7 @@ class _MainScreenState extends State<MainScreen> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           child: const Icon(
-            Icons.map_outlined,  // or Icons.location_on
+            Icons.map_outlined, // or Icons.location_on
             size: 40,
             color: Colors.white,
           ),
@@ -321,7 +328,8 @@ class _MainScreenState extends State<MainScreen> {
                   onTap: () async {
                     if (userId != null) {
                       print('Fetching vehicle details for userID: $userId');
-                      final fetchedData = await ApiService.fetchVehicleDetailsAndParkingPreferences(userId);
+                      final fetchedData = await ApiService
+                          .fetchVehicleDetailsAndParkingPreferences(userId);
                       print('Fetched vehicle details: $fetchedData');
 
                       if (fetchedData != null) {
@@ -330,12 +338,20 @@ class _MainScreenState extends State<MainScreen> {
                         final Map<String, bool> parkingPreferences = {
                           'isNearest': fetchedData['data']['isNearest'] == 1,
                           'isCovered': fetchedData['data']['isCovered'] == 1,
-                          'requiresLargeSpace': fetchedData['data']['requiresLargeSpace'] == 1,
-                          'requiresWellLitArea': fetchedData['data']['requiresWellLitArea'] == 1,
-                          'requiresEVCharging': fetchedData['data']['requiresEVCharging'] == 1,
-                          'requiresWheelchairAccess': fetchedData['data']['requiresWheelchairAccess'] == 1,
-                          'requiresFamilyParkingArea': fetchedData['data']['requiresFamilyParkingArea'] == 1,
-                          'premiumParking': fetchedData['data']['premiumParking'] == 1,
+                          'requiresLargeSpace':
+                              fetchedData['data']['requiresLargeSpace'] == 1,
+                          'requiresWellLitArea':
+                              fetchedData['data']['requiresWellLitArea'] == 1,
+                          'requiresEVCharging':
+                              fetchedData['data']['requiresEVCharging'] == 1,
+                          'requiresWheelchairAccess': fetchedData['data']
+                                  ['requiresWheelchairAccess'] ==
+                              1,
+                          'requiresFamilyParkingArea': fetchedData['data']
+                                  ['requiresFamilyParkingArea'] ==
+                              1,
+                          'premiumParking':
+                              fetchedData['data']['premiumParking'] == 1,
                         };
 
                         final result = await Navigator.push(
@@ -363,7 +379,8 @@ class _MainScreenState extends State<MainScreen> {
                           );
                         }
                       } else {
-                        print('Failed to fetch vehicle details or preferences from the server.');
+                        print(
+                            'Failed to fetch vehicle details or preferences from the server.');
                       }
                     } else {
                       print('User ID is null');

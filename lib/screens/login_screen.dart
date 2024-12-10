@@ -180,18 +180,20 @@ class LoginScreen extends StatelessWidget {
       if (userId != null) {
         print('User ID: $userId'); // Print the userId to debug
 
-        // Fetch user's last selected location or use a default one
-        const selectedLocation =
-            'SoC'; // Replace this with fetching logic if needed.
-
+  
         // Navigate to MainScreen and pass userId and selectedLocation
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                MainScreen(selectedLocation: selectedLocation),
-          ),
-        );
+       Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => MainScreen(
+      selectedLocation: {
+        'lotID': 'SOC_01', // Replace with the actual lotID
+        'lot_name': 'SOC', // Replace with the actual lot name
+      },
+    ),
+  ),
+);
+
       } else {
         _showSnackBar(context, 'Login failed');
       }

@@ -201,7 +201,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
 
   void _createParkingSpaceMarkers() async {
   try {
-    final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
+    final parkingSpaces = await ApiService.getParkingData();
     
     if (parkingSpaces != null) {
       Set<Marker> newMarkers = {};

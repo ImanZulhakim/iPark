@@ -35,19 +35,21 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
-            leading: Icon(Icons.person_outline, 
+            leading: Icon(
+              Icons.person_outline,
               size: 26,
               color: Theme.of(context).colorScheme.onSurface,
             ),
             title: Text(
               'Account',
               style: TextStyle(
-                fontSize: 18, 
+                fontSize: 18,
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
-            trailing: Icon(Icons.chevron_right, 
+            trailing: Icon(
+              Icons.chevron_right,
               size: 26,
               color: Theme.of(context).colorScheme.onSurface,
             ),
@@ -63,13 +65,17 @@ class SettingsScreen extends StatelessWidget {
             ),
             trailing: const Icon(Icons.chevron_right, size: 26),
             onTap: () {
-              final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
+              final tutorialProvider =
+                  Provider.of<TutorialProvider>(context, listen: false);
               tutorialProvider.setManualTutorial(true);
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MainScreen(
-                    selectedLocation: 'SoC',
+                  builder: (context) => const MainScreen(
+                    selectedLocation: {
+                      'lotID': 'SOC_01', // Replace with the actual lotID
+                      'lot_name': 'SOC', // Replace with the actual lot name
+                    },
                     showTutorial: true,
                   ),
                 ),
@@ -94,18 +100,24 @@ class SettingsScreen extends StatelessWidget {
                       ListTile(
                         leading: const Icon(Icons.brightness_7),
                         title: const Text('Light Theme'),
-                        selected: context.read<ThemeProvider>().currentTheme == ThemeType.light,
+                        selected: context.read<ThemeProvider>().currentTheme ==
+                            ThemeType.light,
                         onTap: () {
-                          context.read<ThemeProvider>().setTheme(ThemeType.light);
+                          context
+                              .read<ThemeProvider>()
+                              .setTheme(ThemeType.light);
                           Navigator.pop(context);
                         },
                       ),
                       ListTile(
                         leading: const Icon(Icons.brightness_4),
                         title: const Text('Dark Theme'),
-                        selected: context.read<ThemeProvider>().currentTheme == ThemeType.dark,
+                        selected: context.read<ThemeProvider>().currentTheme ==
+                            ThemeType.dark,
                         onTap: () {
-                          context.read<ThemeProvider>().setTheme(ThemeType.dark);
+                          context
+                              .read<ThemeProvider>()
+                              .setTheme(ThemeType.dark);
                           Navigator.pop(context);
                         },
                       ),
@@ -145,7 +157,7 @@ class SettingsScreen extends StatelessWidget {
                   title: const Text(
                     'Log out',
                     style: TextStyle(
-                      fontSize: 20, 
+                      fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
@@ -170,7 +182,8 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        Provider.of<AuthService>(context, listen: false).logout();
+                        Provider.of<AuthService>(context, listen: false)
+                            .logout();
                         Navigator.pushReplacementNamed(context, '/login');
                       },
                       child: const Text(
@@ -187,4 +200,4 @@ class SettingsScreen extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -13,7 +13,7 @@ import 'package:iprsr/providers/tutorial_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   final countdownProvider = CountdownProvider();
   await countdownProvider.checkAndRestoreCountdown();
 
@@ -46,22 +46,33 @@ void main() async {
               try {
                 switch (settings.name) {
                   case '/':
-                    return MaterialPageRoute(builder: (context) => const SplashScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => const SplashScreen());
                   case '/login':
-                    return MaterialPageRoute(builder: (context) => LoginScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => LoginScreen());
                   case '/register':
-                    return MaterialPageRoute(builder: (context) => const RegistrationScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => const RegistrationScreen());
                   case '/parking-location':
                     return MaterialPageRoute(
                       builder: (context) => ParkingLocationScreen(
-                        selectedLocation: settings.arguments as String? ?? 'DefaultLocation',
+                        selectedLocation:
+                            settings.arguments as String? ?? 'DefaultLocation',
                       ),
                     );
                   case '/main':
-                    final selectedLocation = settings.arguments as String? ?? 'SoC';
+                    final selectedLocation =
+                        settings.arguments as Map<String, String>? ??
+                            {
+                              'lotID': 'DefaultLotID',
+                              'lot_name': 'DefaultLotName',
+                            };
                     return MaterialPageRoute(
-                      builder: (context) => MainScreen(selectedLocation: selectedLocation),
+                      builder: (context) =>
+                          MainScreen(selectedLocation: selectedLocation),
                     );
+
                   default:
                     return MaterialPageRoute(
                       builder: (context) => const Scaffold(
@@ -125,22 +136,33 @@ class IPRSRApp extends StatelessWidget {
               try {
                 switch (settings.name) {
                   case '/':
-                    return MaterialPageRoute(builder: (context) => const SplashScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => const SplashScreen());
                   case '/login':
-                    return MaterialPageRoute(builder: (context) => LoginScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => LoginScreen());
                   case '/register':
-                    return MaterialPageRoute(builder: (context) => const RegistrationScreen());
+                    return MaterialPageRoute(
+                        builder: (context) => const RegistrationScreen());
                   case '/parking-location':
                     return MaterialPageRoute(
                       builder: (context) => ParkingLocationScreen(
-                        selectedLocation: settings.arguments as String? ?? 'DefaultLocation',
+                        selectedLocation:
+                            settings.arguments as String? ?? 'DefaultLocation',
                       ),
                     );
                   case '/main':
-                    final selectedLocation = settings.arguments as String? ?? 'SoC';
+                    final selectedLocation =
+                        settings.arguments as Map<String, String>? ??
+                            {
+                              'lotID': 'DefaultLotID',
+                              'lot_name': 'DefaultLotName',
+                            };
                     return MaterialPageRoute(
-                      builder: (context) => MainScreen(selectedLocation: selectedLocation),
+                      builder: (context) =>
+                          MainScreen(selectedLocation: selectedLocation),
                     );
+
                   default:
                     return MaterialPageRoute(
                       builder: (context) => const Scaffold(

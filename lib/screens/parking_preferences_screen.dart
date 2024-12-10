@@ -66,7 +66,8 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
       preferences['requiresWheelchairAccess'] = true;
       preferences['requiresLargeSpace'] = true;
     }
-    if (widget.gender) { // Female
+    if (widget.gender) {
+      // Female
       preferences['isNearest'] = true;
       preferences['requiresWellLitArea'] = true;
     }
@@ -144,8 +145,10 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                         ),
                         child: Row(
@@ -180,15 +183,16 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                                 backgroundColor: Colors.green,
                               ),
                             );
-
-                            const selectedLocation = 'SoC';
-
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const MainScreen(
-                                    selectedLocation: selectedLocation,
-                                    showTutorial: true),
+                                builder: (context) =>
+                                    const MainScreen(selectedLocation: {
+                                  'lotID':
+                                      'SOC_01', // Replace with the actual lotID
+                                  'lot_name':
+                                      'SOC', // Replace with the actual lot name
+                                }, showTutorial: true),
                               ),
                             );
                           } else {
@@ -204,13 +208,16 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                         ),
                         child: Row(
                           children: [
-                            Text('REGISTER', style: TextStyle(color: Colors.white)),
+                            Text('REGISTER',
+                                style: TextStyle(color: Colors.white)),
                             const SizedBox(width: 5),
                             Icon(Icons.check, color: Colors.white),
                           ],

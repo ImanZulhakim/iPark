@@ -315,7 +315,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     if (!mounted) return {};
 
     try {
-      final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
+      final parkingSpaces = await ApiService.getParkingData();
       final recommendations = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
       final locationType = await ApiService.getLocationType(widget.location);
@@ -323,11 +323,11 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       String currentLocation = widget.location;
       List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
 
-      if (recommendations['alternativeLocation'] != null) {
-        currentParkingSpaces = await ApiService.getParkingSpaces(
-            recommendations['alternativeLocation']);
-        currentLocation = recommendations['alternativeLocation'];
-      }
+      // if (recommendations['alternativeLocation'] != null) {
+      //   currentParkingSpaces = await ApiService.getParkingData(
+      //       recommendations['alternativeLocation']);
+      //   currentLocation = recommendations['alternativeLocation'];
+      // }
 
       if (mounted) {
         BuildContext? dialogContext;

@@ -55,16 +55,22 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     return Scaffold(
       bottomNavigationBar: CustomBottomNavigationBar(
         userId: widget.userID,
-        onFloatingActionButtonPressed: () {
-          // Redirect to main screen
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MainScreen(selectedLocation: 'SoC'),
-            ),
-          );
-        },
-      ),
+          onFloatingActionButtonPressed: () {
+            // Redirect to main screen
+            Navigator.pushReplacement(
+  context,
+  MaterialPageRoute(
+    builder: (context) => MainScreen(
+      selectedLocation: {
+        'lotID': 'SoC', // Replace with the actual lotID
+        'lot_name': 'Science Lot', // Replace with the actual lot name
+      },
+    ),
+  ),
+);
+
+          },
+        ),
       floatingActionButton: Container(
         width: 80.0,
         height: 80.0,
@@ -92,11 +98,17 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
           onPressed: () {
             // Redirect to main screen
             Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => MainScreen(selectedLocation: 'SoC'),
-              ),
-            );
+  context,
+  MaterialPageRoute(
+    builder: (context) => MainScreen(
+      selectedLocation: {
+        'lotID': 'SOC_01', // Replace with the actual lotID
+        'lot_name': 'SOC', // Replace with the actual lot name
+      },
+    ),
+  ),
+);
+
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
