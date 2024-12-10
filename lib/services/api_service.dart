@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 class ApiService {
-  static const ip = '192.168.0.106'; // ip wifi
+  static const ip = '192.168.1.19'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
@@ -813,6 +813,60 @@ static Future<bool> isEsp8266Available() async {
       return false;
     }
   }
+
+  static Future<String> getLocationType(String location) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/get_location_type.php?location=$location'),
+    );
+
+    print('Location type API response: ${response.body}'); // Debug print
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final type = data['data']['locationType'].toString().toLowerCase();
+      print('Parsed location type: $type'); // Debug print
+      return type;
+    }
+    return 'indoor'; // Default fallback
+  } catch (e) {
+    print('Error getting location type: $e');
+    return 'indoor';
+  }
+}
+
+static Future<Map<String, List<String>>> getParkingLocations() async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/get_parking_locations.php'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        Map<String, List<String>> stateLocations = {};
+        
+        data['data'].forEach((location) {
+          String state = location['state'];
+          String locationName = location['location'];
+          
+          if (!stateLocations.containsKey(state)) {
+            stateLocations[state] = [];
+          }
+          stateLocations[state]!.add(locationName);
+        });
+        
+        return stateLocations;
+      }
+    }
+    throw Exception('Failed to load parking locations');
+  } catch (e) {
+    print('Error fetching parking locations: $e');
+    throw Exception('Failed to load parking locations');
+  }
+}
+
+
 }
 
 // Example usage in your UI

@@ -6,6 +6,7 @@ import 'package:iprsr/services/api_service.dart';
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/models/user.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
+import 'package:iprsr/widgets/outdoor_parking_view.dart';
 
 class RecommendationScreen extends StatefulWidget {
   final User user;
@@ -81,8 +82,10 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       }
 
       // Refresh recommendationsFuture
-      setState(() {
+      setState(() async {
         recommendationsFuture = fetchRecommendationsAndSpaces();
+        final locationType = await ApiService.getLocationType(widget.location);
+        print('Location type received: $locationType');
       });
     }
   }
@@ -206,12 +209,17 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                 } else if (!snapshot.hasData) {
                   return const Center(
                       child: Text('No parking spaces available.'));
-                } else {
-                  final parkingSpaces = snapshot.data!['parkingSpaces']
-                      as List<Map<String, dynamic>>;
-                  final String recommendedSpace =
-                      snapshot.data!['recommendedSpace'] as String;
+                }
 
+                final parkingSpaces = snapshot.data!['parkingSpaces']
+                    as List<Map<String, dynamic>>;
+                final String recommendedSpace =
+                    snapshot.data!['recommendedSpace'] as String;
+                final String locationType =
+                    snapshot.data!['locationType'] ?? 'indoor';
+
+                if (locationType.toLowerCase() != 'outdoor') {
+                  // Existing indoor visualization
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -239,14 +247,20 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                                       ['parkingType'] ==
                                                   'Premium');
                                         }
-                                      : () {
-                                          // Do nothing for non-premium parking spaces
-                                        },
+                                      : () {},
                                 ),
                             ],
                           ),
                       ],
                     ),
+                  );
+                } else {
+                  print('Showing outdoor view for ${widget.location}');
+                  // Outdoor visualization using Google Maps
+                  return OutdoorParkingView(
+                    parkingSpaces: parkingSpaces,
+                    recommendedSpace: recommendedSpace,
+                    location: widget.location,
                   );
                 }
               },
@@ -304,6 +318,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
       final recommendations = await ApiService.getRecommendations(
           widget.user.userID, widget.location);
+      final locationType = await ApiService.getLocationType(widget.location);
 
       String currentLocation = widget.location;
       List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
@@ -379,6 +394,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         'parkingSpaces': currentParkingSpaces,
         'recommendedSpace': recommendations['parkingSpaceID'],
         'currentLocation': currentLocation,
+        'locationType': locationType,
       };
     } catch (e) {
       print('Error fetching recommendations: $e');

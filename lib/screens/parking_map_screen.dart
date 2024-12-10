@@ -25,15 +25,19 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   bool showParkingLots = true;
   bool showParkingSpaces = true;
 
+//default location
   final LatLng defaultLocation = const LatLng(6.467067402188159, 100.5076370309702);
 
+  
   @override
+  //initialize state
   void initState() {
     super.initState();
     _loadCoordinates();
     _checkLocationPermission();
   }
 
+  //check location permission
   Future<void> _checkLocationPermission() async {
     final permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
@@ -41,6 +45,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     }
   }
 
+  //load coordinates
   Future<void> _loadCoordinates() async {
     try {
       print('Starting to load coordinates...');
@@ -73,6 +78,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     }
   }
 
+  //create parking lot polygon
   void _createParkingLotPolygon() async {
     try {
       // Get the lotID from the location name
@@ -99,6 +105,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     }
   }
 
+  //create custom marker icon
   Future<BitmapDescriptor> _createCustomMarkerIcon(Color color, String text, String parkingType) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
@@ -193,60 +200,52 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   }
 
   void _createParkingSpaceMarkers() async {
-    try {
-      final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
+  try {
+    final parkingSpaces = await ApiService.getParkingSpaces(widget.location);
+    
+    if (parkingSpaces != null) {
+      Set<Marker> newMarkers = {};
       
-      if (parkingSpaces != null) {
-        Set<Marker> newMarkers = {};
-        int batchSize = 10;
-        
-        for (int i = 0; i < parkingSpaces.length; i += batchSize) {
-          int end = (i + batchSize < parkingSpaces.length) ? i + batchSize : parkingSpaces.length;
-          List batch = parkingSpaces.sublist(i, end);
-          
-          for (var space in batch) {
-            if (space['coordinates'] != null) {
-              List<String> coords = space['coordinates'].split(',');
-              if (coords.length == 2) {
-                double lat = double.parse(coords[0].trim());
-                double lng = double.parse(coords[1].trim());
-                
-                bool isAvailable = space['isAvailable'] == 1 || space['isAvailable'] == '1';
-                String parkingType = space['parkingType'] ?? 'Regular';
-                String spaceId = space['parkingSpaceID'];
-                
-                Color markerColor = _getMarkerColor(isAvailable, parkingType);
-                // Pass parkingType to create the appropriate icon
-                BitmapDescriptor markerIcon = await _createCustomMarkerIcon(markerColor, spaceId, parkingType);
+      // Process all spaces in parallel
+      await Future.wait(parkingSpaces.map((space) async {
+        if (space['coordinates'] != null) {
+          List<String> coords = space['coordinates'].split(',');
+          if (coords.length == 2) {
+            double lat = double.parse(coords[0].trim());
+            double lng = double.parse(coords[1].trim());
+            
+            bool isAvailable = space['isAvailable'] == 1 || space['isAvailable'] == '1';
+            String parkingType = space['parkingType'] ?? 'Regular';
+            String spaceId = space['parkingSpaceID'];
+            
+            Color markerColor = _getMarkerColor(isAvailable, parkingType);
+            BitmapDescriptor markerIcon = await _createCustomMarkerIcon(markerColor, spaceId, parkingType);
 
-                newMarkers.add(
-                  Marker(
-                    markerId: MarkerId(spaceId),
-                    position: LatLng(lat, lng),
-                    icon: markerIcon,
-                    infoWindow: InfoWindow(
-                      title: 'Space $spaceId',
-                      snippet: '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
-                    ),
-                  ),
-                );
-              }
-            }
+            newMarkers.add(
+              Marker(
+                markerId: MarkerId(spaceId),
+                position: LatLng(lat, lng),
+                icon: markerIcon,
+                infoWindow: InfoWindow(
+                  title: 'Space $spaceId',
+                  snippet: '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
+                ),
+              ),
+            );
           }
-          
-          if (mounted) {
-            setState(() {
-              parkingSpaceMarkers = newMarkers;
-            });
-          }
-          
-          await Future.delayed(const Duration(milliseconds: 100));
         }
+      }));
+      
+      if (mounted) {
+        setState(() {
+          parkingSpaceMarkers = newMarkers;
+        });
       }
-    } catch (e) {
-      print('Error creating parking space markers: $e');
     }
+  } catch (e) {
+    print('Error creating parking space markers: $e');
   }
+}
 
   // Helper method to determine marker color
   Color _getMarkerColor(bool isAvailable, String parkingType) {
