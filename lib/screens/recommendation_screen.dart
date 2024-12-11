@@ -10,12 +10,12 @@ import 'package:iprsr/widgets/outdoor_parking_view.dart';
 
 class RecommendationScreen extends StatefulWidget {
   final User user;
-  final String location;
+  final String lotID;
 
   const RecommendationScreen({
     super.key,
     required this.user,
-    required this.location,
+    required this.lotID,
   });
 
   @override
@@ -26,7 +26,6 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   late Future<Map<String, dynamic>> recommendationsFuture;
   Timer? telegramPollingTimer;
   late final CountdownProvider _providerInstance;
-  late NavigatorState _navigator;
   Timer? _refreshTimer;
 
   // Fetch recommendations and spaces from the API
@@ -34,9 +33,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   void initState() {
     super.initState();
     // Store navigator reference when widget initializes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _navigator = Navigator.of(context);
-    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {});
     _startRefreshTimer();
     recommendationsFuture = fetchRecommendationsAndSpaces();
 
@@ -84,7 +81,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       // Refresh recommendationsFuture
       setState(() async {
         recommendationsFuture = fetchRecommendationsAndSpaces();
-        final locationType = await ApiService.getLocationType(widget.location);
+        final locationType = await ApiService.getLocationType(widget.lotID);
         print('Location type received: $locationType');
       });
     }
@@ -103,7 +100,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             return FutureBuilder<Map<String, dynamic>>(
               future: recommendationsFuture,
               builder: (context, snapshot) {
-                String displayLocation = widget.location;
+                String displayLocation = widget.lotID;
                 if (snapshot.hasData &&
                     snapshot.data!['currentLocation'] != null) {
                   displayLocation = snapshot.data!['currentLocation'];
@@ -131,14 +128,14 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             ? Colors.grey[800]
             : theme.appBarTheme.backgroundColor ?? Colors.teal,
       ),
+      // Modified part in build method
       body: Column(
         children: [
           Container(
             width: double.infinity,
             color: Theme.of(context).brightness == Brightness.dark
                 ? Colors.grey[700]
-                : const Color(
-                    0xFFADE8F4), // Slightly darker blue for light theme
+                : const Color(0xFFADE8F4),
             padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Column(
               children: [
@@ -178,25 +175,35 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
               ],
             ),
           ),
-          const Padding(
-            padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  children: [
-                    Icon(Icons.arrow_downward, color: Colors.green),
-                    Text('Entrance', style: TextStyle(color: Colors.green)),
-                  ],
-                ),
-                Column(
-                  children: [
-                    Text('Exit', style: TextStyle(color: Colors.red)),
-                    Icon(Icons.arrow_upward, color: Colors.red),
-                  ],
-                ),
-              ],
-            ),
+          FutureBuilder<Map<String, dynamic>>(
+            future: recommendationsFuture,
+            builder: (context, snapshot) {
+              final locationType = snapshot.data?['locationType'] ?? 'indoor';
+              if (locationType.toLowerCase() == 'indoor') {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          Icon(Icons.arrow_downward, color: Colors.green),
+                          Text('Entrance',
+                              style: TextStyle(color: Colors.green)),
+                        ],
+                      ),
+                      Column(
+                        children: [
+                          Text('Exit', style: TextStyle(color: Colors.red)),
+                          Icon(Icons.arrow_upward, color: Colors.red),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
           ),
           Expanded(
             child: FutureBuilder<Map<String, dynamic>>(
@@ -219,7 +226,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                     snapshot.data!['locationType'] ?? 'indoor';
 
                 if (locationType.toLowerCase() != 'outdoor') {
-                  // Existing indoor visualization
+                  print('Rendering indoor parking layout');
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -241,11 +248,12 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                           'Premium'
                                       ? () {
                                           _handleParkingSpaceSelection(
-                                              parkingSpaces[i + j]
-                                                  ['parkingSpaceID'],
-                                              parkingSpaces[i + j]
-                                                      ['parkingType'] ==
-                                                  'Premium');
+                                            parkingSpaces[i + j]
+                                                ['parkingSpaceID'],
+                                            parkingSpaces[i + j]
+                                                    ['parkingType'] ==
+                                                'Premium',
+                                          );
                                         }
                                       : () {},
                                 ),
@@ -255,12 +263,15 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                     ),
                   );
                 } else {
-                  print('Showing outdoor view for ${widget.location}');
-                  // Outdoor visualization using Google Maps
+                  print('Rendering outdoor parking view');
+                  print('Passing data to OutdoorParkingView:');
+                  print('Parking spaces: $parkingSpaces');
+                  print('Recommended space: $recommendedSpace');
+
                   return OutdoorParkingView(
                     parkingSpaces: parkingSpaces,
                     recommendedSpace: recommendedSpace,
-                    location: widget.location,
+                    lotID: widget.lotID,
                   );
                 }
               },
@@ -268,6 +279,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
           ),
         ],
       ),
+
       floatingActionButton: FutureBuilder<Map<String, dynamic>>(
         future: recommendationsFuture,
         builder: (context, snapshot) {
@@ -300,7 +312,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                 }
               }
               // Fallback to location navigation if no coordinates found
-              openGoogleMaps(widget.location);
+              openGoogleMaps(widget.lotID);
             },
             backgroundColor:
                 theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
@@ -315,12 +327,13 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     if (!mounted) return {};
 
     try {
-      final parkingSpaces = await ApiService.getParkingData();
-      final recommendations = await ApiService.getRecommendations(
-          widget.user.userID, widget.location);
-      final locationType = await ApiService.getLocationType(widget.location);
+      final parkingSpaces = await ApiService.getParkingData(widget.lotID);
+      final recommendations =
+          await ApiService.getRecommendations(widget.user.userID, widget.lotID);
+      final locationType = await ApiService.getLocationType(widget.lotID);
+      print('Location type for lotID ${widget.lotID}: $locationType');
 
-      String currentLocation = widget.location;
+      String currentLocation = widget.lotID;
       List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
 
       // if (recommendations['alternativeLocation'] != null) {
@@ -330,8 +343,6 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       // }
 
       if (mounted) {
-        BuildContext? dialogContext;
-
         showDialog(
           context: context,
           barrierDismissible: true,

@@ -2,18 +2,17 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iprsr/services/api_service.dart';
 import 'dart:ui' as ui;
-import 'dart:typed_data';
 
 class OutdoorParkingView extends StatefulWidget {
   final List<Map<String, dynamic>> parkingSpaces;
   final String recommendedSpace;
-  final String location;
+  final String lotID;
 
   const OutdoorParkingView({
     super.key,
     required this.parkingSpaces,
     required this.recommendedSpace,
-    required this.location,
+    required this.lotID,
   });
 
   @override
@@ -22,216 +21,221 @@ class OutdoorParkingView extends StatefulWidget {
 
 class _OutdoorParkingViewState extends State<OutdoorParkingView> {
   Set<Polygon> parkingLotPolygons = {};
+  Set<Marker> parkingMarkers = {};
+  LatLng? initialCameraTarget;
   bool isLoading = true;
+  late GoogleMapController _mapController;
+  LatLngBounds? pendingBounds; // Store bounds until the map controller is ready
 
   @override
   void initState() {
     super.initState();
-    _loadPolygons();
+    _loadPolygonsAndMarkers();
   }
 
-  Future<void> _loadPolygons() async {
+  Future<void> _loadPolygonsAndMarkers() async {
     try {
-      final coords = await ApiService.getParkingLotCoordinates();
-      if (mounted) {
+      // Fetch boundary points
+      final List<LatLng> boundaryPoints =
+          await ApiService.getParkingLotBoundary(widget.lotID);
+
+      if (boundaryPoints.isNotEmpty) {
         setState(() {
-          // Create polygon for the current location
-          if (coords.containsKey(widget.location)) {
-            parkingLotPolygons.add(
-              Polygon(
-                polygonId: PolygonId(widget.location),
-                points: [
-                  coords[widget.location]!,
-                  LatLng(coords[widget.location]!.latitude + 0.0003, coords[widget.location]!.longitude + 0.0005),
-                  LatLng(coords[widget.location]!.latitude + 0.0003, coords[widget.location]!.longitude - 0.0005),
-                  LatLng(coords[widget.location]!.latitude - 0.0003, coords[widget.location]!.longitude - 0.0005),
-                  LatLng(coords[widget.location]!.latitude - 0.0003, coords[widget.location]!.longitude + 0.0005),
-                ],
-                fillColor: Colors.blue.withOpacity(0.3),
-                strokeColor: Colors.blue,
-                strokeWidth: 2,
-              ),
-            );
-          }
-          isLoading = false;
-        });
-      }
-    } catch (e) {
-      print('Error loading polygons: $e');
-      if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
-      }
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: _getLocationCoordinates(widget.location),
-        zoom: 19.0,
-      ),
-      mapType: MapType.satellite,
-      markers: _createMarkers(),
-      polygons: parkingLotPolygons,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: true,
-    );
-  }
-
- Set<Marker> _createMarkers() {
-  Set<Marker> markers = {};
-  
-  for (var space in widget.parkingSpaces) {
-    if (space['coordinates'] != null) {
-      List<String> coords = space['coordinates'].split(',');
-      if (coords.length == 2) {
-        double lat = double.parse(coords[0].trim());
-        double lng = double.parse(coords[1].trim());
-        
-        bool isAvailable = space['isAvailable'] == 1 || space['isAvailable'] == '1';
-        String parkingType = space['parkingType'] ?? 'Regular';
-        String spaceId = space['parkingSpaceID'];
-        bool isRecommended = spaceId == widget.recommendedSpace;
-        
-        Color markerColor = isRecommended 
-            ? Colors.green
-            : _getMarkerColor(isAvailable, parkingType);
-
-        _createCustomMarkerIcon(markerColor, spaceId, parkingType).then((markerIcon) {
-          markers.add(
-            Marker(
-              markerId: MarkerId(spaceId),
-              position: LatLng(lat, lng),
-              icon: markerIcon,
-              infoWindow: InfoWindow(
-                title: 'Space $spaceId',
-                snippet: '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
-              ),
+          parkingLotPolygons.add(
+            Polygon(
+              polygonId: PolygonId(widget.lotID),
+              points: boundaryPoints,
+              fillColor: Colors.blue.withOpacity(0.3),
+              strokeColor: Colors.blue,
+              strokeWidth: 2,
             ),
           );
         });
+
+        // Calculate bounds and store them for later
+        final bounds = _calculateLatLngBounds(boundaryPoints);
+        pendingBounds = bounds;
+      } else {
+        print('No boundary points found for lotID: ${widget.lotID}');
       }
+
+      // Load markers
+      await _loadMarkers();
+
+      // Set initial camera target
+      _setInitialCameraTarget();
+    } catch (e) {
+      print('Error loading polygons or markers: $e');
+    } finally {
+      setState(() {
+        isLoading = false;
+      });
     }
   }
-  return markers;
-}
+
+  void _setInitialCameraTarget() {
+    if (parkingLotPolygons.isNotEmpty) {
+      final boundaryPoints = parkingLotPolygons.first.points;
+      double latSum = 0, lngSum = 0;
+      for (var point in boundaryPoints) {
+        latSum += point.latitude;
+        lngSum += point.longitude;
+      }
+      initialCameraTarget = LatLng(
+        latSum / boundaryPoints.length,
+        lngSum / boundaryPoints.length,
+      );
+    } else {
+      // Default fallback
+      initialCameraTarget = const LatLng(6.467067402188159, 100.5076370309702);
+    }
+  }
+
+  LatLngBounds _calculateLatLngBounds(List<LatLng> points) {
+    double? minLat, minLng, maxLat, maxLng;
+
+    for (var point in points) {
+      if (minLat == null || point.latitude < minLat) minLat = point.latitude;
+      if (maxLat == null || point.latitude > maxLat) maxLat = point.latitude;
+      if (minLng == null || point.longitude < minLng) minLng = point.longitude;
+      if (maxLng == null || point.longitude > maxLng) maxLng = point.longitude;
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat!, minLng!),
+      northeast: LatLng(maxLat!, maxLng!),
+    );
+  }
+
+  Future<void> _moveCameraToFitBounds(LatLngBounds bounds) async {
+    // Only move the camera if the map controller is ready
+    await _mapController.animateCamera(
+      CameraUpdate.newLatLngBounds(bounds, 50), // Add padding
+    );
+    }
+
+  Future<void> _loadMarkers() async {
+    Set<Marker> markers = {};
+
+    for (var space in widget.parkingSpaces) {
+      try {
+        if (space['coordinates'] != null) {
+          List<String> coords = space['coordinates'].split(',');
+          if (coords.length == 2) {
+            final lat = double.tryParse(coords[0].trim());
+            final lng = double.tryParse(coords[1].trim());
+            if (lat == null || lng == null) {
+              continue;
+            }
+
+            bool isAvailable = space['isAvailable'] == true ||
+                space['isAvailable'] == 1 ||
+                space['isAvailable'] == '1';
+
+            String parkingType = space['parkingType'] ?? 'Regular';
+            String spaceId = space['parkingSpaceID'];
+            bool isRecommended = spaceId == widget.recommendedSpace;
+
+            Color markerColor = isRecommended
+                ? Colors.green
+                : _getMarkerColor(isAvailable, parkingType);
+
+            final markerIcon =
+                await _createCustomMarkerIcon(markerColor, parkingType);
+
+            markers.add(
+              Marker(
+                markerId: MarkerId(spaceId),
+                position: LatLng(lat, lng),
+                icon: markerIcon,
+                infoWindow: InfoWindow(
+                  title: 'Space $spaceId',
+                  snippet:
+                      '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
+                ),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        print('Error processing parking space: $e');
+      }
+    }
+
+    setState(() {
+      parkingMarkers = markers;
+    });
+  }
 
   Color _getMarkerColor(bool isAvailable, String parkingType) {
     if (!isAvailable) return Colors.red;
-    
+
     switch (parkingType) {
-      case 'Special': return const Color(0xFF90CAF9);
-      case 'Female': return const Color(0xFFF48FB1);
-      case 'Family': return const Color(0xFFCE93D8);
-      case 'EV Car': return const Color(0xFFA5D6A7);
-      case 'Premium': return const Color(0xFFFFD54F);
-      default: return Colors.grey;
+      case 'Special':
+        return const Color(0xFF90CAF9);
+      case 'Female':
+        return const Color(0xFFF48FB1);
+      case 'Family':
+        return const Color(0xFFCE93D8);
+      case 'EV Car':
+        return const Color(0xFFA5D6A7);
+      case 'Premium':
+        return const Color(0xFFFFD54F);
+      default:
+        return Colors.grey;
     }
   }
 
-  LatLng _getLocationCoordinates(String location) {
-    // Add default coordinates for each location
-    final Map<String, LatLng> coordinates = {
-      'SoC': const LatLng(6.467067402188159, 100.5076370309702),
-      'DMAS': const LatLng(6.467144415889556, 100.50597248173986),
-      'DTSO': const LatLng(6.465756607732289, 100.50398509459093),
-      'VMALL': const LatLng(6.462567082976349, 100.50071606950915),
-    };
-    
-    return coordinates[location] ?? const LatLng(6.467067402188159, 100.5076370309702);
-  }
-
-
-
-}
-
-
-  // Add after the existing _getMarkerColor method
-
-  Future<BitmapDescriptor> _createCustomMarkerIcon(Color color, String text, String parkingType) async {
+  Future<BitmapDescriptor> _createCustomMarkerIcon(
+      Color color, String parkingType) async {
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
-    final size = 60.0;
-    final width = 40.0;
-    final height = 60.0;
-    final cornerRadius = 8.0;
+    const width = 60.0;
+    const height = 100.0;
 
-    // Create the rectangle path
+    final paint = Paint()..color = color;
+
+    const circleRadius = width / 2;
+    final circleCenter = Offset(width / 2, circleRadius);
+    canvas.drawCircle(circleCenter, circleRadius, paint);
+
     final path = Path()
-      ..moveTo(size / 2 - width / 2 + cornerRadius, 0)
-      ..lineTo(size / 2 + width / 2 - cornerRadius, 0)
-      ..arcToPoint(
-        Offset(size / 2 + width / 2, cornerRadius),
-        radius: Radius.circular(cornerRadius),
-      )
-      ..lineTo(size / 2 + width / 2, height - cornerRadius)
-      ..arcToPoint(
-        Offset(size / 2 + width / 2 - cornerRadius, height),
-        radius: Radius.circular(cornerRadius),
-      )
-      ..lineTo(size / 2 - width / 2 + cornerRadius, height)
-      ..arcToPoint(
-        Offset(size / 2 - width / 2, height - cornerRadius),
-        radius: Radius.circular(cornerRadius),
-      )
-      ..lineTo(size / 2 - width / 2, cornerRadius)
-      ..arcToPoint(
-        Offset(size / 2 - width / 2 + cornerRadius, 0),
-        radius: Radius.circular(cornerRadius),
-      );
+      ..moveTo(width / 2, height)
+      ..lineTo(0, circleRadius)
+      ..lineTo(width, circleRadius)
+      ..close();
+    canvas.drawPath(path, paint);
 
-    // Draw the rectangle
-    canvas.drawPath(
-      path,
-      Paint()..color = color,
-    );
+    final cutoutPaint = Paint()..color = Colors.white;
+    const cutoutRadius = width / 4;
+    canvas.drawCircle(circleCenter, cutoutRadius, cutoutPaint);
 
-    // Add the parking type icon
-    final IconData icon = _getParkingTypeIcon(parkingType);
-    final paragraphBuilder = ui.ParagraphBuilder(
-      ui.ParagraphStyle(textAlign: TextAlign.center),
-    )..pushStyle(ui.TextStyle(
-        color: Colors.white,
-        fontSize: 24,
-        fontFamily: icon.fontFamily,
-      ))
-      ..addText(String.fromCharCode(icon.codePoint));
-    final paragraph = paragraphBuilder.build()
-      ..layout(ui.ParagraphConstraints(width: size));
-    canvas.drawParagraph(
-      paragraph,
-      Offset((size - paragraph.width) / 2, 8),
-    );
-
-    // Add the text
+    final icon = _getParkingTypeIcon(parkingType);
     final textPainter = TextPainter(
       text: TextSpan(
-        text: text,
-        style: const TextStyle(
-          color: Colors.white,
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: 24,
+          fontFamily: icon.fontFamily,
+          color: Colors.black,
         ),
       ),
+      textAlign: TextAlign.center,
       textDirection: TextDirection.ltr,
     );
     textPainter.layout();
     textPainter.paint(
       canvas,
       Offset(
-        (size - textPainter.width) / 2,
-        (size + height) / 2 - 24,
+        circleCenter.dx - textPainter.width / 2,
+        circleCenter.dy - textPainter.height / 2,
       ),
     );
 
-    final ui.Image image = await recorder.endRecording().toImage(size.toInt(), size.toInt());
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    
-    final Uint8List uint8List = byteData!.buffer.asUint8List();
-    return BitmapDescriptor.fromBytes(uint8List);
+    final picture = recorder.endRecording();
+    final image = await picture.toImage(width.toInt(), height.toInt());
+    final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    return BitmapDescriptor.fromBytes(byteData!.buffer.asUint8List());
   }
 
   IconData _getParkingTypeIcon(String parkingType) {
@@ -246,9 +250,33 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
         return Icons.electric_car;
       case 'Premium':
         return Icons.star;
-      case 'Regular':
-        return Icons.local_parking;
       default:
         return Icons.local_parking;
     }
   }
+
+  @override
+  Widget build(BuildContext context) {
+    return isLoading || initialCameraTarget == null
+        ? const Center(child: CircularProgressIndicator())
+        : GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: initialCameraTarget!,
+              zoom: 18.0,
+            ),
+            onMapCreated: (controller) {
+              _mapController = controller;
+              if (pendingBounds != null) {
+                _moveCameraToFitBounds(pendingBounds!);
+                pendingBounds = null; // Clear bounds after moving camera
+              }
+            },
+            mapType: MapType.satellite,
+            markers: parkingMarkers,
+            polygons: parkingLotPolygons,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            zoomControlsEnabled: false,
+          );
+  }
+}

@@ -57,7 +57,7 @@ void main() async {
                   case '/parking-location':
                     return MaterialPageRoute(
                       builder: (context) => ParkingLocationScreen(
-                        selectedLocation:
+                        lotID:
                             settings.arguments as String? ?? 'DefaultLocation',
                       ),
                     );
@@ -147,7 +147,7 @@ class IPRSRApp extends StatelessWidget {
                   case '/parking-location':
                     return MaterialPageRoute(
                       builder: (context) => ParkingLocationScreen(
-                        selectedLocation:
+                        lotID:
                             settings.arguments as String? ?? 'DefaultLocation',
                       ),
                     );

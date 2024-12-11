@@ -6,9 +6,9 @@ import 'dart:ui' as ui;
 import 'dart:typed_data';
 
 class ParkingMapScreen extends StatefulWidget {
-  final String location;
+  final String lotID;
 
-  const ParkingMapScreen({super.key, required this.location});
+  const ParkingMapScreen({super.key, required this.lotID});
 
   @override
   State<ParkingMapScreen> createState() => _ParkingMapScreenState();
@@ -59,12 +59,12 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
         });
         
         // Only create polygons and markers if we have the specific location
-        if (locationCoordinates.containsKey(widget.location)) {
-          print('Creating polygon for location: ${widget.location}');
+        if (locationCoordinates.containsKey(widget.lotID)) {
+          print('Creating polygon for location: ${widget.lotID}');
           _createParkingLotPolygon();
           _createParkingSpaceMarkers();
         } else {
-          print('Location not found in coordinates: ${widget.location}');
+          print('Location not found in coordinates: ${widget.lotID}');
         }
       }
     } catch (e, stackTrace) {
@@ -82,7 +82,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   void _createParkingLotPolygon() async {
     try {
       // Get the lotID from the location name
-      String lotID = ApiService.locationMapping[widget.location] ?? widget.location;
+      String lotID = ApiService.locationMapping[widget.lotID] ?? widget.lotID;
       List<LatLng> boundaryPoints = await ApiService.getParkingLotBoundary(lotID);
       
       if (boundaryPoints.isNotEmpty) {
@@ -201,48 +201,46 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
 
   void _createParkingSpaceMarkers() async {
   try {
-    final parkingSpaces = await ApiService.getParkingData();
+    final parkingSpaces = await ApiService.getParkingData(widget.lotID);
     
-    if (parkingSpaces != null) {
-      Set<Marker> newMarkers = {};
-      
-      // Process all spaces in parallel
-      await Future.wait(parkingSpaces.map((space) async {
-        if (space['coordinates'] != null) {
-          List<String> coords = space['coordinates'].split(',');
-          if (coords.length == 2) {
-            double lat = double.parse(coords[0].trim());
-            double lng = double.parse(coords[1].trim());
-            
-            bool isAvailable = space['isAvailable'] == 1 || space['isAvailable'] == '1';
-            String parkingType = space['parkingType'] ?? 'Regular';
-            String spaceId = space['parkingSpaceID'];
-            
-            Color markerColor = _getMarkerColor(isAvailable, parkingType);
-            BitmapDescriptor markerIcon = await _createCustomMarkerIcon(markerColor, spaceId, parkingType);
+    Set<Marker> newMarkers = {};
+    
+    // Process all spaces in parallel
+    await Future.wait(parkingSpaces.map((space) async {
+      if (space['coordinates'] != null) {
+        List<String> coords = space['coordinates'].split(',');
+        if (coords.length == 2) {
+          double lat = double.parse(coords[0].trim());
+          double lng = double.parse(coords[1].trim());
+          
+          bool isAvailable = space['isAvailable'] == 1 || space['isAvailable'] == '1';
+          String parkingType = space['parkingType'] ?? 'Regular';
+          String spaceId = space['parkingSpaceID'];
+          
+          Color markerColor = _getMarkerColor(isAvailable, parkingType);
+          BitmapDescriptor markerIcon = await _createCustomMarkerIcon(markerColor, spaceId, parkingType);
 
-            newMarkers.add(
-              Marker(
-                markerId: MarkerId(spaceId),
-                position: LatLng(lat, lng),
-                icon: markerIcon,
-                infoWindow: InfoWindow(
-                  title: 'Space $spaceId',
-                  snippet: '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
-                ),
+          newMarkers.add(
+            Marker(
+              markerId: MarkerId(spaceId),
+              position: LatLng(lat, lng),
+              icon: markerIcon,
+              infoWindow: InfoWindow(
+                title: 'Space $spaceId',
+                snippet: '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
               ),
-            );
-          }
+            ),
+          );
         }
-      }));
-      
-      if (mounted) {
-        setState(() {
-          parkingSpaceMarkers = newMarkers;
-        });
       }
+    }));
+    
+    if (mounted) {
+      setState(() {
+        parkingSpaceMarkers = newMarkers;
+      });
     }
-  } catch (e) {
+    } catch (e) {
     print('Error creating parking space markers: $e');
   }
 }
@@ -271,7 +269,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.location} Parking'),
+        title: Text('${widget.lotID} Parking'),
         actions: [
           // Add layer controls in the app bar
           PopupMenuButton<String>(
@@ -308,7 +306,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
           // Existing Google Map
           GoogleMap(
             initialCameraPosition: CameraPosition(
-              target: locationCoordinates[widget.location] ?? defaultLocation,
+              target: locationCoordinates[widget.lotID] ?? defaultLocation,
               zoom: 19.0,
             ),
             mapType: MapType.satellite,

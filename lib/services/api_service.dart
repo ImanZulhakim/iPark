@@ -16,7 +16,7 @@ class ApiService {
   static const String _telegramApiUrl =
       "https://api.telegram.org/bot$_telegramBotToken";
 
-  static const int ESP8266_PORT = 80;  // Default HTTP port
+  static const int ESP8266_PORT = 80; // Default HTTP port
   static const Duration CONNECTION_TIMEOUT = Duration(seconds: 2);
 
   // Register user
@@ -203,54 +203,77 @@ class ApiService {
   }
 
 // Fetch parking spaces data for a specific location
-static Future<List<Map<String, dynamic>>> getParkingData() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/fetch_parking_data.php'),
-    );
+  static Future<List<Map<String, dynamic>>> getParkingLocation() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_parking_data.php'),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        return List<Map<String, dynamic>>.from(data['data']);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Parking data fetched successfully: ${data['data']}');
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
       }
+      throw Exception('Failed to load parking data');
+    } catch (e) {
+      print('Error fetching parking data: $e');
+      throw Exception('Failed to load parking data');
     }
-    throw Exception('Failed to load parking data');
-  } catch (e) {
-    print('Error fetching parking data: $e');
-    throw Exception('Failed to load parking data');
   }
-}
 
+
+// Fetch parking spaces data for a specific location
+  static Future<List<Map<String, dynamic>>> getParkingData(lotID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_parking_spaces.php?lotID=$lotID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Parking data fetched successfully: ${data['data']}');
+          return List<Map<String, dynamic>>.from(data['data']);
+        }
+      }
+      throw Exception('Failed to load parking data');
+    } catch (e) {
+      print('Error fetching parking data: $e');
+      throw Exception('Failed to load parking data');
+    }
+  }
 
 // Check if ESP8266 is available
-static Future<bool> isEsp8266Available() async {
-  try {
-    final response = await http.get(
-      Uri.parse(esp8266IpAddress),
-      headers: {'Accept': '*/*'},
-    ).timeout(const Duration(seconds: 2));
-    
-    return response.statusCode == 200;
-  } catch (e) {
-    print("ESP8266 not available: $e");
-    return false;
+  static Future<bool> isEsp8266Available() async {
+    try {
+      final response = await http.get(
+        Uri.parse(esp8266IpAddress),
+        headers: {'Accept': '*/*'},
+      ).timeout(const Duration(seconds: 2));
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print("ESP8266 not available: $e");
+      return false;
+    }
   }
-}
 
 // Function to send HTTP request to ESP8266 to control the gate
   static Future<void> controlGate(String action) async {
     // First verify ESP8266 connection
     final bool isConnected = await verifyEsp8266Connection();
     if (!isConnected) {
-      throw Exception('ESP8266 is not accessible. Please check the device connection.');
+      throw Exception(
+          'ESP8266 is not accessible. Please check the device connection.');
     }
 
     final String endpoint = action == "close" ? "close_gate" : "open_gate";
     final String url = "$esp8266IpAddress$endpoint";
-    
+
     print("Attempting to control gate - URL: $url");
-    
+
     try {
       final response = await http.get(
         Uri.parse(url),
@@ -272,11 +295,11 @@ static Future<bool> isEsp8266Available() async {
         print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
       } else {
         if (response.body.contains("<!DOCTYPE HTML")) {
-          throw Exception("ESP8266 endpoint not found. Please verify the URL: $url");
+          throw Exception(
+              "ESP8266 endpoint not found. Please verify the URL: $url");
         } else {
           throw Exception(
-            "Failed to ${action} gate: Status ${response.statusCode} - ${response.body}"
-          );
+              "Failed to ${action} gate: Status ${response.statusCode} - ${response.body}");
         }
       }
     } catch (e) {
@@ -715,27 +738,17 @@ static Future<bool> isEsp8266Available() async {
         if (data['status'] == 'success') {
           Map<String, LatLng> coordinates = {};
 
-          // Map for converting display names to database keys
-          const locationMapping = {
-            'SoC': 'SOC',
-            'V Mall': 'VMALL',
-            'Dewan MAS': 'DMAS',
-            'DTSO': 'DTSO',
-          };
-
-          data['data'].forEach((location, lotData) {
-            // Convert the database location key to display name
-            String displayName = locationMapping.entries
-                .firstWhere((entry) => entry.value == location,
-                    orElse: () => MapEntry(location, location))
-                .key;
-
-            List<String> coords = lotData['coordinates'].split(',');
-            coordinates[displayName] = LatLng(
-              double.parse(coords[0].trim()),
-              double.parse(coords[1].trim()),
-            );
+          data['data'].forEach((lotName, lotData) {
+            // Parse coordinates
+            if (lotData['coordinates'] != null) {
+              List<String> coords = lotData['coordinates'].split(',');
+              coordinates[lotName] = LatLng(
+                double.parse(coords[0].trim()),
+                double.parse(coords[1].trim()),
+              );
+            }
           });
+
           return coordinates;
         }
       }
@@ -747,30 +760,33 @@ static Future<bool> isEsp8266Available() async {
   }
 
   // Get parking lot boundary
-  static Future<List<LatLng>> getParkingLotBoundary(String locationCode) async {
+  static Future<List<LatLng>> getParkingLotBoundary(String lotID) async {
     try {
       final response = await http.get(
         Uri.parse('$_baseUrl/fetch_parking_lot_boundaries.php'),
       );
 
       if (response.statusCode == 200) {
-        print('Boundary response: ${response.body}'); // Debug log
         final data = jsonDecode(response.body);
 
-        if (data['status'] == 'success' && 
-            data['data'].containsKey(locationCode)) {
-          List<dynamic> boundaryPoints = data['data'][locationCode]['coordinates'];
-          print('Found boundary points: $boundaryPoints'); // Debug log
-          return boundaryPoints.map((point) => LatLng(
-            point['lat'].toDouble(),
-            point['lng'].toDouble(),
-          )).toList();
+        if (data['status'] == 'success' &&
+            data['data'] != null &&
+            data['data'].containsKey(lotID)) {
+          List<dynamic> boundaryPoints = data['data'][lotID]['coordinates'];
+          return boundaryPoints
+              .map((point) => LatLng(
+                    point['lat'].toDouble(),
+                    point['lng'].toDouble(),
+                  ))
+              .toList();
         } else {
-          print('No data found for location code: $locationCode');
-          print('Available locations: ${data['data'].keys.toList()}');
+          print('No boundary data found for lotID: $lotID');
+          return [];
         }
+      } else {
+        print('Failed to fetch boundary points. HTTP ${response.statusCode}');
+        return [];
       }
-      return [];
     } catch (e) {
       print('Error fetching parking lot boundary: $e');
       return [];
@@ -790,11 +806,8 @@ static Future<bool> isEsp8266Available() async {
     try {
       // Parse the IP address from the ESP8266 URL
       final uri = Uri.parse(esp8266IpAddress);
-      final socket = await Socket.connect(
-        uri.host, 
-        ESP8266_PORT,
-        timeout: CONNECTION_TIMEOUT
-      );
+      final socket = await Socket.connect(uri.host, ESP8266_PORT,
+          timeout: CONNECTION_TIMEOUT);
       socket.destroy();
       return true;
     } catch (e) {
@@ -803,59 +816,57 @@ static Future<bool> isEsp8266Available() async {
     }
   }
 
-  static Future<String> getLocationType(String location) async {
-  try {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/get_location_type.php?location=$location'),
-    );
+  static Future<String> getLocationType(String lotID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_location_type.php?lotID=$lotID'),
+      );
 
-    print('Location type API response: ${response.body}'); // Debug print
+      print('Location type API response: ${response.body}'); // Debug print
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final type = data['data']['locationType'].toString().toLowerCase();
-      print('Parsed location type: $type'); // Debug print
-      return type;
-    }
-    return 'indoor'; // Default fallback
-  } catch (e) {
-    print('Error getting location type: $e');
-    return 'indoor';
-  }
-}
-
-static Future<Map<String, List<String>>> getParkingLocations() async {
-  try {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/get_parking_locations.php'),
-    );
-
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        Map<String, List<String>> stateLocations = {};
-        
-        data['data'].forEach((location) {
-          String state = location['state'];
-          String locationName = location['location'];
-          
-          if (!stateLocations.containsKey(state)) {
-            stateLocations[state] = [];
-          }
-          stateLocations[state]!.add(locationName);
-        });
-        
-        return stateLocations;
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final type = data['data']['locationType'].toString().toLowerCase();
+        print('Parsed location type: $type'); // Debug print
+        return type;
       }
+      return 'indoor'; // Default fallback
+    } catch (e) {
+      print('Error getting location type: $e');
+      return 'indoor';
     }
-    throw Exception('Failed to load parking locations');
-  } catch (e) {
-    print('Error fetching parking locations: $e');
-    throw Exception('Failed to load parking locations');
   }
-}
 
+  static Future<Map<String, List<String>>> getParkingLocations() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_parking_locations.php'),
+      );
 
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          Map<String, List<String>> stateLocations = {};
+
+          data['data'].forEach((location) {
+            String state = location['state'];
+            String locationName = location['location'];
+
+            if (!stateLocations.containsKey(state)) {
+              stateLocations[state] = [];
+            }
+            stateLocations[state]!.add(locationName);
+          });
+
+          return stateLocations;
+        }
+      }
+      throw Exception('Failed to load parking locations');
+    } catch (e) {
+      print('Error fetching parking locations: $e');
+      throw Exception('Failed to load parking locations');
+    }
+  }
 }
 
 // Example usage in your UI

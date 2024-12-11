@@ -3,9 +3,9 @@ import 'package:iprsr/screens/main_screen.dart';
 import 'package:iprsr/services/api_service.dart';
 
 class ParkingLocationScreen extends StatefulWidget {
-  final String selectedLocation;
+  final String lotID;
 
-  const ParkingLocationScreen({super.key, required this.selectedLocation});
+  const ParkingLocationScreen({super.key, required this.lotID});
 
   @override
   _ParkingLocationScreenState createState() => _ParkingLocationScreenState();
@@ -25,7 +25,7 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
 
   Future<void> _loadLocations() async {
     try {
-      final response = await ApiService.getParkingData();
+      final response = await ApiService.getParkingLocation();
       print('API Response: $response'); // Log the API response
       if (mounted) {
         setState(() {
