@@ -27,7 +27,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Timer? telegramPollingTimer;
   late final CountdownProvider _providerInstance;
   Timer? _refreshTimer;
-  bool _isDialogShown = false; // Add this flag to track the dialog state  
+  bool _isDialogShown = false; // Add this flag to track the dialog state
 
   // Fetch recommendations and spaces from the API
   @override
@@ -92,7 +92,6 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDarkTheme = theme.brightness == Brightness.dark;
-    final textColor = isDarkTheme ? Colors.white : Colors.black87;
 
     return Scaffold(
       appBar: AppBar(
@@ -132,48 +131,46 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       // Modified part in build method
       body: Column(
         children: [
-          Container(
-            width: double.infinity,
-            color: Theme.of(context).brightness == Brightness.dark
-                ? Colors.grey[700]
-                : const Color(0xFFADE8F4),
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: Card(
+              margin: const EdgeInsets.all(8),
+              elevation: 4,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildLegendItem(Icons.accessible, "Special",
-                        Colors.blueAccent, textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.female, "Female", Colors.pinkAccent, textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(Icons.family_restroom, "Family",
-                        Colors.purpleAccent, textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(Icons.electric_car, "EV Car",
-                        Colors.tealAccent, textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(Icons.star, "Premium",
-                        const Color(0xFFFFD54F), textColor),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildLegendItem(
+                            'Regular', Colors.grey, Icons.local_parking),
+                        _buildLegendItem('Special', const Color(0xFF90CAF9),
+                            Icons.accessible),
+                        _buildLegendItem(
+                            'Female', const Color(0xFFF48FB1), Icons.female),
+                        _buildLegendItem('Family', const Color(0xFFCE93D8),
+                            Icons.family_restroom),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _buildLegendItem('EV Car', const Color(0xFFA5D6A7),
+                            Icons.electric_car),
+                        _buildLegendItem(
+                            'Premium', const Color(0xFFFFD54F), Icons.star),
+                        _buildLegendItem('Occupied', Colors.red, Icons.block),
+                      ],
+                    ),
                   ],
                 ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _buildLegendItem(Icons.local_parking, "Regular",
-                        const Color.fromRGBO(158, 158, 158, 1), textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(Icons.thumb_up, "Recommended",
-                        Colors.greenAccent, textColor),
-                    const SizedBox(width: 8),
-                    _buildLegendItem(
-                        Icons.block, "Occupied", Colors.redAccent, textColor),
-                  ],
-                ),
-              ],
+              ),
             ),
           ),
           FutureBuilder<Map<String, dynamic>>(
@@ -181,28 +178,38 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             builder: (context, snapshot) {
               final locationType = snapshot.data?['locationType'] ?? 'indoor';
               if (locationType.toLowerCase() == 'indoor') {
-                return const Padding(
-                  padding: EdgeInsets.only(top: 20, left: 16, right: 16),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
+                return const Column(
+                  children: [
+                    Text(
+                      'Floor 1',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                    Padding(
+                      padding: EdgeInsets.only(top: 20, left: 16, right: 16),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(Icons.arrow_downward, color: Colors.green),
-                          Text('Entrance',
-                              style: TextStyle(color: Colors.green)),
+                          Column(
+                            children: [
+                              Icon(Icons.arrow_downward, color: Colors.green),
+                              Text('Entrance',
+                                  style: TextStyle(color: Colors.green)),
+                            ],
+                          ),
+                          Column(
+                            children: [
+                              Text('Exit', style: TextStyle(color: Colors.red)),
+                              Icon(Icons.arrow_upward, color: Colors.red),
+                            ],
+                          ),
                         ],
                       ),
-                      Column(
-                        children: [
-                          Text('Exit', style: TextStyle(color: Colors.red)),
-                          Icon(Icons.arrow_upward, color: Colors.red),
-                        ],
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 );
               }
+
               return const SizedBox.shrink();
             },
           ),
@@ -661,34 +668,36 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     });
   }
 
-  Widget _buildLegendItem(
-      IconData icon, String label, Color color, Color textColor) {
-    return Row(
-      children: [
-        Stack(
-          children: [
-            // Black outline
-            Icon(
-              icon,
-              color: Colors.black,
-              size: 18, // Slightly larger for outline
-            ),
-            // Colored icon
-            Icon(
-              icon,
-              color: color,
-              size: 16,
-            ),
-          ],
+ Widget _buildLegendItem(String label, Color color, IconData icon) {
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.black26),
         ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(color: textColor, fontSize: 12),
+        child: Icon(
+          icon,
+          size: 14,
+          color: Colors.white,
         ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+    ],
+  );
+}
+
 
   void _handleParkingSpaceSelection(String parkingSpaceID, bool isPremium) {
     if (isPremium) {
@@ -812,7 +821,9 @@ class ParkingSpace extends StatelessWidget {
   Widget build(BuildContext context) {
     final countdownProvider = Provider.of<CountdownProvider>(context);
     final authProvider = Provider.of<AuthService>(context, listen: false);
-    final bool isAvailable = space['isAvailable'].toString() == '1';
+    final bool isAvailable = space['isAvailable'] == true ||
+        space['isAvailable'] == 1 ||
+        space['isAvailable'] == '1';
     final String parkingType = space['parkingType']?.toString() ?? 'Regular';
     final String parkingSpaceID = space['parkingSpaceID'];
 
