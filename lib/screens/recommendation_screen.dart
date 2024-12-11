@@ -27,6 +27,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   Timer? telegramPollingTimer;
   late final CountdownProvider _providerInstance;
   Timer? _refreshTimer;
+  bool _isDialogShown = false; // Add this flag to track the dialog state  
 
   // Fetch recommendations and spaces from the API
   @override
@@ -336,13 +337,14 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
       String currentLocation = widget.lotID;
       List<Map<String, dynamic>>? currentParkingSpaces = parkingSpaces;
 
-      // if (recommendations['alternativeLocation'] != null) {
-      //   currentParkingSpaces = await ApiService.getParkingData(
-      //       recommendations['alternativeLocation']);
-      //   currentLocation = recommendations['alternativeLocation'];
-      // }
+      if (recommendations['alternativeLocation'] != null) {
+        currentParkingSpaces = await ApiService.getParkingData(
+            recommendations['alternativeLocation']);
+        currentLocation = recommendations['alternativeLocation'];
+      }
 
-      if (mounted) {
+      if (mounted && !_isDialogShown) {
+        _isDialogShown = true;
         showDialog(
           context: context,
           barrierDismissible: true,
