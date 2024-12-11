@@ -202,11 +202,11 @@ class ApiService {
     }
   }
 
-// Fetch parking spaces data for a specific location
+// Fetch parking lot location
   static Future<List<Map<String, dynamic>>> getParkingLocation() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/fetch_parking_data.php'),
+        Uri.parse('$_baseUrl/fetch_parking_location.php'),
       );
 
       if (response.statusCode == 200) {
