@@ -11,7 +11,6 @@ import 'package:iprsr/screens/settings_screen.dart';
 import 'package:iprsr/widgets/tutorial_overlay.dart';
 import 'package:iprsr/screens/parking_map_screen.dart';
 
-
 class MainScreen extends StatefulWidget {
   final Map<String, String> selectedLocation;
   final bool showTutorial;
@@ -290,40 +289,67 @@ class _MainScreenState extends State<MainScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: () => _ensureLoggedIn(() async {
-                  final fetchedData = await ApiService
-                      .fetchVehicleDetailsAndParkingPreferences(userId!);
-                  if (fetchedData != null) {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => EditVehicleDetailsScreen(
-                          userID: userId,
-                          initialBrand: fetchedData['data']['brand'],
-                          initialType: fetchedData['data']['type'],
-                          initialPreferences: {
-                            'isNearest': fetchedData['data']['isNearest'] == 1,
-                          },
-                        ),
-                      ),
-                    );
+                onTap: () async {
+                  if (userId != null) {
+                    print('Fetching vehicle details for userID: $userId');
+                    final fetchedData = await ApiService
+                        .fetchVehicleDetailsAndParkingPreferences(userId);
+                    print('Fetched vehicle details: $fetchedData');
 
-                    if (result != null) {
-                      String updatedBrand = result['brand'];
-                      String updatedType = result['type'];
-                      await Provider.of<AuthService>(context, listen: false)
-                          .updateUser(
-                        userID: userId,
-                        vehicleBrand: updatedBrand,
-                        vehicleType: updatedType,
-                        preferences: {},
+                    if (fetchedData != null) {
+                      final fetchedBrand = fetchedData['data']['brand'];
+                      final fetchedType = fetchedData['data']['type'];
+                      final Map<String, bool> parkingPreferences = {
+                        'isNearest': fetchedData['data']['isNearest'] == 1,
+                        'isCovered': fetchedData['data']['isCovered'] == 1,
+                        'requiresLargeSpace':
+                            fetchedData['data']['requiresLargeSpace'] == 1,
+                        'requiresWellLitArea':
+                            fetchedData['data']['requiresWellLitArea'] == 1,
+                        'requiresEVCharging':
+                            fetchedData['data']['requiresEVCharging'] == 1,
+                        'requiresWheelchairAccess': fetchedData['data']
+                                ['requiresWheelchairAccess'] ==
+                            1,
+                        'requiresFamilyParkingArea': fetchedData['data']
+                                ['requiresFamilyParkingArea'] ==
+                            1,
+                        'premiumParking':
+                            fetchedData['data']['premiumParking'] == 1,
+                      };
+
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => EditVehicleDetailsScreen(
+                            userID: userId,
+                            initialBrand: fetchedBrand,
+                            initialType: fetchedType,
+                            initialPreferences: parkingPreferences,
+                          ),
+                        ),
                       );
+
+                      if (result != null) {
+                        String updatedBrand = result['brand'];
+                        String updatedType = result['type'];
+
+                        await Provider.of<AuthService>(context, listen: false)
+                            .updateUser(
+                          userID: userId,
+                          vehicleBrand: updatedBrand,
+                          vehicleType: updatedType,
+                          preferences: {},
+                        );
+                      }
+                    } else {
+                      print(
+                          'Failed to fetch vehicle details or preferences from the server.');
                     }
                   } else {
-                    _showSnackBar('Failed to fetch vehicle details.',
-                        backgroundColor: Colors.red);
+                    print('User ID is null');
                   }
-                }),
+                },
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -332,9 +358,14 @@ class _MainScreenState extends State<MainScreen> {
                       width: 28,
                       height: 28,
                     ),
-                    const Text(
+                    Text(
                       'Preferences',
-                      style: TextStyle(color: Colors.white, fontSize: 12),
+                      style: TextStyle(
+                        color: Theme.of(context).brightness == Brightness.dark
+                            ? Colors.white
+                            : Colors.white,
+                        fontSize: 12,
+                      ),
                     ),
                   ],
                 ),
@@ -348,11 +379,11 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 },
-                child: Column(
+                child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.settings, color: Colors.white, size: 28),
-                    const Text(
+                     Icon(Icons.settings, color: Colors.white, size: 28),
+                     Text(
                       'Settings',
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
