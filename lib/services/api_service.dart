@@ -223,7 +223,6 @@ class ApiService {
     }
   }
 
-
 // Fetch parking spaces data for a specific location
   static Future<List<Map<String, dynamic>>> getParkingData(lotID) async {
     try {
@@ -868,20 +867,6 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getParkingSpacesForFloor(String lotID, String floor) async {
-    try {
-      // Fetch all parking spaces for the lot
-      final parkingSpaces = await getParkingData(lotID);
-
-      // Filter spaces by the specified floor
-      return parkingSpaces
-          .where((space) => space['coordinates'] == floor)
-          .toList();
-    } catch (e) {
-      print('Error fetching parking spaces for floor $floor in lot $lotID: $e');
-      return [];
-    }
-  }
 }
 
 // Example usage in your UI
@@ -901,6 +886,3 @@ Future<void> checkPremiumStatus(String parkingSpaceID) async {
     print('No active premium parking');
   }
 }
-
-
-
