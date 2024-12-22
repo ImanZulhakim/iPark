@@ -266,7 +266,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.lotID} Parking'),
+        title: Text('${widget.lotID.replaceAll('_', ' ')} Parking'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: parkingDataFuture,
@@ -283,86 +283,103 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
               snapshot.data!['parkingSpaces'] as List<Map<String, dynamic>>;
           final locationType = snapshot.data!['locationType'];
 
-          return Stack(
-            children: [
-              if (locationType.toLowerCase() == 'outdoor') ...[
-                // Outdoor layout
-                GoogleMap(
-                  initialCameraPosition: CameraPosition(
-                    target: initialCameraTarget ?? defaultLocation,
-                    zoom: 18.0,
-                  ),
-                  mapType: MapType.satellite,
-                  polygons: parkingLotPolygons,
-                  markers: parkingMarkers,
-                  myLocationEnabled: true,
-                  myLocationButtonEnabled: true,
-                  onMapCreated: (controller) {
-                    _mapController = controller;
-                    if (pendingBounds != null) {
-                      _moveCameraToFitBounds(pendingBounds!);
-                      pendingBounds = null; // Clear bounds after moving camera
-                    }
-                  },
+          return Stack(children: [
+            if (locationType.toLowerCase() == 'outdoor') ...[
+              // Outdoor layout
+              GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: initialCameraTarget ?? defaultLocation,
+                  zoom: 18.0,
                 ),
-              ] else ...[
-                // Indoor layout
-                Padding(
-                  padding: const EdgeInsets.only(top: 120.0),
-                  child: Column(
-                    children: [
-                      const Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            children: [
-                              Icon(Icons.arrow_downward, color: Colors.green),
-                              Text('Entrance',
-                                  style: TextStyle(color: Colors.green)),
-                            ],
-                          ),
-                          Text(
-                            'Floor 1',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                            ),
-                          ),
-                          Column(
-                            children: [
-                              Text('Exit', style: TextStyle(color: Colors.red)),
-                              Icon(Icons.arrow_upward, color: Colors.red),
-                            ],
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              for (int i = 0; i < parkingSpaces.length; i += 4)
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    for (int j = 0;
-                                        j < 4 &&
-                                            i + j < parkingSpaces.length;
-                                        j++)
-                                      ParkingSpace(
-                                        space: parkingSpaces[i + j],
+                mapType: MapType.satellite,
+                polygons: parkingLotPolygons,
+                markers: parkingMarkers,
+                myLocationEnabled: true,
+                myLocationButtonEnabled: true,
+                onMapCreated: (controller) {
+                  _mapController = controller;
+                  if (pendingBounds != null) {
+                    _moveCameraToFitBounds(pendingBounds!);
+                    pendingBounds = null; // Clear bounds after moving camera
+                  }
+                },
+              ),
+            ] else ...[
+              // Indoor layout
+              // Indoor layout
+              Column(
+                children: [
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: InteractiveViewer(
+                      boundaryMargin: const EdgeInsets.all(double.infinity),
+                      minScale: 0.5,
+                      maxScale: 3.0,
+                      child: Center(
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            // Group parking spaces into wings (10 spaces per wing)
+                            final List<List<Map<String, dynamic>>> wings = [];
+                            for (var i = 0; i < parkingSpaces.length; i += 10) {
+                              wings.add(parkingSpaces.sublist(
+                                i,
+                                i + 10 > parkingSpaces.length
+                                    ? parkingSpaces.length
+                                    : i + 10,
+                              ));
+                            }
+
+                            return Container(
+                              width: MediaQuery.of(context).size.width * 0.9,
+                              padding: const EdgeInsets.all(16.0),
+                              margin:
+                                  const EdgeInsets.symmetric(vertical: 16.0),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[800],
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.3),
+                                    spreadRadius: 2,
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: List.generate(
+                                  (parkingSpaces.length / 10).ceil(),
+                                  (index) {
+                                    final start = index * 10;
+                                    final end =
+                                        start + 10 > parkingSpaces.length
+                                            ? parkingSpaces.length
+                                            : start + 10;
+                                    final wingSpaces =
+                                        parkingSpaces.sublist(start, end);
+
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 16.0),
+                                      child: ParkingWing(
+                                        title:
+                                            'Wing ${String.fromCharCode(65 + index)}',
+                                        spaces: wingSpaces,
                                       ),
-                                  ],
+                                    );
+                                  },
                                 ),
-                            ],
-                          ),
+                              ),
+                            );
+                          },
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
+
               Positioned(
                 top: 8,
                 left: 8,
@@ -371,8 +388,8 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                   margin: const EdgeInsets.all(8),
                   elevation: 4,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -395,8 +412,8 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                           children: [
                             _buildLegendItem('EV Car', const Color(0xFFA5D6A7),
                                 Icons.electric_car),
-                            _buildLegendItem('Premium', const Color(0xFFFFD54F),
-                                Icons.star),
+                            _buildLegendItem(
+                                'Premium', const Color(0xFFFFD54F), Icons.star),
                             _buildLegendItem(
                                 'Occupied', Colors.red, Icons.block),
                           ],
@@ -407,7 +424,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                 ),
               ),
             ],
-          );
+          ]);
         },
       ),
     );
@@ -447,21 +464,24 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
 class ParkingSpace extends StatelessWidget {
   final Map<String, dynamic> space;
 
-  const ParkingSpace({super.key, required this.space});
+  const ParkingSpace({
+    super.key,
+    required this.space,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final isAvailable = space['isAvailable'] == true ||
+    final bool isAvailable = space['isAvailable'] == true ||
         space['isAvailable'] == 1 ||
         space['isAvailable'] == '1';
-    final parkingType = space['parkingType'] ?? 'Regular';
-    final parkingSpaceID = space['parkingSpaceID'];
+    final String parkingType = space['parkingType']?.toString() ?? 'Regular';
+    final String parkingSpaceID = space['parkingSpaceID'];
 
     Color bgColor;
     IconData icon;
 
     if (!isAvailable) {
-      bgColor = Colors.red;
+      bgColor = const Color.fromARGB(255, 255, 117, 117);
       icon = Icons.block;
     } else {
       switch (parkingType) {
@@ -486,7 +506,7 @@ class ParkingSpace extends StatelessWidget {
           icon = Icons.star;
           break;
         default:
-          bgColor = Colors.grey;
+          bgColor = Colors.grey[500]!;
           icon = Icons.local_parking;
       }
     }
@@ -498,21 +518,110 @@ class ParkingSpace extends StatelessWidget {
       decoration: BoxDecoration(
         color: bgColor,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.black12,
+          width: 1,
+        ),
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: Colors.white),
-          const SizedBox(height: 4),
-          Text(
-            parkingSpaceID,
-            style: const TextStyle(
+      child: RotatedBox(
+        quarterTurns: 3,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 24,
               color: Colors.white,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                parkingSpaceID,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ParkingWing extends StatelessWidget {
+  final String title;
+  final List<Map<String, dynamic>> spaces;
+
+  const ParkingWing({
+    super.key,
+    required this.title,
+    required this.spaces,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    // Ensure the spaces are evenly divided into two columns
+    final leftColumnSpaces = spaces.sublist(0, (spaces.length / 2).ceil());
+    final rightColumnSpaces = spaces.sublist((spaces.length / 2).ceil());
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Wing Title
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
               fontWeight: FontWeight.bold,
+              color: Colors.white,
             ),
           ),
-        ],
-      ),
+        ),
+        // Parking Spaces
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Left Column
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                leftColumnSpaces.length,
+                (index) => RotatedBox(
+                  quarterTurns: 1,
+                  child: ParkingSpace(
+                    space: leftColumnSpaces[index],
+                  ),
+                ),
+              ),
+            ),
+            // Vertical Divider (White Line)
+            Container(
+              width: 8,
+              color: Colors.white,
+            ),
+            // Right Column
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                rightColumnSpaces.length,
+                (index) => RotatedBox(
+                  quarterTurns: 1,
+                  child: ParkingSpace(
+                    space: rightColumnSpaces[index],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

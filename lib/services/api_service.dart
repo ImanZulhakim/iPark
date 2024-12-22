@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 class ApiService {
-  static const ip = '192.168.1.14'; // ip wifi
+  static const ip = '192.168.1.9'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
@@ -867,6 +867,21 @@ class ApiService {
       throw Exception('Failed to load parking locations');
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getParkingSpacesForFloor(String lotID, String floor) async {
+    try {
+      // Fetch all parking spaces for the lot
+      final parkingSpaces = await getParkingData(lotID);
+
+      // Filter spaces by the specified floor
+      return parkingSpaces
+          .where((space) => space['coordinates'] == floor)
+          .toList();
+    } catch (e) {
+      print('Error fetching parking spaces for floor $floor in lot $lotID: $e');
+      return [];
+    }
+  }
 }
 
 // Example usage in your UI
@@ -886,3 +901,6 @@ Future<void> checkPremiumStatus(String parkingSpaceID) async {
     print('No active premium parking');
   }
 }
+
+
+
