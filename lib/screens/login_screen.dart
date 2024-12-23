@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:iprsr/services/auth_service.dart';
+import 'package:iprsr/providers/location_provider.dart'; // Import LocationProvider
 import 'package:iprsr/screens/main_screen.dart';
 
 class LoginScreen extends StatelessWidget {
@@ -171,7 +172,15 @@ class LoginScreen extends StatelessWidget {
       if (userId != null) {
         print('User ID: $userId'); // Print the userId to debug
 
-        // Navigate to MainScreen and pass userId and selectedLocation
+        // Fetch the last_used_lotID and lot name
+        final locationProvider =
+            Provider.of<LocationProvider>(context, listen: false);
+        await locationProvider.fetchLastUsedLot(userId);
+
+        // Display a success message
+        _showSnackBar(context, 'Login successful');
+
+        // Navigate to MainScreen
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
@@ -187,7 +196,11 @@ class LoginScreen extends StatelessWidget {
   }
 
   void _showSnackBar(BuildContext context, String message) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: const Duration(seconds: 2),
+      ),
+    );
   }
 }
