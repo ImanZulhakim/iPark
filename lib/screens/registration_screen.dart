@@ -43,7 +43,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     Text(
                       'Create new account',
                       style: TextStyle(
-                        fontSize: 24, 
+                        fontSize: 24,
                         fontWeight: FontWeight.bold,
                         color: Theme.of(context).colorScheme.onSurface,
                       ),
@@ -58,7 +58,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -77,7 +77,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -99,7 +99,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       keyboardType: TextInputType.phone,
                       validator: (value) {
@@ -132,7 +132,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -155,7 +155,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       obscureText: true,
                       validator: (value) {
@@ -180,9 +180,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
-                            fillColor: Theme.of(context).colorScheme.surface,
+                            fillColor: Colors.white,
                           ),
                           value: value,
+                          dropdownColor: Colors.white,
                           items: const [
                             DropdownMenuItem<bool>(
                               value: false,
@@ -211,9 +212,10 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                               borderSide: const BorderSide(color: Colors.black),
                             ),
                             filled: true,
-                            fillColor: Theme.of(context).colorScheme.surface,
+                            fillColor: Colors.white,
                           ),
                           value: value,
+                          dropdownColor: Colors.white,
                           items: const [
                             DropdownMenuItem<bool>(
                               value: false,
@@ -264,11 +266,14 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                          backgroundColor: Theme.of(context).colorScheme.primary,
-                          foregroundColor: Theme.of(context).brightness == Brightness.dark
-                              ? Colors.white
-                              : Theme.of(context).colorScheme.onPrimary,
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 30, vertical: 15),
+                          backgroundColor:
+                              Theme.of(context).colorScheme.primary,
+                          foregroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.onPrimary,
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -276,7 +281,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             Text(
                               'NEXT',
                               style: TextStyle(
-                                color: Theme.of(context).brightness == Brightness.dark
+                                color: Theme.of(context).brightness ==
+                                        Brightness.dark
                                     ? Colors.white
                                     : Theme.of(context).colorScheme.onPrimary,
                               ),
@@ -284,7 +290,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             const SizedBox(width: 5),
                             Icon(
                               Icons.arrow_forward,
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.white
                                   : Theme.of(context).colorScheme.onPrimary,
                             ),
@@ -304,7 +311,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.normal,
-                              color: Theme.of(context).brightness == Brightness.dark
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
                                   ? Colors.white
                                   : Theme.of(context).colorScheme.onSurface,
                             ),

@@ -11,11 +11,13 @@ import 'package:iprsr/widgets/outdoor_parking_view.dart';
 class RecommendationScreen extends StatefulWidget {
   final User user;
   final String lotID;
+  final String lot_name;
 
   const RecommendationScreen({
     super.key,
     required this.user,
     required this.lotID,
+    required this.lot_name, 
   });
 
   @override
@@ -132,7 +134,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             return FutureBuilder<Map<String, dynamic>>(
               future: recommendationsFuture,
               builder: (context, snapshot) {
-                String displayLocation = widget.lotID;
+                String displayLocation = widget.lot_name;
                 if (snapshot.hasData &&
                     snapshot.data!['currentLocation'] != null) {
                   displayLocation = snapshot.data!['currentLocation'];
@@ -289,7 +291,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                   : <Map<String, dynamic>>[];
 
               if (currentFloorSpaces.isEmpty) {
-                return Expanded(
+                return const Expanded(
                   child: Center(
                     child: Text('No parking spaces available on this floor.'),
                   ),
@@ -323,7 +325,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                               : null,
                         ),
                         Text(
-                          _currentFloor ?? 'No Floors',
+                          _currentFloor?.toUpperCase() ?? 'No Floors',
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
@@ -379,12 +381,12 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                           child: Row(
                                             children: [
                                               Icon(Icons.arrow_downward,
-                                                  color: Colors.white),
+                                                  color: Color.fromARGB(255, 67, 230, 62)),
                                               SizedBox(width: 4),
                                               Text(
                                                 'ENTRANCE',
                                                 style: TextStyle(
-                                                  color: Colors.white,
+                                                  color: Color.fromARGB(255, 67, 230, 62),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                 ),
@@ -400,15 +402,15 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                             children: [
                                               Text(
                                                 'EXIT',
-                                                style: const TextStyle(
-                                                  color: Colors.white,
+                                                style:  TextStyle(
+                                                  color: Color.fromARGB(255, 209, 45, 45),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                 ),
                                               ),
-                                              const SizedBox(width: 4),
-                                              const Icon(Icons.arrow_downward,
-                                                  color: Colors.white),
+                                               SizedBox(width: 4),
+                                               Icon(Icons.arrow_downward,
+                                                  color: Color.fromARGB(255, 209, 45, 45)),
                                             ],
                                           ),
                                         ),

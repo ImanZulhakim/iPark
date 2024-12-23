@@ -38,6 +38,7 @@ class AuthService extends ChangeNotifier {
     bool hasDisability,
     String brand,
     String type,
+    String category,
     Map<String, bool> preferences,
   ) async {
     try {
@@ -50,6 +51,7 @@ class AuthService extends ChangeNotifier {
         hasDisability,
         brand,
         type,
+        category,
         preferences,
       );
       if (registeredUser != null) {
@@ -86,6 +88,7 @@ class AuthService extends ChangeNotifier {
           userID: updatedUser.userID,
           vehicleBrand: updatedUser.brand,
           vehicleType: updatedUser.type,
+          vehicleCategory: updatedUser.category,
           preferences: updatedUser.preferences,
         );
         if (success) {

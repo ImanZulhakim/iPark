@@ -10,6 +10,7 @@ class ParkingPreferencesScreen extends StatefulWidget {
   final TextEditingController phoneController;
   final TextEditingController brandController;
   final TextEditingController typeController;
+  final TextEditingController categoryController;
   final bool gender; // true for female, false for male
   final bool hasDisability;
 
@@ -21,6 +22,7 @@ class ParkingPreferencesScreen extends StatefulWidget {
     required this.phoneController,
     required this.brandController,
     required this.typeController,
+    required this.categoryController,
     required this.gender,
     required this.hasDisability,
   });
@@ -76,7 +78,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
     }
 
     if (widget.typeController.text == 'Truck') {
-      preferences['la'] = true;
+      preferences['requiresLargeSpace'] = true;
     }
   }
 
@@ -107,6 +109,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
+                    color: Theme.of(context).colorScheme.secondary,
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -151,10 +154,10 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                               Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
                             Icon(Icons.arrow_back, color: Colors.white),
-                            const SizedBox(width: 5),
+                             SizedBox(width: 5),
                             Text('BACK', style: TextStyle(color: Colors.white)),
                           ],
                         ),
@@ -173,6 +176,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             widget.hasDisability,
                             widget.brandController.text,
                             widget.typeController.text,
+                            widget.categoryController.text,
                             preferences,
                           );
 
@@ -214,11 +218,11 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                               Theme.of(context).colorScheme.primary,
                           foregroundColor: Colors.white,
                         ),
-                        child: Row(
+                        child: const Row(
                           children: [
                             Text('REGISTER',
                                 style: TextStyle(color: Colors.white)),
-                            const SizedBox(width: 5),
+                             SizedBox(width: 5),
                             Icon(Icons.check, color: Colors.white),
                           ],
                         ),

@@ -6,7 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 class ApiService {
-  static const ip = '192.168.1.9'; // ip wifi
+  static const ip = '192.168.1.3'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
@@ -29,6 +29,7 @@ class ApiService {
     bool hasDisability,
     String brand,
     String type,
+    String category,
     Map<String, bool> preferences,
   ) async {
     try {
@@ -45,6 +46,7 @@ class ApiService {
           'hasDisability': hasDisability ? '1' : '0',
           'brand': brand,
           'type': type,
+          'category': category,
           'preferences': jsonEncode(preferences),
         },
       );
@@ -165,6 +167,7 @@ class ApiService {
     required String userID,
     required String vehicleBrand,
     required String vehicleType,
+    required String vehicleCategory,
     required Map<String, bool> preferences,
   }) async {
     try {
@@ -174,6 +177,7 @@ class ApiService {
           'userID': userID,
           'brand': vehicleBrand,
           'type': vehicleType,
+          'category': vehicleCategory,
           'preferences': preferences,
         }),
         headers: {

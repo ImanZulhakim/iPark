@@ -7,6 +7,7 @@ class EditParkingPreferencesScreen extends StatefulWidget {
   final String userID;
   final String vehicleBrand;
   final String vehicleType;
+  final String vehicleCategory;
 
   const EditParkingPreferencesScreen({
     super.key,
@@ -14,6 +15,7 @@ class EditParkingPreferencesScreen extends StatefulWidget {
     required this.initialPreferences,
     required this.vehicleBrand,
     required this.vehicleType,
+    required this.vehicleCategory,
   });
 
   @override
@@ -187,6 +189,7 @@ class _ParkingPreferencesEditScreenState
                             userID: widget.userID,
                             vehicleBrand: widget.vehicleBrand,
                             vehicleType: widget.vehicleType,
+                            vehicleCategory: widget.vehicleCategory,
                             preferences: preferences,
                           );
 

@@ -8,6 +8,7 @@ class User {
   final bool hasDisability;
   final String brand;
   final String type;
+  final String category;
   final Map<String, bool> preferences;
 
   User({
@@ -20,6 +21,7 @@ class User {
     required this.hasDisability,
     required this.brand,
     required this.type,
+    required this.category,
     required this.preferences,
   });
 
@@ -34,6 +36,7 @@ class User {
     bool? hasDisability,
     String? brand,
     String? type,
+    String? category,
     Map<String, bool>? preferences,
   }) {
     return User(
@@ -46,6 +49,7 @@ class User {
       hasDisability: hasDisability ?? this.hasDisability,
       brand: brand ?? this.brand,
       type: type ?? this.type,
+      category: category ?? this.category,
       preferences: preferences ?? this.preferences,
     );
   }
@@ -62,6 +66,7 @@ class User {
       hasDisability: json['hasDisability'] == '1', // Handle '1' or '0'
       brand: json['brand'] ?? '', // Use empty string if brand is null
       type: json['type'] ?? '', // Use empty string if type is null
+      category: json['category'] ?? '',
       preferences: json['preferences'] != null
           ? Map<String, bool>.from(json['preferences'])
           : {}, // Handle null preferences safely
@@ -80,6 +85,7 @@ class User {
       'hasDisability': hasDisability ? '1' : '0', // Convert bool to '1' or '0'
       'brand': brand,
       'type': type,
+      'category': category,
       'preferences': preferences,
     };
   }

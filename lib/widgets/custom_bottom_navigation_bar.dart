@@ -36,6 +36,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                   if (fetchedData != null) {
                     final fetchedBrand = fetchedData['data']['brand'];
                     final fetchedType = fetchedData['data']['type'];
+                    final fetchedCategory = fetchedData['data']['category'];
                     final Map<String, bool> parkingPreferences = {
                       'isNearest': fetchedData['data']['isNearest'] == 1,
                       'isCovered': fetchedData['data']['isCovered'] == 1,
@@ -54,6 +55,7 @@ class CustomBottomNavigationBar extends StatelessWidget {
                           userID: userId!,
                           initialBrand: fetchedBrand,
                           initialType: fetchedType,
+                          initialCategory: fetchedCategory,
                           initialPreferences: parkingPreferences,
                         ),
                       ),

@@ -210,6 +210,7 @@ class _MainScreenState extends State<MainScreen> {
                       builder: (context) => RecommendationScreen(
                         user: user!,
                         lotID: selectedLotID,
+                        lot_name: selectedLotName,
                       ),
                     ),
                   );
@@ -299,6 +300,7 @@ class _MainScreenState extends State<MainScreen> {
                     if (fetchedData != null) {
                       final fetchedBrand = fetchedData['data']['brand'];
                       final fetchedType = fetchedData['data']['type'];
+                      final fetchedCategory = fetchedData['data']['category'];
                       final Map<String, bool> parkingPreferences = {
                         'isNearest': fetchedData['data']['isNearest'] == 1,
                         'isCovered': fetchedData['data']['isCovered'] == 1,
@@ -325,6 +327,7 @@ class _MainScreenState extends State<MainScreen> {
                             userID: userId,
                             initialBrand: fetchedBrand,
                             initialType: fetchedType,
+                            initialCategory: fetchedCategory,
                             initialPreferences: parkingPreferences,
                           ),
                         ),

@@ -11,12 +11,15 @@ class VehicleDetailsScreen extends StatelessWidget {
 
   final ValueNotifier<String?> _brand = ValueNotifier<String?>(null);
   final ValueNotifier<String?> _type = ValueNotifier<String?>(null);
+  final ValueNotifier<String?> _category = ValueNotifier<String?>(null);
 
-  // Accept the initial values for brand and type from the previous screen
+  // Accept the initial values for brand, type, and category from the previous screen
   final String? initialBrand;
   final String? initialType;
+  final String? initialCategory;
 
-  VehicleDetailsScreen({super.key, 
+  VehicleDetailsScreen({
+    super.key,
     required this.userNameController,
     required this.emailController,
     required this.passwordController,
@@ -25,10 +28,12 @@ class VehicleDetailsScreen extends StatelessWidget {
     required this.hasDisability,
     this.initialBrand,
     this.initialType,
+    this.initialCategory,
   }) {
-    // Set the initial values for brand and type if provided
+    // Set the initial values for brand, type, and category if provided
     _brand.value = initialBrand;
     _type.value = initialType;
+    _category.value = initialCategory;
   }
 
   @override
@@ -44,9 +49,9 @@ class VehicleDetailsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Lets start from your car',
+                  'Let\'s start with your car',
                   style: TextStyle(
-                    fontSize: 24, 
+                    fontSize: 24,
                     fontWeight: FontWeight.bold,
                     color: Theme.of(context).colorScheme.onSurface,
                   ),
@@ -56,16 +61,17 @@ class VehicleDetailsScreen extends StatelessWidget {
                   valueListenable: _brand,
                   builder: (context, value, child) {
                     return DropdownButtonFormField<String>(
-                      decoration:  InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Vehicle Brand',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       value: value,
+                      dropdownColor: Colors.white,
                       items: ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla']
                           .map((label) => DropdownMenuItem(
                                 value: label,
@@ -83,16 +89,17 @@ class VehicleDetailsScreen extends StatelessWidget {
                   valueListenable: _type,
                   builder: (context, value, child) {
                     return DropdownButtonFormField<String>(
-                      decoration:  InputDecoration(
+                      decoration: InputDecoration(
                         labelText: 'Vehicle Type',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
                         ),
                         filled: true,
-                        fillColor: Theme.of(context).colorScheme.surface,
+                        fillColor: Colors.white,
                       ),
                       value: value,
+                      dropdownColor: Colors.white,
                       items: ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible']
                           .map((label) => DropdownMenuItem(
                                 value: label,
@@ -101,6 +108,34 @@ class VehicleDetailsScreen extends StatelessWidget {
                           .toList(),
                       onChanged: (newValue) {
                         _type.value = newValue;
+                      },
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                ValueListenableBuilder<String?>(
+                  valueListenable: _category,
+                  builder: (context, value, child) {
+                    return DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: 'Vehicle Category',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: const BorderSide(color: Colors.black),
+                        ),
+                        filled: true,
+                        fillColor: Colors.white,
+                      ),
+                      value: value,
+                      dropdownColor: Colors.white,
+                      items: ['EV', 'Hybrid', 'Normal']
+                          .map((label) => DropdownMenuItem(
+                                value: label,
+                                child: Text(label),
+                              ))
+                          .toList(),
+                      onChanged: (newValue) {
+                        _category.value = newValue;
                       },
                     );
                   },
@@ -114,6 +149,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                         Navigator.pop(context, {
                           'brand': _brand.value,
                           'type': _type.value,
+                          'category': _category.value,
                         });
                       },
                       style: ElevatedButton.styleFrom(
@@ -144,6 +180,7 @@ class VehicleDetailsScreen extends StatelessWidget {
                               phoneController: phoneController,
                               brandController: TextEditingController(text: _brand.value),
                               typeController: TextEditingController(text: _type.value),
+                              categoryController: TextEditingController(text: _category.value),
                               gender: gender,
                               hasDisability: hasDisability,
                             ),

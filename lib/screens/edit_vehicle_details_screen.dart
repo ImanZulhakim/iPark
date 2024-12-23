@@ -7,12 +7,14 @@ class EditVehicleDetailsScreen extends StatefulWidget {
   final String userID;
   final String initialBrand;
   final String initialType;
+  final String initialCategory;
   final Map<String, bool> initialPreferences;
 
   const EditVehicleDetailsScreen({
     required this.userID,
     required this.initialBrand,
     required this.initialType,
+    required this.initialCategory,
     required this.initialPreferences,
     super.key,
   });
@@ -25,6 +27,7 @@ class EditVehicleDetailsScreen extends StatefulWidget {
 class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
   late String brand;
   late String type;
+  late String category;
   late Map<String, bool> preferences;
 
   final List<String> vehicleBrands = [
@@ -41,12 +44,18 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     'Coupe',
     'Convertible'
   ];
+  final List<String> vehicleCategories = [
+    'EV',
+    'Hybrid',
+    'Normal'
+  ];
 
   @override
   void initState() {
     super.initState();
     brand = widget.initialBrand;
     type = widget.initialType;
+    category = widget.initialCategory;
     preferences = Map<String, bool>.from(widget.initialPreferences);
   }
 
@@ -55,22 +64,21 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     return Scaffold(
       bottomNavigationBar: CustomBottomNavigationBar(
         userId: widget.userID,
-          onFloatingActionButtonPressed: () {
-            // Redirect to main screen
-            Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => MainScreen(
-      selectedLocation: {
-        'lotID': 'SoC', // Replace with the actual lotID
-        'lot_name': 'Science Lot', // Replace with the actual lot name
-      },
-    ),
-  ),
-);
-
-          },
-        ),
+        onFloatingActionButtonPressed: () {
+          // Redirect to main screen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MainScreen(
+                selectedLocation: {
+                  'lotID': 'SoC', // Replace with the actual lotID
+                  'lot_name': 'Science Lot', // Replace with the actual lot name
+                },
+              ),
+            ),
+          );
+        },
+      ),
       floatingActionButton: Container(
         width: 80.0,
         height: 80.0,
@@ -98,17 +106,16 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
           onPressed: () {
             // Redirect to main screen
             Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => MainScreen(
-      selectedLocation: {
-        'lotID': 'SOC_01', // Replace with the actual lotID
-        'lot_name': 'SOC', // Replace with the actual lot name
-      },
-    ),
-  ),
-);
-
+              context,
+              MaterialPageRoute(
+                builder: (context) => MainScreen(
+                  selectedLocation: {
+                    'lotID': 'SOC_01', // Replace with the actual lotID
+                    'lot_name': 'SOC', // Replace with the actual lot name
+                  },
+                ),
+              ),
+            );
           },
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -133,7 +140,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              'Lets start with your car',
+              'Let\'s start with your car',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 30),
@@ -146,8 +153,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     borderSide: BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.light 
-                      ? Colors.white 
+                  fillColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
                       : Theme.of(context).colorScheme.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -158,8 +165,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
                   ),
                 ),
-                dropdownColor: Theme.of(context).brightness == Brightness.light 
-                    ? Colors.white 
+                dropdownColor: Theme.of(context).brightness == Brightness.light
+                    ? Colors.white
                     : Theme.of(context).colorScheme.surface,
                 value: brand,
                 items: vehicleBrands
@@ -185,8 +192,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     borderSide: BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
-                  fillColor: Theme.of(context).brightness == Brightness.light 
-                      ? Colors.white 
+                  fillColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
                       : Theme.of(context).colorScheme.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -197,8 +204,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
                   ),
                 ),
-                dropdownColor: Theme.of(context).brightness == Brightness.light 
-                    ? Colors.white 
+                dropdownColor: Theme.of(context).brightness == Brightness.light
+                    ? Colors.white
                     : Theme.of(context).colorScheme.surface,
                 value: type,
                 items: vehicleTypes
@@ -214,8 +221,46 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 },
               ),
             ),
+            const SizedBox(height: 10),
+            Center(
+              child: DropdownButtonFormField<String>(
+                decoration: InputDecoration(
+                  labelText: 'Category',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  filled: true,
+                  fillColor: Theme.of(context).brightness == Brightness.light
+                      ? Colors.white
+                      : Theme.of(context).colorScheme.surface,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                  ),
+                ),
+                dropdownColor: Theme.of(context).brightness == Brightness.light
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.surface,
+                value: category,
+                items: vehicleCategories
+                    .map((label) => DropdownMenuItem(
+                          value: label,
+                          child: Text(label),
+                        ))
+                    .toList(),
+                onChanged: (newValue) {
+                  setState(() {
+                    category = newValue!;
+                  });
+                },
+              ),
+            ),
             const SizedBox(height: 30),
-            // The updated row with "PREV" and "NEXT" buttons
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -256,6 +301,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                           userID: widget.userID,
                           vehicleBrand: brand,
                           vehicleType: type,
+                          vehicleCategory: category,
                         ),
                       ),
                     );
