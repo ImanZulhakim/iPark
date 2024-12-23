@@ -181,7 +181,7 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
                 // Show a prompt to notify the user
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('You are already parked at ${lot['lot_name']}.'),
+                    content: Text('You have already chosen ${lot['lot_name']}.'),
                     duration: const Duration(seconds: 2),
                   ),
                 );
@@ -212,7 +212,7 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
                 print('Error updating last_used_lotID: $e');
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('Failed to update parking lot. Please try again.'),
+                    content: Text('You have already chosen ${lot['lot_name']}.'),
                     duration: const Duration(seconds: 2),
                     backgroundColor: Colors.red,
                   ),
