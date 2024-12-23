@@ -17,9 +17,11 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch locations from the API when the screen initializes
+    // Reset the UI state when the screen is opened
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<LocationProvider>(context, listen: false).fetchLocations();
+      final locationProvider = Provider.of<LocationProvider>(context, listen: false);
+      locationProvider.resetSelections(); // Reset to start from state selection
+      locationProvider.fetchLocations(); // Fetch locations again
     });
   }
 
@@ -163,34 +165,79 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Spaces: ${lot['spaces']}'),
-                Text('Type: ${lot['locationType']}'),
+                Text('Type: ${toTitleCase(lot['locationType'])}'),
               ],
             ),
             trailing: const Icon(Icons.arrow_forward_ios),
             onTap: () async {
-              // Update the selected location in the LocationProvider
-              locationProvider.selectLocation({
-                'lotID': lot['lotID'],
-                'lot_name': lot['lot_name'],
-              });
-
-              // Update the last_used_lotID for the user
+              // Check if the selected lot is the same as the current lot
               final auth = Provider.of<AuthService>(context, listen: false);
-              if (auth.user != null) {
-                await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
+              final currentLotID = auth.user?.lastUsedLotID;
+
+              if (currentLotID == lot['lotID']) {
+                // Debugging: Print to console
+                print('User is already parked at ${lot['lot_name']}');
+
+                // Show a prompt to notify the user
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('You are already parked at ${lot['lot_name']}.'),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+                return; // Exit the function to prevent further actions
               }
 
-              // Navigate back to the MainScreen
-              Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const MainScreen(),
-                ),
-              );
+              try {
+                // Update the selected location in the LocationProvider
+                locationProvider.selectLocation({
+                  'lotID': lot['lotID'],
+                  'lot_name': lot['lot_name'],
+                });
+
+                // Update the last_used_lotID for the user
+                if (auth.user != null) {
+                  await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
+                }
+
+                // Navigate to the MainScreen
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MainScreen(),
+                  ),
+                );
+              } catch (e) {
+                // Handle API errors gracefully
+                print('Error updating last_used_lotID: $e');
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Failed to update parking lot. Please try again.'),
+                    duration: const Duration(seconds: 2),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
             },
           ),
         );
       },
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text; // Handle empty strings
+
+  // Split the text into words
+  final words = text.split(' ');
+
+  // Capitalize the first letter of each word
+  final capitalizedWords = words.map((word) {
+    if (word.isEmpty) return word; // Handle empty words
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  });
+
+  // Join the words back together
+  return capitalizedWords.join(' ');
 }

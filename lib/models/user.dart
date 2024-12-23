@@ -10,6 +10,7 @@ class User {
   final String type;
   final String category;
   final Map<String, bool> preferences;
+  final String? lastUsedLotID; // Add lastUsedLotID property
 
   User({
     required this.userID,
@@ -23,6 +24,7 @@ class User {
     required this.type,
     required this.category,
     required this.preferences,
+    this.lastUsedLotID, // Make it optional
   });
 
   // Copy the user object with optional updated fields
@@ -38,6 +40,7 @@ class User {
     String? type,
     String? category,
     Map<String, bool>? preferences,
+    String? lastUsedLotID, // Add lastUsedLotID to copyWith
   }) {
     return User(
       userID: userID ?? this.userID,
@@ -51,6 +54,7 @@ class User {
       type: type ?? this.type,
       category: category ?? this.category,
       preferences: preferences ?? this.preferences,
+      lastUsedLotID: lastUsedLotID ?? this.lastUsedLotID, // Include lastUsedLotID
     );
   }
 
@@ -70,6 +74,7 @@ class User {
       preferences: json['preferences'] != null
           ? Map<String, bool>.from(json['preferences'])
           : {}, // Handle null preferences safely
+      lastUsedLotID: json['lastUsedLotID'], // Include lastUsedLotID
     );
   }
 
@@ -87,6 +92,7 @@ class User {
       'type': type,
       'category': category,
       'preferences': preferences,
+      'lastUsedLotID': lastUsedLotID, // Include lastUsedLotID
     };
   }
 }
