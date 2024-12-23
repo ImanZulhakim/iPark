@@ -157,7 +157,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                         child: const Row(
                           children: [
                             Icon(Icons.arrow_back, color: Colors.white),
-                             SizedBox(width: 5),
+                            SizedBox(width: 5),
                             Text('BACK', style: TextStyle(color: Colors.white)),
                           ],
                         ),
@@ -190,13 +190,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                             Navigator.pushReplacement(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    const MainScreen(selectedLocation: {
-                                  'lotID':
-                                      'SOC_01', // Replace with the actual lotID
-                                  'lot_name':
-                                      'SOC', // Replace with the actual lot name
-                                }, showTutorial: true),
+                                builder: (context) => const MainScreen(),
                               ),
                             );
                           } else {
@@ -222,7 +216,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                           children: [
                             Text('REGISTER',
                                 style: TextStyle(color: Colors.white)),
-                             SizedBox(width: 5),
+                            SizedBox(width: 5),
                             Icon(Icons.check, color: Colors.white),
                           ],
                         ),

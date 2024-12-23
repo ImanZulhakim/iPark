@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/screens/login_screen.dart';
 import 'package:iprsr/screens/main_screen.dart';
+import 'package:iprsr/providers/location_provider.dart'; // Import LocationProvider
 
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
@@ -13,13 +14,16 @@ class SplashScreen extends StatelessWidget {
       body: Center(
         child: Consumer<AuthService>(
           builder: (context, auth, child) {
+            // Check if the user is authenticated
             if (auth.user != null) {
-              // Provide a default selectedLocation when the user is already authenticated
-              return const MainScreen(selectedLocation: {
-                'lotID': 'SOC_01', // Replace with the actual lotID
-                'lot_name': 'SOC', // Replace with the actual lot name
-              });
+              // Fetch the selected location from the LocationProvider
+              final locationProvider = Provider.of<LocationProvider>(context, listen: false);
+              locationProvider.fetchLastUsedLot(auth.user!.userID);
+
+              // Navigate to the MainScreen without passing selectedLocation
+              return const MainScreen();
             } else {
+              // Navigate to the LoginScreen if the user is not authenticated
               return LoginScreen();
             }
           },

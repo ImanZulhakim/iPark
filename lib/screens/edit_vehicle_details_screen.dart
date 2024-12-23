@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:iprsr/providers/location_provider.dart';
 import 'package:iprsr/screens/edit_parking_preferences_screen.dart';
 import 'package:iprsr/widgets/custom_bottom_navigation_bar.dart';
-import 'package:iprsr/screens/main_screen.dart'; // Import the main screen
+import 'package:iprsr/screens/main_screen.dart';
+import 'package:provider/provider.dart';
 
 class EditVehicleDetailsScreen extends StatefulWidget {
   final String userID;
@@ -44,11 +46,7 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     'Coupe',
     'Convertible'
   ];
-  final List<String> vehicleCategories = [
-    'EV',
-    'Hybrid',
-    'Normal'
-  ];
+  final List<String> vehicleCategories = ['EV', 'Hybrid', 'Normal'];
 
   @override
   void initState() {
@@ -57,6 +55,12 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
     type = widget.initialType;
     category = widget.initialCategory;
     preferences = Map<String, bool>.from(widget.initialPreferences);
+
+    // Fetch the last used lot when the screen initializes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final locationProvider = Provider.of<LocationProvider>(context, listen: false);
+      locationProvider.fetchLastUsedLot(widget.userID);
+    });
   }
 
   @override
@@ -65,16 +69,11 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
       bottomNavigationBar: CustomBottomNavigationBar(
         userId: widget.userID,
         onFloatingActionButtonPressed: () {
-          // Redirect to main screen
+          // Redirect to MainScreen without passing selectedLocation
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) => MainScreen(
-                selectedLocation: {
-                  'lotID': 'SoC', // Replace with the actual lotID
-                  'lot_name': 'Science Lot', // Replace with the actual lot name
-                },
-              ),
+              builder: (context) => const MainScreen(),
             ),
           );
         },
@@ -104,16 +103,11 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
         ),
         child: FloatingActionButton(
           onPressed: () {
-            // Redirect to main screen
+            // Redirect to MainScreen without passing selectedLocation
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => MainScreen(
-                  selectedLocation: {
-                    'lotID': 'SOC_01', // Replace with the actual lotID
-                    'lot_name': 'SOC', // Replace with the actual lot name
-                  },
-                ),
+                builder: (context) => const MainScreen(),
               ),
             );
           },
@@ -150,7 +144,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Brand',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.light
@@ -158,11 +153,13 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                       : Theme.of(context).colorScheme.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor, width: 2),
                   ),
                 ),
                 dropdownColor: Theme.of(context).brightness == Brightness.light
@@ -189,7 +186,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Type',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.light
@@ -197,11 +195,13 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                       : Theme.of(context).colorScheme.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor, width: 2),
                   ),
                 ),
                 dropdownColor: Theme.of(context).brightness == Brightness.light
@@ -228,7 +228,8 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                   labelText: 'Category',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   filled: true,
                   fillColor: Theme.of(context).brightness == Brightness.light
@@ -236,11 +237,13 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                       : Theme.of(context).colorScheme.surface,
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor),
+                    borderSide:
+                        BorderSide(color: Theme.of(context).primaryColor),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide(color: Theme.of(context).primaryColor, width: 2),
+                    borderSide: BorderSide(
+                        color: Theme.of(context).primaryColor, width: 2),
                   ),
                 ),
                 dropdownColor: Theme.of(context).brightness == Brightness.light
@@ -283,11 +286,10 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     children: [
                       Icon(Icons.arrow_back, size: 20),
                       SizedBox(width: 4),
-                      Text('BACK', 
-                        style: TextStyle(
-                          fontSize: 16,
-                        )
-                      ),
+                      Text('BACK',
+                          style: TextStyle(
+                            fontSize: 16,
+                          )),
                     ],
                   ),
                 ),
@@ -322,15 +324,14 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 20, vertical: 12),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('NEXT',
-                        style: TextStyle(
-                          fontSize: 16,
-                        )
-                      ),
-                      const SizedBox(width: 4),
+                          style: TextStyle(
+                            fontSize: 16,
+                          )),
+                      SizedBox(width: 4),
                       Icon(Icons.arrow_forward, size: 20),
                     ],
                   ),

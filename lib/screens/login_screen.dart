@@ -35,9 +35,9 @@ class LoginScreen extends StatelessWidget {
                   Text(
                     'Login to your account',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 0.5,
-                    ),
+                          fontWeight: FontWeight.bold,
+                          letterSpacing: 0.5,
+                        ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 40),
@@ -48,16 +48,18 @@ class LoginScreen extends StatelessWidget {
                         : null,
                     decoration: InputDecoration(
                       labelText: 'Email',
-                      labelStyle: Theme.of(context).brightness == Brightness.dark
-                          ? const TextStyle(color: Colors.black54)
-                          : null,
+                      labelStyle:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? const TextStyle(color: Colors.black54)
+                              : null,
                       hintText: 'Enter your email',
                       hintStyle: Theme.of(context).brightness == Brightness.dark
                           ? const TextStyle(color: Colors.black38)
                           : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline),
                       ),
                       filled: true,
                       fillColor: Colors.white,
@@ -76,16 +78,18 @@ class LoginScreen extends StatelessWidget {
                         : null,
                     decoration: InputDecoration(
                       labelText: 'Password',
-                      labelStyle: Theme.of(context).brightness == Brightness.dark
-                          ? const TextStyle(color: Colors.black54)
-                          : null,
+                      labelStyle:
+                          Theme.of(context).brightness == Brightness.dark
+                              ? const TextStyle(color: Colors.black54)
+                              : null,
                       hintText: 'Enter your password',
                       hintStyle: Theme.of(context).brightness == Brightness.dark
                           ? const TextStyle(color: Colors.black38)
                           : null,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
-                        borderSide: BorderSide(color: Theme.of(context).colorScheme.outline),
+                        borderSide: BorderSide(
+                            color: Theme.of(context).colorScheme.outline),
                       ),
                       filled: true,
                       fillColor: Colors.white,
@@ -94,7 +98,8 @@ class LoginScreen extends StatelessWidget {
                         borderSide: BorderSide(color: Colors.grey.shade200),
                       ),
                       suffixText: 'Forgot password?',
-                      suffixStyle: TextStyle(color: Theme.of(context).colorScheme.primary),
+                      suffixStyle:
+                          TextStyle(color: Theme.of(context).primaryColor),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -116,26 +121,10 @@ class LoginScreen extends StatelessWidget {
                       Expanded(child: Divider()),
                       Padding(
                         padding: EdgeInsets.symmetric(horizontal: 8),
-                        child: Text('or continue with'),
+                        child: Text('or'),
                       ),
                       Expanded(child: Divider()),
                     ],
-                  ),
-                  const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      // Google sign-in logic
-                    },
-                    icon: Image.asset('assets/images/google_logo.png', height: 24),
-                    label: const Text('Google'),
-                    style: OutlinedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: BorderSide(color: Colors.grey.shade300),
-                    ),
                   ),
                   const SizedBox(height: 16),
                   Row(
@@ -143,7 +132,8 @@ class LoginScreen extends StatelessWidget {
                     children: [
                       Text(
                         "Don't have an account? ",
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                        style: TextStyle(
+                            color: Theme.of(context).colorScheme.onSurface),
                       ),
                       TextButton(
                         onPressed: () {
@@ -151,7 +141,8 @@ class LoginScreen extends StatelessWidget {
                         },
                         child: Text(
                           'Register',
-                          style: TextStyle(color: Theme.of(context).colorScheme.primary),
+                          style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
                         ),
                       ),
                     ],
@@ -180,20 +171,13 @@ class LoginScreen extends StatelessWidget {
       if (userId != null) {
         print('User ID: $userId'); // Print the userId to debug
 
-  
         // Navigate to MainScreen and pass userId and selectedLocation
-       Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => MainScreen(
-      selectedLocation: {
-        'lotID': 'SOC_01', // Replace with the actual lotID
-        'lot_name': 'SOC', // Replace with the actual lot name
-      },
-    ),
-  ),
-);
-
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const MainScreen(),
+          ),
+        );
       } else {
         _showSnackBar(context, 'Login failed');
       }

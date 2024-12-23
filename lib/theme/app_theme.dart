@@ -5,7 +5,7 @@ class AppTheme {
     brightness: Brightness.light,
     primaryColor: const Color(0xFF0077B6),
     colorScheme: const ColorScheme.light(
-      primary: Color.fromARGB(255, 255, 255, 255),
+      primary: Color(0xFF0077B6),
       secondary: Color.fromARGB(255, 131, 226, 245),
       surface: Color(0xFFCAF0F8),
     ),

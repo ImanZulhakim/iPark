@@ -71,13 +71,7 @@ class SettingsScreen extends StatelessWidget {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const MainScreen(
-                    selectedLocation: {
-                      'lotID': 'SOC_01', // Replace with the actual lotID
-                      'lot_name': 'SOC', // Replace with the actual lot name
-                    },
-                    showTutorial: true,
-                  ),
+                  builder: (context) => const MainScreen(),
                 ),
               );
             },

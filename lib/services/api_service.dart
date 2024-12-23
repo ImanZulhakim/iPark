@@ -206,27 +206,6 @@ class ApiService {
     }
   }
 
-// Fetch parking lot location
-  static Future<List<Map<String, dynamic>>> getParkingLocation() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/fetch_parking_location.php'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print('Parking data fetched successfully: ${data['data']}');
-          return List<Map<String, dynamic>>.from(data['data']);
-        }
-      }
-      throw Exception('Failed to load parking data');
-    } catch (e) {
-      print('Error fetching parking data: $e');
-      throw Exception('Failed to load parking data');
-    }
-  }
-
 // Fetch parking spaces data for a specific location
   static Future<List<Map<String, dynamic>>> getParkingData(lotID) async {
     try {
@@ -302,7 +281,7 @@ class ApiService {
               "ESP8266 endpoint not found. Please verify the URL: $url");
         } else {
           throw Exception(
-              "Failed to ${action} gate: Status ${response.statusCode} - ${response.body}");
+              "Failed to $action gate: Status ${response.statusCode} - ${response.body}");
         }
       }
     } catch (e) {
@@ -796,14 +775,6 @@ class ApiService {
     }
   }
 
-  // Map for converting display names to database location codes
-  static const locationMapping = {
-    'SoC': 'SOC_01',
-    'V Mall': 'VMALL_01',
-    'Dewan MAS': 'DMAS_01',
-    'DTSO': 'DTSO_01',
-  };
-
   // Add this method to verify ESP8266 connection
   static Future<bool> verifyEsp8266Connection() async {
     try {
@@ -840,34 +811,93 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, List<String>>> getParkingLocations() async {
+ // Fetch parking location data (state -> district -> parking lot)
+  static Future<Map<String, dynamic>> getParkingLocation() async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/get_parking_locations.php'),
+        Uri.parse('$_baseUrl/fetch_parking_location.php'),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          Map<String, List<String>> stateLocations = {};
-
-          data['data'].forEach((location) {
-            String state = location['state'];
-            String locationName = location['location'];
-
-            if (!stateLocations.containsKey(state)) {
-              stateLocations[state] = [];
-            }
-            stateLocations[state]!.add(locationName);
-          });
-
-          return stateLocations;
+          print('Parking data fetched successfully: ${data['data']}');
+          return data; // Return the entire response as a Map
         }
       }
-      throw Exception('Failed to load parking locations');
+      throw Exception('Failed to load parking data');
     } catch (e) {
-      print('Error fetching parking locations: $e');
-      throw Exception('Failed to load parking locations');
+      print('Error fetching parking data: $e');
+      throw Exception('Failed to load parking data');
+    }
+  }
+
+  // Fetch the last_used_lotID for a specific user
+  static Future<String?> getLastUsedLotID(String userID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_last_used_lotID.php?userID=$userID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Last used lotID fetched successfully: ${data['data']['last_used_lotID']}');
+          return data['data']['last_used_lotID'];
+        }
+      }
+      throw Exception('Failed to fetch last_used_lotID');
+    } catch (e) {
+      print('Error fetching last_used_lotID: $e');
+      return null;
+    }
+  }
+
+  // Update the last_used_lotID for a specific user
+  static Future<void> updateLastUsedLotID(String userID, String lotID) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_last_used_lotID.php'),
+        body: {
+          'userID': userID,
+          'last_used_lotID': lotID,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Last used lotID updated successfully for user $userID to $lotID');
+        } else {
+          throw Exception('Failed to update last_used_lotID');
+        }
+      } else {
+        throw Exception('Failed to update last_used_lotID');
+      }
+    } catch (e) {
+      print('Error updating last_used_lotID: $e');
+      throw Exception('Failed to update last_used_lotID');
+    }
+  }
+
+// Fetch the lot name based on the lotID
+  static Future<String?> getLotName(String lotID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_lot_name.php?lotID=$lotID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Lot name fetched successfully: ${data['data']['lot_name']}');
+          return data['data']['lot_name'];
+        }
+      }
+      throw Exception('Failed to fetch lot name');
+    } catch (e) {
+      print('Error fetching lot name: $e');
+      return null;
     }
   }
 

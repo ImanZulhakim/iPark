@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:iprsr/providers/tutorial_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:iprsr/providers/tutorial_provider.dart';
+import 'package:iprsr/providers/location_provider.dart'; // Import LocationProvider
+import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/services/api_service.dart';
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/screens/edit_vehicle_details_screen.dart';
 import 'package:iprsr/screens/recommendation_screen.dart';
 import 'package:iprsr/screens/parking_location_screen.dart';
-import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/screens/settings_screen.dart';
 import 'package:iprsr/widgets/tutorial_overlay.dart';
 import 'package:iprsr/screens/parking_map_screen.dart';
 
 class MainScreen extends StatefulWidget {
-  final Map<String, String> selectedLocation;
   final bool showTutorial;
 
   const MainScreen({
     super.key,
-    required this.selectedLocation,
     this.showTutorial = false,
   });
 
@@ -26,20 +25,15 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  late String selectedLotID;
-  late String selectedLotName;
-
   @override
   void initState() {
     super.initState();
-    selectedLotID = widget.selectedLocation['lotID'] ?? 'Unknown Lot ID';
-    selectedLotName = widget.selectedLocation['lot_name'] ?? 'Unknown Lot Name';
 
+    // Handle tutorial logic
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
 
-      final tutorialProvider =
-          Provider.of<TutorialProvider>(context, listen: false);
+      final tutorialProvider = Provider.of<TutorialProvider>(context, listen: false);
       await tutorialProvider.checkTutorialStatus();
 
       if (mounted &&
@@ -93,6 +87,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final locationProvider = Provider.of<LocationProvider>(context);
     final countdownProvider = Provider.of<CountdownProvider>(context);
     final remainingTime = countdownProvider.remainingTime;
     final user = Provider.of<AuthService>(context).user;
@@ -100,6 +95,10 @@ class _MainScreenState extends State<MainScreen> {
 
     bool isCountdownVisible = countdownProvider.isCountingDown &&
         countdownProvider.activeUserID == userId;
+
+    // Get the selected location from the LocationProvider
+    final selectedLotID = locationProvider.selectedLocation?['lotID'] ?? 'DefaultLotID';
+    final selectedLotName = locationProvider.selectedLocation?['lot_name'] ?? 'DefaultLotName';
 
     return Scaffold(
       body: Container(
@@ -110,8 +109,7 @@ class _MainScreenState extends State<MainScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
@@ -130,8 +128,7 @@ class _MainScreenState extends State<MainScreen> {
                     const SizedBox(width: 8),
                     Text(
                       selectedLotName,
-                      style:
-                          const TextStyle(fontSize: 16, color: Colors.black87),
+                      style: const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
                     GestureDetector(
@@ -146,30 +143,30 @@ class _MainScreenState extends State<MainScreen> {
                         );
                         if (result != null) {
                           setState(() {
-                            selectedLotID = result['lotID'];
-                            selectedLotName = result['lot_name'];
+                            locationProvider.selectLocation({
+                              'lotID': result['lotID'],
+                              'lot_name': result['lot_name'],
+                            });
                           });
                         }
                       },
                       child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15),
-                          gradient:
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? const LinearGradient(
-                                      colors: [
-                                        Colors.teal,
-                                        Colors.tealAccent,
-                                      ],
-                                    )
-                                  : const LinearGradient(
-                                      colors: [
-                                        Color(0xFF00B4D8),
-                                        Color(0xFF0077B6),
-                                      ],
-                                    ),
+                          gradient: Theme.of(context).brightness == Brightness.dark
+                              ? const LinearGradient(
+                                  colors: [
+                                    Colors.teal,
+                                    Colors.tealAccent,
+                                  ],
+                                )
+                              : const LinearGradient(
+                                  colors: [
+                                    Color(0xFF00B4D8),
+                                    Color(0xFF0077B6),
+                                  ],
+                                ),
                         ),
                         child: const Text(
                           'Change',
@@ -238,7 +235,7 @@ class _MainScreenState extends State<MainScreen> {
                         fontFamily: 'Satisfy',
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.tealAccent
-                            : Color(0xFF0077B6),
+                            : const Color(0xFF0077B6),
                       ),
                     ),
                   ),
