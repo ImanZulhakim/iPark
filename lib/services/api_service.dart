@@ -124,14 +124,14 @@ class ApiService {
 }
   // Fetch parking suggestions using Flask backend
   static Future<Map<String, dynamic>> getRecommendations(
-      String userID, String location) async {
+      String userID, String lotID) async {
     try {
       final response = await http.post(
         Uri.parse('$_flaskUrl/suggest-parking'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userID': userID,
-          'location': location,
+          'lotID': lotID,
         }),
       );
 

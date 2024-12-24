@@ -131,7 +131,7 @@ class _MainScreenState extends State<MainScreen> {
                       style: const TextStyle(fontSize: 16, color: Colors.black87),
                     ),
                     const SizedBox(width: 8),
-                    GestureDetector(
+                    AnimatedButton(
                       onTap: () async {
                         final result = await Navigator.push(
                           context,
@@ -212,33 +212,56 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   );
                 }),
-                child: Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        spreadRadius: 5,
-                        blurRadius: 10,
-                        offset: const Offset(0, 3),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    // Define the text style
+                    final textStyle = TextStyle(
+                      fontSize: 140,
+                      fontFamily: 'Satisfy',
+                      color: Theme.of(context).brightness == Brightness.dark
+                          ? Colors.tealAccent
+                          : const Color(0xFF0077B6),
+                    );
+
+                    // Create a TextSpan for the text
+                    final textSpan = TextSpan(
+                      text: 'P',
+                      style: textStyle,
+                    );
+
+                    // Use TextPainter to calculate the text size
+                    final textPainter = TextPainter(
+                      text: textSpan,
+                      textDirection: TextDirection.ltr,
+                    )..layout(minWidth: 0, maxWidth: constraints.maxWidth);
+
+                    // Calculate the size of the text
+                    final textWidth = textPainter.width;
+                    final textHeight = textPainter.height;
+
+                    return Container(
+                      width: textWidth + 120, // Add padding
+                      height: textHeight + 40, // Add padding
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            spreadRadius: 5,
+                            blurRadius: 10,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      'P',
-                      style: TextStyle(
-                        fontSize: 140,
-                        fontFamily: 'Satisfy',
-                        color: Theme.of(context).brightness == Brightness.dark
-                            ? Colors.tealAccent
-                            : const Color(0xFF0077B6),
+                      child: Center(
+                        child: Text(
+                          'P',
+                          style: textStyle,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               ),
             ],
@@ -286,7 +309,7 @@ class _MainScreenState extends State<MainScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              GestureDetector(
+              AnimatedButton(
                 onTap: () async {
                   if (userId != null) {
                     print('Fetching vehicle details for userID: $userId');
@@ -370,7 +393,7 @@ class _MainScreenState extends State<MainScreen> {
                   ],
                 ),
               ),
-              GestureDetector(
+              AnimatedButton(
                 onTap: () {
                   Navigator.push(
                     context,
@@ -382,8 +405,8 @@ class _MainScreenState extends State<MainScreen> {
                 child: const Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                     Icon(Icons.settings, color: Colors.white, size: 28),
-                     Text(
+                    Icon(Icons.settings, color: Colors.white, size: 28),
+                    Text(
                       'Settings',
                       style: TextStyle(color: Colors.white, fontSize: 12),
                     ),
@@ -393,6 +416,64 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class AnimatedButton extends StatefulWidget {
+  final VoidCallback onTap;
+  final Widget child;
+
+  const AnimatedButton({
+    super.key,
+    required this.onTap,
+    required this.child,
+  });
+
+  @override
+  _AnimatedButtonState createState() => _AnimatedButtonState();
+}
+
+class _AnimatedButtonState extends State<AnimatedButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 200),
+      vsync: this,
+    );
+    _animation = Tween<double>(begin: 1.0, end: 0.95).animate(_controller);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    _controller.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    _controller.reverse();
+    widget.onTap();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _controller.reverse,
+      child: ScaleTransition(
+        scale: _animation,
+        child: widget.child,
       ),
     );
   }

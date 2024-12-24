@@ -259,6 +259,11 @@ class _EditVehicleDetailsScreenState extends State<EditVehicleDetailsScreen> {
                 onChanged: (newValue) {
                   setState(() {
                     category = newValue!;
+                    if (category == 'EV' || category == 'Hybrid') {
+                      preferences['requiresEVCharging'] = true;
+                    } else {
+                      preferences['requiresEVCharging'] = false;
+                    }
                   });
                 },
               ),
