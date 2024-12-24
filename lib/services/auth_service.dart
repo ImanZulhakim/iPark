@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add SharedPreferences
 import 'package:iprsr/models/user.dart';
 import 'package:iprsr/services/api_service.dart';
 import 'package:iprsr/providers/tutorial_provider.dart';
 
 class AuthService extends ChangeNotifier {
   User? _user;
+  SharedPreferences? _prefs; // SharedPreferences instance
 
   // Getter to access the authenticated user
   User? get user => _user;
@@ -12,12 +14,43 @@ class AuthService extends ChangeNotifier {
   // Check if the user is logged in
   bool get isLoggedIn => _user != null;
 
+  // Initialize SharedPreferences
+  Future<void> init(SharedPreferences prefs) async {
+    _prefs = prefs;
+    await restoreLoginStatus(); // Restore login status when the app starts
+  }
+
+  // Restore login status from SharedPreferences
+  Future<void> restoreLoginStatus() async {
+  if (_prefs != null) {
+    final userID = _prefs!.getString('userID');
+    if (userID != null) {
+      print('Restoring login status for userID: $userID'); // Debugging
+      try {
+        Map<String, dynamic>? fetchedData = await ApiService.fetchUserDetails(userID);
+        if (fetchedData != null) {
+          _user = User.fromJson(fetchedData);
+          print('User details restored: ${_user!.username}'); // Debugging
+          notifyListeners();
+        } else {
+          print('Failed to fetch user details for userID: $userID'); // Debugging
+        }
+      } catch (error) {
+        print("Error restoring login status: $error"); // Debugging
+      }
+    } else {
+      print('No userID found in SharedPreferences'); // Debugging
+    }
+  }
+}
+
   // Login function to authenticate and set the user
   Future<void> login(String email, String password) async {
     try {
       User? loggedInUser = await ApiService.login(email, password);
       if (loggedInUser != null) {
         _user = loggedInUser;
+        await saveLoginStatus(loggedInUser.userID); // Save login status
         notifyListeners();
       } else {
         throw Exception("Failed to log in. Please check your credentials.");
@@ -25,6 +58,13 @@ class AuthService extends ChangeNotifier {
     } catch (error) {
       print("Login error: $error");
       rethrow; // Allow the error to propagate
+    }
+  }
+
+  // Save login status to SharedPreferences
+  Future<void> saveLoginStatus(String userID) async {
+    if (_prefs != null) {
+      await _prefs!.setString('userID', userID);
     }
   }
 
@@ -56,6 +96,7 @@ class AuthService extends ChangeNotifier {
       );
       if (registeredUser != null) {
         _user = registeredUser;
+        await saveLoginStatus(registeredUser.userID); // Save login status
         notifyListeners();
       } else {
         throw Exception("Registration failed. Please check your inputs.");
@@ -143,6 +184,14 @@ class AuthService extends ChangeNotifier {
     final tutorialProvider = TutorialProvider();
     await tutorialProvider.checkTutorialStatus(); // Reset tutorial state
     _user = null;
+    await clearLoginStatus(); // Clear login status
     notifyListeners();
+  }
+
+  // Clear login status from SharedPreferences
+  Future<void> clearLoginStatus() async {
+    if (_prefs != null) {
+      await _prefs!.remove('userID');
+    }
   }
 }

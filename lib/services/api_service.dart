@@ -97,6 +97,31 @@ class ApiService {
     return null;
   }
 
+
+// Fetch user details by user ID
+  static Future<Map<String, dynamic>?> fetchUserDetails(String userId) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/fetch_user_details.php?userID=$userId'),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    print('Fetch User Details API response status: ${response.statusCode}'); // Debugging
+    print('Fetch User Details API response body: ${response.body}'); // Debugging
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        return data['user']; // Return the user details
+      } else {
+        print('Fetch User Details error: ${data['message']}'); // Debugging
+      }
+    }
+  } catch (e) {
+    print('Error fetching user details: $e'); // Debugging
+  }
+  return null;
+}
   // Fetch parking suggestions using Flask backend
   static Future<Map<String, dynamic>> getRecommendations(
       String userID, String location) async {
@@ -811,7 +836,7 @@ class ApiService {
     }
   }
 
- // Fetch parking location data (state -> district -> parking lot)
+  // Fetch parking location data (state -> district -> parking lot)
   static Future<Map<String, dynamic>> getParkingLocation() async {
     try {
       final response = await http.get(
@@ -842,7 +867,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          print('Last used lotID fetched successfully: ${data['data']['last_used_lotID']}');
+          print(
+              'Last used lotID fetched successfully: ${data['data']['last_used_lotID']}');
           return data['data']['last_used_lotID'];
         }
       }
@@ -867,7 +893,8 @@ class ApiService {
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          print('Last used lotID updated successfully for user $userID to $lotID');
+          print(
+              'Last used lotID updated successfully for user $userID to $lotID');
         } else {
           throw Exception('Failed to update last_used_lotID');
         }
@@ -900,7 +927,6 @@ class ApiService {
       return null;
     }
   }
-
 }
 
 // Example usage in your UI

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add SharedPreferences
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/screens/splash_screen.dart';
@@ -15,9 +16,20 @@ import 'package:iprsr/providers/location_provider.dart'; // Import the LocationP
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+
   // Initialize the countdown provider
   final countdownProvider = CountdownProvider();
   await countdownProvider.checkAndRestoreCountdown();
+
+  // Initialize the AuthService and restore login status
+  final authService = AuthService();
+  await authService.init(prefs); // Initialize SharedPreferences and restore login status
+
+  // Initialize the ThemeProvider and restore the theme
+  final themeProvider = ThemeProvider();
+  await themeProvider.init(prefs); // Initialize ThemeProvider with SharedPreferences
 
   runApp(
     MultiProvider(
@@ -25,10 +37,10 @@ void main() async {
         ChangeNotifierProvider(create: (_) => TutorialProvider()),
         ChangeNotifierProvider.value(value: countdownProvider),
         ChangeNotifierProvider<AuthService>(
-          create: (_) => AuthService(),
+          create: (_) => authService,
           lazy: false,
         ),
-        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => themeProvider),
         ChangeNotifierProvider(create: (_) => LocationProvider()), // Add LocationProvider here
       ],
       child: const IPRSRApp(),
@@ -36,8 +48,43 @@ void main() async {
   );
 }
 
-class IPRSRApp extends StatelessWidget {
+class IPRSRApp extends StatefulWidget {
   const IPRSRApp({super.key});
+
+  @override
+  _IPRSRAppState createState() => _IPRSRAppState();
+}
+
+class _IPRSRAppState extends State<IPRSRApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this); // Add lifecycle observer
+    print('Lifecycle observer added'); // Debugging
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
+    super.dispose();
+     print('Lifecycle observer removed'); // Debugging
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    print('AppLifecycleState: $state'); // Debugging
+    
+    // Handle lifecycle events
+    if (state == AppLifecycleState.resumed) {
+      // Restore app state when the app resumes
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
+
+      authService.restoreLoginStatus(); // Restore login status
+      themeProvider.restoreTheme(); // Restore theme
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

@@ -178,20 +178,26 @@ class LoginScreen extends StatelessWidget {
         await locationProvider.fetchLastUsedLot(userId);
 
         // Display a success message
-        _showSnackBar(context, 'Login successful');
+        if (context.mounted) { // Check if the context is still valid
+          _showSnackBar(context, 'Login successful');
 
-        // Navigate to MainScreen
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const MainScreen(),
-          ),
-        );
+          // Navigate to MainScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MainScreen(),
+            ),
+          );
+        }
       } else {
-        _showSnackBar(context, 'Login failed');
+        if (context.mounted) { // Check if the context is still valid
+          _showSnackBar(context, 'Login failed');
+        }
       }
     } catch (error) {
-      _showSnackBar(context, 'Login error: ${error.toString()}');
+      if (context.mounted) { // Check if the context is still valid
+        _showSnackBar(context, 'Login error: ${error.toString()}');
+      }
     }
   }
 
