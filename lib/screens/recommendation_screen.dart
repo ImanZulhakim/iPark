@@ -209,6 +209,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             child: Card(
               margin: const EdgeInsets.all(8),
               elevation: 4,
+              color: Colors.white,
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
