@@ -17,7 +17,7 @@ class RecommendationScreen extends StatefulWidget {
     super.key,
     required this.user,
     required this.lotID,
-    required this.lot_name, 
+    required this.lot_name,
   });
 
   @override
@@ -273,9 +273,12 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
               if (locationType.toLowerCase() == 'outdoor') {
                 return Expanded(
                   child: OutdoorParkingView(
-                    parkingSpaces: parkingSpaces,
-                    recommendedSpace: recommendedSpace,
-                    lotID: widget.lotID,
+                    parkingSpaces:
+                        parkingSpaces, // Pass the updated parking spaces
+                    recommendedSpace:
+                        recommendedSpace, // Pass the updated recommended space
+                    lotID: snapshot.data!['currentLocation'] ??
+                        widget.lotID, // Pass the updated lotID
                   ),
                 );
               }
@@ -382,12 +385,14 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                           child: Row(
                                             children: [
                                               Icon(Icons.arrow_downward,
-                                                  color: Color.fromARGB(255, 67, 230, 62)),
+                                                  color: Color.fromARGB(
+                                                      255, 67, 230, 62)),
                                               SizedBox(width: 4),
                                               Text(
                                                 'ENTRANCE',
                                                 style: TextStyle(
-                                                  color: Color.fromARGB(255, 67, 230, 62),
+                                                  color: Color.fromARGB(
+                                                      255, 67, 230, 62),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                 ),
@@ -403,15 +408,17 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
                                             children: [
                                               Text(
                                                 'EXIT',
-                                                style:  TextStyle(
-                                                  color: Color.fromARGB(255, 209, 45, 45),
+                                                style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 209, 45, 45),
                                                   fontWeight: FontWeight.bold,
                                                   fontSize: 12,
                                                 ),
                                               ),
-                                               SizedBox(width: 4),
-                                               Icon(Icons.arrow_downward,
-                                                  color: Color.fromARGB(255, 209, 45, 45)),
+                                              SizedBox(width: 4),
+                                              Icon(Icons.arrow_downward,
+                                                  color: Color.fromARGB(
+                                                      255, 209, 45, 45)),
                                             ],
                                           ),
                                         ),
@@ -461,81 +468,101 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
-    if (!mounted) return {};
+  if (!mounted) return {};
 
-    try {
-      final parkingSpaces = await ApiService.getParkingData(widget.lotID);
-      final recommendations =
-          await ApiService.getRecommendations(widget.user.userID, widget.lotID);
-      final locationType = await ApiService.getLocationType(widget.lotID);
+  try {
+    final parkingSpaces = await ApiService.getParkingData(widget.lotID);
+    final recommendations =
+        await ApiService.getRecommendations(widget.user.userID, widget.lotID);
+    final locationType = await ApiService.getLocationType(widget.lotID);
 
-      print('Parking Spaces: $parkingSpaces'); // Debug print
-      print('Recommendations: $recommendations'); // Debug print
-      print('Location Type: $locationType'); // Debug print
+    print('Parking Spaces: $parkingSpaces'); // Debug print
+    print('Recommendations: $recommendations'); // Debug print
+    print('Location Type: $locationType'); // Debug print
 
-      // Organize parking spaces by floor
-      Map<String, List<Map<String, dynamic>>> spacesByFloor = {};
-      Set<String> floors = {};
+    // Handle alternative parking scenario
+    if (recommendations['alternativeLocation'] != null) {
+      // Fetch parking data for the alternative location
+      final altParkingSpaces = await ApiService.getParkingData(
+          recommendations['alternativeLocation']);
+      final altLocationType = await ApiService.getLocationType(
+          recommendations['alternativeLocation']);
 
-      // Extract unique floors and organize spaces
-      for (var space in parkingSpaces) {
-        String? floorName =
-            space['coordinates']?.toString().toLowerCase().split('|').first;
-        if (floorName == null ||
-            !(floorName.startsWith('floor') || floorName.startsWith('level'))) {
-          floorName = 'Unknown'; // Fallback to a default floor name
-        }
-        if (!spacesByFloor.containsKey(floorName)) {
-          spacesByFloor[floorName] = [];
-          floors.add(floorName);
-        }
-        spacesByFloor[floorName]!.add(space);
+      print('Alternative Parking Spaces: $altParkingSpaces'); // Debug print
+      print('Alternative Location Type: $altLocationType'); // Debug print
+
+      // Update the recommendations with the alternative location data
+      recommendations['parkingSpaces'] = altParkingSpaces;
+      recommendations['locationType'] = altLocationType;
+      recommendations['currentLocation'] =
+          recommendations['alternativeLocation'];
+
+      // Notify the user about the alternative location
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Original location full. Found parking at ${recommendations['alternativeLocation']}'),
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
+          ),
+        );
       }
-
-      print('Floors: $floors'); // Debug print
-
-      // Sort floors naturally
-      List<String> sortedFloors = floors.toList()
-        ..sort((a, b) {
-          int aNum = int.tryParse(a.split(' ').last) ?? 0;
-          int bNum = int.tryParse(b.split(' ').last) ?? 0;
-          return aNum.compareTo(bNum);
-        });
-
-      print('Sorted Floors: $sortedFloors'); // Debug print
-
-      return {
-        'parkingSpaces': parkingSpaces,
-        'spacesByFloor': spacesByFloor,
-        'floors': sortedFloors,
-        'recommendedSpace': recommendations['parkingSpaceID'],
-        'locationType': locationType,
-      };
-    } catch (e) {
-      print('Error fetching recommendations: $e');
-      return {};
+    } else {
+      recommendations['parkingSpaces'] = parkingSpaces;
+      recommendations['locationType'] = locationType;
+      recommendations['currentLocation'] = widget.lotID;
     }
+
+    // Organize parking spaces by floor
+    Map<String, List<Map<String, dynamic>>> spacesByFloor = {};
+    Set<String> floors = {};
+
+    // Extract unique floors and organize spaces
+    for (var space in recommendations['parkingSpaces']) {
+      String? floorName =
+          space['coordinates']?.toString().toLowerCase().split('|').first;
+      if (floorName == null ||
+          !(floorName.startsWith('floor') || floorName.startsWith('level'))) {
+        floorName = 'Unknown'; // Fallback to a default floor name
+      }
+      if (!spacesByFloor.containsKey(floorName)) {
+        spacesByFloor[floorName] = [];
+        floors.add(floorName);
+      }
+      spacesByFloor[floorName]!.add(space);
+    }
+
+    print('Floors: $floors'); // Debug print
+
+    // Sort floors naturally
+    List<String> sortedFloors = floors.toList()
+      ..sort((a, b) {
+        int aNum = int.tryParse(a.split(' ').last) ?? 0;
+        int bNum = int.tryParse(b.split(' ').last) ?? 0;
+        return aNum.compareTo(bNum);
+      });
+
+    print('Sorted Floors: $sortedFloors'); // Debug print
+
+    return {
+      'parkingSpaces': recommendations['parkingSpaces'],
+      'spacesByFloor': spacesByFloor,
+      'floors': sortedFloors,
+      'recommendedSpace': recommendations['parkingSpaceID'],
+      'locationType': recommendations['locationType'],
+      'currentLocation': recommendations['currentLocation'],
+    };
+  } catch (e) {
+    print('Error fetching recommendations: $e');
+    return {};
   }
-
-  // void openGoogleMaps(String locationName) async {
-  //   final Map<String, String> locationLinks = {};
-
-  //   final url = locationLinks[locationName];
-  //   if (url != null) {
-  //     final Uri uri = Uri.parse(url);
-  //     try {
-  //       if (await canLaunchUrl(uri)) {
-  //         await launchUrl(uri, mode: LaunchMode.externalApplication);
-  //       } else {
-  //         print('Could not launch $url');
-  //       }
-  //     } catch (e) {
-  //       print("Error launching URL: $e");
-  //     }
-  //   } else {
-  //     print('No URL found for location: $locationName');
-  //   }
-  // }
+}
 
   void _handlePremiumParking(String parkingSpaceID) async {
     try {

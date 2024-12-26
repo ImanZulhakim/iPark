@@ -25,7 +25,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
   LatLng? initialCameraTarget;
   bool isLoading = true;
   late GoogleMapController _mapController;
-  LatLngBounds? pendingBounds; // Store bounds until the map controller is ready
+  LatLngBounds? pendingBounds;
 
   @override
   void initState() {
@@ -33,9 +33,18 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
     _loadPolygonsAndMarkers();
   }
 
+  @override
+  void didUpdateWidget(OutdoorParkingView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.parkingSpaces != oldWidget.parkingSpaces ||
+        widget.recommendedSpace != oldWidget.recommendedSpace ||
+        widget.lotID != oldWidget.lotID) {
+      _loadMarkers();
+    }
+  }
+
   Future<void> _loadPolygonsAndMarkers() async {
     try {
-      // Fetch boundary points
       final List<LatLng> boundaryPoints =
           await ApiService.getParkingLotBoundary(widget.lotID);
 
@@ -52,17 +61,13 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
           );
         });
 
-        // Calculate bounds and store them for later
         final bounds = _calculateLatLngBounds(boundaryPoints);
         pendingBounds = bounds;
       } else {
         print('No boundary points found for lotID: ${widget.lotID}');
       }
 
-      // Load markers
       await _loadMarkers();
-
-      // Set initial camera target
       _setInitialCameraTarget();
     } catch (e) {
       print('Error loading polygons or markers: $e');
@@ -86,7 +91,6 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
         lngSum / boundaryPoints.length,
       );
     } else {
-      // Default fallback
       initialCameraTarget = const LatLng(6.467067402188159, 100.5076370309702);
     }
   }
@@ -108,11 +112,10 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
   }
 
   Future<void> _moveCameraToFitBounds(LatLngBounds bounds) async {
-    // Only move the camera if the map controller is ready
     await _mapController.animateCamera(
-      CameraUpdate.newLatLngBounds(bounds, 50), // Add padding
+      CameraUpdate.newLatLngBounds(bounds, 50),
     );
-    }
+  }
 
   Future<void> _loadMarkers() async {
     Set<Marker> markers = {};
@@ -268,7 +271,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
               _mapController = controller;
               if (pendingBounds != null) {
                 _moveCameraToFitBounds(pendingBounds!);
-                pendingBounds = null; // Clear bounds after moving camera
+                pendingBounds = null;
               }
             },
             mapType: MapType.satellite,
