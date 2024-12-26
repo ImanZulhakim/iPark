@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:iprsr/services/api_service.dart';
 
 class LocationProvider with ChangeNotifier {
+  String? _userID; 
   Map<String, String>? _selectedLocation;
   List<Map<String, dynamic>> _locations = [];
   String? _currentState;
   String? _currentDistrict;
   bool _isLoading = true;
+
+  String? get userID => _userID; // Getter for userID
+
+  void setUserID(String userID) {
+    _userID = userID; // Setter to initialize or update the user ID
+    notifyListeners();
+  }
 
   Map<String, String>? get selectedLocation => _selectedLocation;
   List<Map<String, dynamic>> get locations => _locations;

@@ -138,6 +138,7 @@ class _MainScreenState extends State<MainScreen> {
                           MaterialPageRoute(
                             builder: (context) => ParkingLocationScreen(
                               lotID: selectedLotID,
+                              
                             ),
                           ),
                         );

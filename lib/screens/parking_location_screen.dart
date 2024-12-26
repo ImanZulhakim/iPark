@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:iprsr/providers/location_provider.dart';
 import 'package:iprsr/screens/main_screen.dart';
-import 'package:iprsr/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
 class ParkingLocationScreen extends StatefulWidget {
@@ -138,92 +137,84 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
     );
   }
 
-  Widget _buildParkingLotList(LocationProvider locationProvider) {
-    final parkingLots = locationProvider.locations
-        .firstWhere(
-            (loc) => loc['state'] == locationProvider.currentState)['districts']
-        .firstWhere((d) =>
-            d['district'] == locationProvider.currentDistrict)['parking_lots'];
+Widget _buildParkingLotList(LocationProvider locationProvider) {
+  final parkingLots = locationProvider.locations
+      .firstWhere(
+          (loc) => loc['state'] == locationProvider.currentState)['districts']
+      .firstWhere((d) =>
+          d['district'] == locationProvider.currentDistrict)['parking_lots'];
 
-    return ListView.builder(
-      itemCount: parkingLots.length,
-      itemBuilder: (context, index) {
-        final lot = parkingLots[index];
-        return Card(
-          color: Colors.white,
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: ListTile(
-            title: Text(
-              lot['lot_name'],
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+  // Use widget.lotID instead of fetching it from AuthService
+  final currentLotID = widget.lotID;
+
+  return ListView.builder(
+    itemCount: parkingLots.length,
+    itemBuilder: (context, index) {
+      final lot = parkingLots[index];
+      final isSelected = currentLotID == lot['lotID'];
+
+      return Card(
+        color: isSelected ? Colors.green[100] : Colors.white,
+        elevation: 4,
+        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+        child: ListTile(
+          tileColor: isSelected ? Colors.green[100] : Colors.white,
+          title: Text(
+            lot['lot_name'],
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Spaces: ${lot['spaces']}'),
-                Text('Type: ${toTitleCase(lot['locationType'])}'),
-              ],
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () async {
-              // Check if the selected lot is the same as the current lot
-              final auth = Provider.of<AuthService>(context, listen: false);
-              final currentLotID = auth.user?.lastUsedLotID;
-
-              if (currentLotID == lot['lotID']) {
-                // Debugging: Print to console
-                print('User is already parked at ${lot['lot_name']}');
-
-                // Show a prompt to notify the user
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('You have already chosen ${lot['lot_name']}.'),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-                return; // Exit the function to prevent further actions
-              }
-
-              try {
-                // Update the selected location in the LocationProvider
-                locationProvider.selectLocation({
-                  'lotID': lot['lotID'],
-                  'lot_name': lot['lot_name'],
-                });
-
-                // Update the last_used_lotID for the user
-                if (auth.user != null) {
-                  await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
-                }
-
-                // Navigate to the MainScreen
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MainScreen(),
-                  ),
-                );
-              } catch (e) {
-                // Handle API errors gracefully
-                print('Error updating last_used_lotID: $e');
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text('You have already chosen ${lot['lot_name']}.'),
-                    duration: const Duration(seconds: 2),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
           ),
-        );
-      },
-    );
-  }
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Spaces: ${lot['spaces']}'),
+              Text('Type: ${toTitleCase(lot['locationType'])}'),
+            ],
+          ),
+          trailing: const Icon(Icons.arrow_forward_ios),
+          onTap: () async {
+            if (isSelected) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('You have already chosen ${lot['lot_name']}'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
+
+            try {
+              locationProvider.selectLocation({
+                'lotID': lot['lotID'],
+                'lot_name': lot['lot_name'],
+              });
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MainScreen(),
+                ),
+              );
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to update parking lot selection. Please try again.'),
+                  backgroundColor: Colors.red,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+        ),
+      );
+    },
+  );
+}
+
+
+
+
 }
 
 String toTitleCase(String text) {
