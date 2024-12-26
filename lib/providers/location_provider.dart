@@ -2,19 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:iprsr/services/api_service.dart';
 
 class LocationProvider with ChangeNotifier {
-  String? _userID; 
   Map<String, String>? _selectedLocation;
   List<Map<String, dynamic>> _locations = [];
   String? _currentState;
   String? _currentDistrict;
   bool _isLoading = true;
-
-  String? get userID => _userID; // Getter for userID
-
-  void setUserID(String userID) {
-    _userID = userID; // Setter to initialize or update the user ID
-    notifyListeners();
-  }
 
   Map<String, String>? get selectedLocation => _selectedLocation;
   List<Map<String, dynamic>> get locations => _locations;
@@ -63,41 +55,43 @@ class LocationProvider with ChangeNotifier {
     }
   }
 
-  // Fetch the last used lot for a specific user
   Future<void> fetchLastUsedLot(String userID) async {
-    try {
-      final lastUsedLotID = await ApiService.getLastUsedLotID(userID);
-      if (lastUsedLotID != null) {
-        final lotName = await ApiService.getLotName(lastUsedLotID);
-        if (lotName != null) {
-          _selectedLocation = {
-            'lotID': lastUsedLotID,
-            'lot_name': lotName,
-          };
-          notifyListeners();
-        }
-      } else {
-        // Handle case where last_used_lotID is null
-        print('last_used_lotID is null for userID: $userID');
+  try {
+    print('Fetching last used lot for userID: $userID');
+    final lastUsedLotID = await ApiService.getLastUsedLotID(userID);
+    print('Last used lot ID: $lastUsedLotID');
+    if (lastUsedLotID != null) {
+      final lotName = await ApiService.getLotName(lastUsedLotID);
+      print('Lot name: $lotName');
+      if (lotName != null) {
         _selectedLocation = {
-          'lotID': 'DefaultLotID',
-          'lot_name': 'DefaultLotName',
+          'lotID': lastUsedLotID,
+          'lot_name': lotName,
         };
         notifyListeners();
       }
-    } catch (e) {
-      // Handle API call failure
-      print('Error fetching last_used_lotID: $e');
+    } else {
+      print('last_used_lotID is null for userID: $userID');
       _selectedLocation = {
         'lotID': 'DefaultLotID',
         'lot_name': 'DefaultLotName',
       };
       notifyListeners();
     }
+  } catch (e) {
+    print('Error fetching last_used_lotID: $e');
+    _selectedLocation = {
+      'lotID': 'DefaultLotID',
+      'lot_name': 'DefaultLotName',
+    };
+    notifyListeners();
   }
+}
 
-  // Update the last used lot for a specific user
-  Future<void> updateLastUsedLot(String userID, String lotID) async {
-    await ApiService.updateLastUsedLotID(userID, lotID);
-  }
+Future<void> updateLastUsedLot(String userID, String lotID) async {
+  print('Updating last used lot for userID: $userID with lotID: $lotID');
+  await ApiService.updateLastUsedLotID(userID, lotID);
+}
+
+
 }

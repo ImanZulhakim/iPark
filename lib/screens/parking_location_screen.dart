@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:iprsr/providers/location_provider.dart';
 import 'package:iprsr/screens/main_screen.dart';
+import 'package:iprsr/services/auth_service.dart';
 import 'package:provider/provider.dart';
 
 class ParkingLocationScreen extends StatefulWidget {
@@ -184,7 +185,10 @@ Widget _buildParkingLotList(LocationProvider locationProvider) {
               );
               return;
             }
-
+            final auth = Provider.of<AuthService>(context, listen: false);
+             if (auth.user != null) {
+                  await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
+                }
             try {
               locationProvider.selectLocation({
                 'lotID': lot['lotID'],
@@ -198,10 +202,10 @@ Widget _buildParkingLotList(LocationProvider locationProvider) {
               );
             } catch (e) {
               ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
+                const SnackBar(
                   content: Text('Failed to update parking lot selection. Please try again.'),
                   backgroundColor: Colors.red,
-                  duration: const Duration(seconds: 2),
+                  duration: Duration(seconds: 2),
                 ),
               );
             }
