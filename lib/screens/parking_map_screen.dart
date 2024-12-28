@@ -19,7 +19,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   LatLng? initialCameraTarget;
   bool isLoading = true;
   LatLngBounds? pendingBounds;
-  String? _lotName; // To store the fetched lot name
+  String? _lotName; 
   String? _currentFloor;
   List<String> _floors = [];
   Map<String, List<Map<String, dynamic>>> spacesByFloor = {};

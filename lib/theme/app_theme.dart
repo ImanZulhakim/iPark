@@ -29,7 +29,7 @@ class AppTheme {
     colorScheme: const ColorScheme.dark(
       primary: Colors.teal,
       secondary: Colors.tealAccent,
-      surface: Color(0xFF121212),
+      surface: Color.fromARGB(255, 61, 61, 61),
     ),
     scaffoldBackgroundColor: const Color(0xFF121212),
     appBarTheme: const AppBarTheme(

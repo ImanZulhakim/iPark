@@ -38,6 +38,8 @@ class VehicleDetailsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         color: Theme.of(context).colorScheme.surface,
@@ -63,6 +65,9 @@ class VehicleDetailsScreen extends StatelessWidget {
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'Vehicle Brand',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black label text in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -72,10 +77,18 @@ class VehicleDetailsScreen extends StatelessWidget {
                       ),
                       value: value,
                       dropdownColor: Colors.white,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                      ),
                       items: ['Toyota', 'Honda', 'Ford', 'BMW', 'Tesla']
                           .map((label) => DropdownMenuItem(
                                 value: label,
-                                child: Text(label),
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                                  ),
+                                ),
                               ))
                           .toList(),
                       onChanged: (newValue) {
@@ -91,6 +104,9 @@ class VehicleDetailsScreen extends StatelessWidget {
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'Vehicle Type',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black label text in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -100,10 +116,18 @@ class VehicleDetailsScreen extends StatelessWidget {
                       ),
                       value: value,
                       dropdownColor: Colors.white,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                      ),
                       items: ['Sedan', 'SUV', 'Truck', 'Coupe', 'Convertible']
                           .map((label) => DropdownMenuItem(
                                 value: label,
-                                child: Text(label),
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                                  ),
+                                ),
                               ))
                           .toList(),
                       onChanged: (newValue) {
@@ -119,6 +143,9 @@ class VehicleDetailsScreen extends StatelessWidget {
                     return DropdownButtonFormField<String>(
                       decoration: InputDecoration(
                         labelText: 'Vehicle Category',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black label text in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -128,10 +155,18 @@ class VehicleDetailsScreen extends StatelessWidget {
                       ),
                       value: value,
                       dropdownColor: Colors.white,
+                      style: TextStyle(
+                        color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                      ),
                       items: ['EV', 'Hybrid', 'Normal']
                           .map((label) => DropdownMenuItem(
                                 value: label,
-                                child: Text(label),
+                                child: Text(
+                                  label,
+                                  style: TextStyle(
+                                    color: isDarkMode ? Colors.black : Colors.black, // Black text in dark mode
+                                  ),
+                                ),
                               ))
                           .toList(),
                       onChanged: (newValue) {

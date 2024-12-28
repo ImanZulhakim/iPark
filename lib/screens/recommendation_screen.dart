@@ -134,15 +134,13 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
             return FutureBuilder<Map<String, dynamic>>(
               future: recommendationsFuture,
               builder: (context, snapshot) {
-                String displayLocation = widget.lot_name;
                 if (snapshot.hasData &&
                     snapshot.data!['currentLocation'] != null) {
-                  displayLocation = snapshot.data!['currentLocation'];
                 }
                 return FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    'Parking Recommendations for $displayLocation',
+                    'Parking Recommendations for ${widget.lot_name}',
                     style: theme.textTheme.titleLarge?.copyWith(
                       color: theme.appBarTheme.foregroundColor ?? Colors.white,
                     ),
@@ -786,6 +784,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   Widget _buildLegendItem(String label, Color color, IconData icon) {
+    
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -806,9 +806,10 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
         const SizedBox(width: 4),
         Text(
           label,
-          style: const TextStyle(
+          style:  TextStyle(
             fontSize: 11,
             fontWeight: FontWeight.w500,
+            color: isDarkMode ? Colors.black : Colors.black,
           ),
         ),
       ],
@@ -826,47 +827,55 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   }
 
   void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Colors.white,
-          title: const Text(
-            "Premium Parking",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
+  showDialog(
+    context: context,
+    builder: (context) {
+      // Determine if the app is in dark mode
+      final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+      return AlertDialog(
+        backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white, // Adapt background color
+        title: Text(
+          "Premium Parking",
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: isDarkMode ? Colors.white : Colors.black, // Adapt title color
           ),
-          content: const Text(
-            "This is a premium parking spot. Proceed with payment?",
-            style: TextStyle(fontSize: 16),
+        ),
+        content: Text(
+          "This is a premium parking spot. Proceed with payment?",
+          style: TextStyle(
+            fontSize: 16,
+            color: isDarkMode ? Colors.white : Colors.black, // Force black text in dark mode
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text(
-                "Cancel",
-                style: TextStyle(color: Colors.grey),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "Cancel",
+              style: TextStyle(
+                color: isDarkMode ? Colors.grey[400] : Colors.grey, // Adapt cancel button color
               ),
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                _handlePremiumParking(
-                    parkingSpaceID); // Process premium parking
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Theme.of(context).primaryColor,
-                foregroundColor: Colors.white,
-              ),
-              child: const Text("Pay"),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close dialog
+              _handlePremiumParking(parkingSpaceID); // Process premium parking
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).primaryColor,
+              foregroundColor: Colors.white,
             ),
-          ],
-        );
-      },
-    );
-  }
+            child: const Text("Pay"),
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Future<void> _handleRecommendationButton() async {
     // First check if user has active premium parking

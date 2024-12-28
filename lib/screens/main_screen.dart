@@ -220,7 +220,7 @@ class _MainScreenState extends State<MainScreen> {
                       fontSize: 140,
                       fontFamily: 'Satisfy',
                       color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.tealAccent
+                          ? const Color.fromARGB(255, 7, 230, 174)
                           : const Color(0xFF0077B6),
                     );
 

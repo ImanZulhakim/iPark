@@ -26,6 +26,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         color: Theme.of(context).colorScheme.surface,
@@ -53,6 +55,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       controller: userNameController,
                       decoration: InputDecoration(
                         labelText: 'Username',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -60,6 +65,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black), // Black text
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter a username';
@@ -72,6 +78,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       controller: emailController,
                       decoration: InputDecoration(
                         labelText: 'Email address',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -79,6 +88,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black), // Black text
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Please enter an email';
@@ -94,6 +104,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       controller: phoneController,
                       decoration: InputDecoration(
                         labelText: 'Phone Number',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -101,6 +114,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black), // Black text
                       keyboardType: TextInputType.phone,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -127,6 +141,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       controller: passwordController,
                       decoration: InputDecoration(
                         labelText: 'Password',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -134,6 +151,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black), // Black text
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -150,6 +168,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       controller: confirmPasswordController,
                       decoration: InputDecoration(
                         labelText: 'Confirm Password',
+                        labelStyle: TextStyle(
+                          color: isDarkMode ? Colors.black : null, // Black in dark mode
+                        ),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: const BorderSide(color: Colors.black),
@@ -157,6 +178,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         filled: true,
                         fillColor: Colors.white,
                       ),
+                      style: const TextStyle(color: Colors.black), // Black text
                       obscureText: true,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -175,6 +197,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return DropdownButtonFormField<bool>(
                           decoration: InputDecoration(
                             labelText: 'Gender',
+                            labelStyle: TextStyle(
+                              color: isDarkMode ? Colors.black : null, // Black in dark mode
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Colors.black),
@@ -182,16 +207,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             filled: true,
                             fillColor: Colors.white,
                           ),
+                          style: const TextStyle(color: Colors.black), // Black text
                           value: value,
                           dropdownColor: Colors.white,
                           items: const [
                             DropdownMenuItem<bool>(
                               value: false,
-                              child: Text('Male'),
+                              child: Text('Male', style: TextStyle(color: Colors.black)), // Black text
                             ),
                             DropdownMenuItem<bool>(
                               value: true,
-                              child: Text('Female'),
+                              child: Text('Female', style: TextStyle(color: Colors.black)), // Black text
                             ),
                           ],
                           onChanged: (newValue) {
@@ -207,6 +233,9 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                         return DropdownButtonFormField<bool>(
                           decoration: InputDecoration(
                             labelText: 'Do you have a disability?',
+                            labelStyle: TextStyle(
+                              color: isDarkMode ? Colors.black : null, // Black in dark mode
+                            ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(8),
                               borderSide: const BorderSide(color: Colors.black),
@@ -214,16 +243,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                             filled: true,
                             fillColor: Colors.white,
                           ),
+                          style: const TextStyle(color: Colors.black), // Black text
                           value: value,
                           dropdownColor: Colors.white,
                           items: const [
                             DropdownMenuItem<bool>(
                               value: false,
-                              child: Text('No'),
+                              child: Text('No', style: TextStyle(color: Colors.black)), // Black text
                             ),
                             DropdownMenuItem<bool>(
                               value: true,
-                              child: Text('Yes'),
+                              child: Text('Yes', style: TextStyle(color: Colors.black)), // Black text
                             ),
                           ],
                           onChanged: (newValue) {

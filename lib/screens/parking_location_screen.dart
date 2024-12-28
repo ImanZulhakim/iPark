@@ -42,39 +42,46 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
         backgroundColor: Theme.of(context).primaryColor,
         elevation: 0,
       ),
-      body: locationProvider.isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : locationProvider.locations.isEmpty
-              ? const Center(child: Text('No parking locations available'))
-              : _buildLocationList(locationProvider),
-      floatingActionButton: locationProvider.currentState != null ||
-              locationProvider.currentDistrict != null
-          ? FloatingActionButton(
-              onPressed: () {
-                setState(() {
-                  if (locationProvider.currentDistrict != null) {
-                    locationProvider.selectDistrict(null); // Reset to districts
-                  } else if (locationProvider.currentState != null) {
-                    locationProvider.selectState(null); // Reset to states
-                  }
-                });
-              },
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: const Icon(Icons.arrow_back),
-            )
-          : null,
+      body: _buildBody(locationProvider),
+      floatingActionButton: _buildFloatingActionButton(locationProvider),
+    );
+  }
+
+  Widget _buildBody(LocationProvider locationProvider) {
+    if (locationProvider.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (locationProvider.locations.isEmpty) {
+      return const Center(child: Text('No parking locations available'));
+    }
+    return _buildLocationList(locationProvider);
+  }
+
+  Widget? _buildFloatingActionButton(LocationProvider locationProvider) {
+    if (locationProvider.currentState == null && locationProvider.currentDistrict == null) {
+      return null;
+    }
+    return FloatingActionButton(
+      onPressed: () {
+        setState(() {
+          if (locationProvider.currentDistrict != null) {
+            locationProvider.selectDistrict(null); // Reset to districts
+          } else if (locationProvider.currentState != null) {
+            locationProvider.selectState(null); // Reset to states
+          }
+        });
+      },
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      child: const Icon(Icons.arrow_back),
     );
   }
 
   Widget _buildLocationList(LocationProvider locationProvider) {
     if (locationProvider.currentState == null) {
-      // Display list of states
       return _buildStateList(locationProvider);
     } else if (locationProvider.currentDistrict == null) {
-      // Display list of districts for the selected state
       return _buildDistrictList(locationProvider);
     } else {
-      // Display list of parking lots for the selected district
       return _buildParkingLotList(locationProvider);
     }
   }
@@ -86,23 +93,9 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
       itemCount: states.length,
       itemBuilder: (context, index) {
         final state = states[index];
-        return Card(
-          color: Colors.white,
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: ListTile(
-            title: Text(
-              state,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              locationProvider.selectState(state);
-            },
-          ),
+        return _buildListCard(
+          title: state,
+          onTap: () => locationProvider.selectState(state),
         );
       },
     );
@@ -116,65 +109,28 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
       itemCount: districts.length,
       itemBuilder: (context, index) {
         final district = districts[index]['district'];
-        return Card(
-          color: Colors.white,
-          elevation: 4,
-          margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-          child: ListTile(
-            title: Text(
-              district,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            trailing: const Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              locationProvider.selectDistrict(district);
-            },
-          ),
+        return _buildListCard(
+          title: district,
+          onTap: () => locationProvider.selectDistrict(district),
         );
       },
     );
   }
 
-Widget _buildParkingLotList(LocationProvider locationProvider) {
-  final parkingLots = locationProvider.locations
-      .firstWhere(
-          (loc) => loc['state'] == locationProvider.currentState)['districts']
-      .firstWhere((d) =>
-          d['district'] == locationProvider.currentDistrict)['parking_lots'];
+  Widget _buildParkingLotList(LocationProvider locationProvider) {
+    final parkingLots = locationProvider.locations
+        .firstWhere((loc) => loc['state'] == locationProvider.currentState)['districts']
+        .firstWhere((d) => d['district'] == locationProvider.currentDistrict)['parking_lots'];
 
-  // Use widget.lotID instead of fetching it from AuthService
-  final currentLotID = widget.lotID;
+    return ListView.builder(
+      itemCount: parkingLots.length,
+      itemBuilder: (context, index) {
+        final lot = parkingLots[index];
+        final isSelected = widget.lotID == lot['lotID'];
 
-  return ListView.builder(
-    itemCount: parkingLots.length,
-    itemBuilder: (context, index) {
-      final lot = parkingLots[index];
-      final isSelected = currentLotID == lot['lotID'];
-
-      return Card(
-        color: isSelected ? Colors.green[100] : Colors.white,
-        elevation: 4,
-        margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-        child: ListTile(
-          tileColor: isSelected ? Colors.green[100] : Colors.white,
-          title: Text(
-            lot['lot_name'],
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Spaces: ${lot['spaces']}'),
-              Text('Type: ${toTitleCase(lot['locationType'])}'),
-            ],
-          ),
-          trailing: const Icon(Icons.arrow_forward_ios),
+        return _buildParkingLotCard(
+          lot: lot,
+          isSelected: isSelected,
           onTap: () async {
             if (isSelected) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -186,9 +142,9 @@ Widget _buildParkingLotList(LocationProvider locationProvider) {
               return;
             }
             final auth = Provider.of<AuthService>(context, listen: false);
-             if (auth.user != null) {
-                  await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
-                }
+            if (auth.user != null) {
+              await locationProvider.updateLastUsedLot(auth.user!.userID, lot['lotID']);
+            }
             try {
               locationProvider.selectLocation({
                 'lotID': lot['lotID'],
@@ -210,29 +166,74 @@ Widget _buildParkingLotList(LocationProvider locationProvider) {
               );
             }
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildListCard({required String title, required VoidCallback onTap}) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color cardColor = isDarkMode ? const Color.fromARGB(255, 61, 61, 61) : Colors.white;
+
+    return Card(
+      color: cardColor,
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: ListTile(
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-      );
-    },
-  );
-}
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: onTap,
+      ),
+    );
+  }
 
+  Widget _buildParkingLotCard({
+    required Map<String, dynamic> lot,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final Color cardColor = isDarkMode ? const Color.fromARGB(255, 61, 61, 61) : Colors.white;
+    final Color selectedColor = isDarkMode ? Colors.green[800]! : Colors.green[100]!;
 
-
-
+    return Card(
+      color: isSelected ? selectedColor : cardColor,
+      elevation: 4,
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      child: ListTile(
+        tileColor: isSelected ? selectedColor : cardColor,
+        title: Text(
+          lot['lot_name'],
+          style: const TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Spaces: ${lot['spaces']}'),
+            Text('Type: ${toTitleCase(lot['locationType'])}'),
+          ],
+        ),
+        trailing: const Icon(Icons.arrow_forward_ios),
+        onTap: onTap,
+      ),
+    );
+  }
 }
 
 String toTitleCase(String text) {
-  if (text.isEmpty) return text; // Handle empty strings
+  if (text.isEmpty) return text;
 
-  // Split the text into words
-  final words = text.split(' ');
-
-  // Capitalize the first letter of each word
-  final capitalizedWords = words.map((word) {
-    if (word.isEmpty) return word; // Handle empty words
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
     return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  });
-
-  // Join the words back together
-  return capitalizedWords.join(' ');
+  }).join(' ');
 }

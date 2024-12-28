@@ -84,6 +84,8 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       body: Container(
         color: Theme.of(context).colorScheme.surface,
@@ -109,7 +111,9 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    color: Theme.of(context).colorScheme.secondary,
+                    color: isDarkMode
+                        ? const Color.fromARGB(255, 29, 29, 29) // Dark theme color
+                        : Theme.of(context).colorScheme.secondary, // Light theme color
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
