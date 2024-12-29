@@ -98,7 +98,7 @@ class _MainScreenState extends State<MainScreen> {
 
     // Get the selected location from the LocationProvider
     final selectedLotID = locationProvider.selectedLocation?['lotID'] ?? 'DefaultLotID';
-    final selectedLotName = locationProvider.selectedLocation?['lot_name'] ?? 'DefaultLotName';
+    final selectedLotName = locationProvider.selectedLocation?['lotName'] ?? 'DefaultLotName';
 
     return Scaffold(
       body: Container(
@@ -208,7 +208,7 @@ class _MainScreenState extends State<MainScreen> {
                       builder: (context) => RecommendationScreen(
                         user: user!,
                         lotID: selectedLotID,
-                        lot_name: selectedLotName,
+                        lotName: selectedLotName,
                       ),
                     ),
                   );

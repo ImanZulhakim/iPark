@@ -66,7 +66,7 @@ class LocationProvider with ChangeNotifier {
       if (lotName != null) {
         _selectedLocation = {
           'lotID': lastUsedLotID,
-          'lot_name': lotName,
+          'lotName': lotName,
         };
         notifyListeners();
       }
@@ -74,7 +74,7 @@ class LocationProvider with ChangeNotifier {
       print('last_used_lotID is null for userID: $userID');
       _selectedLocation = {
         'lotID': 'DefaultLotID',
-        'lot_name': 'DefaultLotName',
+        'lotName': 'DefaultLotName',
       };
       notifyListeners();
     }
@@ -82,7 +82,7 @@ class LocationProvider with ChangeNotifier {
     print('Error fetching last_used_lotID: $e');
     _selectedLocation = {
       'lotID': 'DefaultLotID',
-      'lot_name': 'DefaultLotName',
+      'lotName': 'DefaultLotName',
     };
     notifyListeners();
   }

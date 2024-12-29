@@ -61,22 +61,45 @@ class CountdownProvider extends ChangeNotifier {
   void stopCountdown() async {
     _timer?.cancel();
     _timer = null;
-    
+
     // Store the parking space ID before clearing it
     final spaceToUnlock = activeParkingSpaceID;
-    
+
     activeParkingSpaceID = null;
     activeUserID = null;
 
     // Clear SharedPreferences
     _saveState();
-    
+
     // Unlock the parking space if there was an active one
     if (spaceToUnlock != null) {
       await ApiService.unlockParkingSpace(spaceToUnlock);
       await ApiService.updatePremiumParkingStatus(spaceToUnlock, false);
     }
-    
+
+    notifyListeners();
+  }
+
+  // Reset the countdown and unlock the parking space
+  Future<void> resetCountdown() async {
+    _timer?.cancel();
+    _timer = null;
+
+    // Store the parking space ID before clearing it
+    final spaceToUnlock = activeParkingSpaceID;
+
+    activeParkingSpaceID = null;
+    activeUserID = null;
+
+    // Clear SharedPreferences
+    _saveState();
+
+    // Unlock the parking space if there was an active one
+    if (spaceToUnlock != null) {
+      await ApiService.unlockParkingSpace(spaceToUnlock);
+      await ApiService.updatePremiumParkingStatus(spaceToUnlock, false);
+    }
+
     notifyListeners();
   }
 

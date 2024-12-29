@@ -35,29 +35,6 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           ListTile(
-            leading: Icon(
-              Icons.person_outline,
-              size: 26,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            title: Text(
-              'Account',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w500,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
-            ),
-            trailing: Icon(
-              Icons.chevron_right,
-              size: 26,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            onTap: () {
-              // Navigate to account settings
-            },
-          ),
-          ListTile(
             leading: const Icon(Icons.help_outline, size: 26),
             title: const Text(
               'Tutorial',
@@ -119,17 +96,6 @@ class SettingsScreen extends StatelessWidget {
                   ),
                 ),
               );
-            },
-          ),
-          ListTile(
-            leading: const Icon(Icons.privacy_tip_outlined, size: 26),
-            title: const Text(
-              'Privacy',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-            ),
-            trailing: const Icon(Icons.chevron_right, size: 26),
-            onTap: () {
-              // Navigate to privacy settings
             },
           ),
           const Divider(height: 20),
