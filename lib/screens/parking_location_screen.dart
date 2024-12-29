@@ -148,7 +148,7 @@ class _ParkingLocationScreenState extends State<ParkingLocationScreen> {
             try {
               locationProvider.selectLocation({
                 'lotID': lot['lotID'],
-                'lot_name': lot['lot_name'],
+                'lotName': lot['lot_name'],
               });
               Navigator.pushReplacement(
                 context,
