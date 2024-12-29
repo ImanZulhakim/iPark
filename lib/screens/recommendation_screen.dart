@@ -782,13 +782,34 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     );
   }
 
-  void _handleParkingSpaceSelection(String parkingSpaceID, bool isPremium) {
-    if (isPremium) {
+void _handleParkingSpaceSelection(String parkingSpaceID, bool isPremium) async {
+  if (isPremium) {
+    // Fetch the current state of the parking space
+    final parkingSpaces = await ApiService.getParkingData(widget.lotID);
+    final selectedSpace = parkingSpaces.firstWhere(
+      (space) => space['parkingSpaceID'] == parkingSpaceID,
+      orElse: () => {'isAvailable': false},
+    );
+
+    // Check if the space is available
+    final bool isAvailable = selectedSpace['isAvailable'] == true || selectedSpace['isAvailable'] == 1 || selectedSpace['isAvailable'] == '1';
+
+    if (isAvailable) {
+      // Show the premium payment dialog only if the space is available
       _showPaymentDialog(context, parkingSpaceID);
     } else {
-      // Handle regular parking
+      // Show a message if the space is occupied
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('This premium parking space is currently occupied.'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
+  } else {
+    // Handle regular parking
   }
+}
 
   void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
     showDialog(
