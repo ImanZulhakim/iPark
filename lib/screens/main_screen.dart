@@ -209,6 +209,7 @@ class _MainScreenState extends State<MainScreen> {
                         user: user!,
                         lotID: selectedLotID,
                         lotName: selectedLotName,
+                        showRecommendationPopup: true,
                       ),
                     ),
                   );
