@@ -4,20 +4,63 @@ import 'dart:convert';
 import 'package:iprsr/models/user.dart';
 import 'dart:async';
 import 'dart:io';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this import
 
 class ApiService {
   static const ip = '192.168.1.3'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
-  static const String esp8266IpAddress = "http://192.168.0.105/"; //esp punya ip
-  static const String _telegramBotToken =
-      "7779399475:AAF091xlVimNGdP46e831oPm32dZGY1HaRc";
-
-  static const String _telegramApiUrl =
-      "https://api.telegram.org/bot$_telegramBotToken";
-
+  static const String esp8266IpAddress = "http://192.168.1.27/"; //esp punya ip
   static const int ESP8266_PORT = 80; // Default HTTP port
   static const Duration CONNECTION_TIMEOUT = Duration(seconds: 2);
+
+  // Initialize Flutter Local Notifications
+  static final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  // Initialize local notifications
+  static Future<void> initializeLocalNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+
+    const InitializationSettings initializationSettings =
+        InitializationSettings(
+      android: initializationSettingsAndroid,
+    );
+
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
+
+  // Show a local notification
+static Future<void> showLocalNotification({
+  required String title,
+  required String body,
+}) async {
+  print('Attempting to show notification: $title - $body'); // Debug log
+
+  const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+    'premium_parking_channel', // Channel ID
+    'Premium Parking Notifications', // Channel Name
+    importance: Importance.max,
+    priority: Priority.high,
+  );
+
+  const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+
+  try {
+    await flutterLocalNotificationsPlugin.show(
+      0, // Notification ID
+      title,
+      body,
+      platformChannelSpecifics,
+    );
+    print('Notification shown successfully'); // Debug log
+  } catch (e) {
+    print('Error showing notification: $e'); // Debug log
+  }
+}
 
   // Register user
   static Future<User?> register(
@@ -41,8 +84,7 @@ class ApiService {
           'password': password,
           'phoneNo': phoneNo,
           'username': username,
-          'gender':
-              gender ? '1' : '0', // Convert boolean to '1'/'0' for backend
+          'gender': gender ? '1' : '0',
           'hasDisability': hasDisability ? '1' : '0',
           'brand': brand,
           'type': type,
@@ -97,31 +139,31 @@ class ApiService {
     return null;
   }
 
-
-// Fetch user details by user ID
+  // Fetch user details by user ID
   static Future<Map<String, dynamic>?> fetchUserDetails(String userId) async {
-  try {
-    final response = await http.get(
-      Uri.parse('$_baseUrl/fetch_user_details.php?userID=$userId'),
-      headers: {'Content-Type': 'application/json'},
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_user_details.php?userID=$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
 
-    print('Fetch User Details API response status: ${response.statusCode}'); // Debugging
-    print('Fetch User Details API response body: ${response.body}'); // Debugging
+      print('Fetch User Details API response status: ${response.statusCode}');
+      print('Fetch User Details API response body: ${response.body}');
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        return data['user']; // Return the user details
-      } else {
-        print('Fetch User Details error: ${data['message']}'); // Debugging
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          return data['user'];
+        } else {
+          print('Fetch User Details error: ${data['message']}');
+        }
       }
+    } catch (e) {
+      print('Error fetching user details: $e');
     }
-  } catch (e) {
-    print('Error fetching user details: $e'); // Debugging
+    return null;
   }
-  return null;
-}
+
   // Fetch parking suggestions using Flask backend
   static Future<Map<String, dynamic>> getRecommendations(
       String userID, String lotID) async {
@@ -165,7 +207,7 @@ class ApiService {
       final response = await http.post(
         Uri.parse('$_baseUrl/fetch_user_data.php'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'userID': userID}, // Assuming the backend requires userID
+        body: {'userID': userID},
       );
 
       print(
@@ -184,7 +226,7 @@ class ApiService {
     } catch (e) {
       print('Error fetching vehicle details and parking preferences: $e');
     }
-    return null; // Return null if there's an error
+    return null;
   }
 
   // Update user's vehicle details and parking preferences
@@ -231,7 +273,7 @@ class ApiService {
     }
   }
 
-// Fetch parking spaces data for a specific location
+  // Fetch parking spaces data for a specific location
   static Future<List<Map<String, dynamic>>> getParkingData(lotID) async {
     try {
       final response = await http.get(
@@ -252,24 +294,26 @@ class ApiService {
     }
   }
 
-// Check if ESP8266 is available
-  static Future<bool> isEsp8266Available() async {
-    try {
-      final response = await http.get(
-        Uri.parse(esp8266IpAddress),
-        headers: {'Accept': '*/*'},
-      ).timeout(const Duration(seconds: 2));
+  // Check if ESP8266 is available
+static Future<bool> isEsp8266Available() async {
+  try {
+    final response = await http.get(
+      Uri.parse("http://192.168.1.27/"), // Use the root endpoint
+      headers: {'Accept': '*/*'},
+    ).timeout(const Duration(seconds: 5)); // Increased timeout
 
-      return response.statusCode == 200;
-    } catch (e) {
-      print("ESP8266 not available: $e");
-      return false;
-    }
+    print("ESP8266 response status: ${response.statusCode}");
+    print("ESP8266 response body: ${response.body}");
+
+    return response.statusCode == 200;
+  } catch (e) {
+    print("ESP8266 not available: $e");
+    return false;
   }
+}
 
-// Function to send HTTP request to ESP8266 to control the gate
+  // Function to send HTTP request to ESP8266 to control the gate
   static Future<void> controlGate(String action) async {
-    // First verify ESP8266 connection
     final bool isConnected = await verifyEsp8266Connection();
     if (!isConnected) {
       throw Exception(
@@ -322,206 +366,6 @@ class ApiService {
       return true;
     } catch (e) {
       print('Safe gate control failed: $e');
-      // You might want to show a user-friendly error message here
-      return false;
-    }
-  }
-
-  // Method to send a message to a specific chat ID on Telegram
-  static Future<void> sendTelegramMessage(String? chatId, String text) async {
-    if (chatId == null) {
-      print("Chat ID is null. Cannot send message.");
-      return;
-    }
-
-    const url = '$_telegramApiUrl/sendMessage';
-    try {
-      final response = await http.post(
-        Uri.parse(url),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'chat_id': chatId,
-          'text': text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        print("Message sent successfully.");
-      } else {
-        print("Failed to send message: ${response.body}");
-      }
-    } catch (e) {
-      print("Error sending message: $e");
-    }
-  }
-
-  // Save chat ID in the backend
-  static Future<void> saveChatId(String userID, String chatID) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/save_chat_id.php'),
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {
-          'userID': userID,
-          'chatID': chatID,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print("Chat ID saved successfully.");
-        } else {
-          print("Error saving chat ID: ${data['message']}");
-        }
-      } else {
-        print("Failed to save chat ID. Status code: ${response.statusCode}");
-      }
-    } catch (e) {
-      print("Error saving chat ID: $e");
-    }
-  }
-
-// Fetch chat ID based on userID
-  static Future<String?> getUserChatId(String userID) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/get_chat_id.php'), // Ensure this script exists
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: {'userID': userID},
-      );
-
-      print('Fetch Chat ID API response status: ${response.statusCode}');
-      print('Fetch Chat ID API response body: ${response.body}');
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          return data['chatID'].toString(); // Convert chatID to String
-        } else {
-          print('Error: ${data['message']}');
-        }
-      }
-    } catch (e) {
-      print('Error fetching chat ID: $e');
-    }
-    return null;
-  }
-
-// Method to get updates from Telegram API
-  static Future<String?> getChatIdFromTelegram(String userId) async {
-    try {
-      // Fetch updates from the Telegram API
-      final response = await http.get(Uri.parse('$_telegramApiUrl/getUpdates'));
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final updates = data['result'];
-
-        // Loop through each update to find a matching userID or chat ID
-        for (var update in updates) {
-          if (update.containsKey('message')) {
-            final message = update['message'];
-            final chatId = message['chat']['id'].toString();
-            final text = message['text'];
-
-            // Check if the message text contains the userId or is a /start command
-            if (text == '/start' || text == userId) {
-              print("Found chat ID: $chatId for user ID: $userId");
-              return chatId; // Return chat ID if found
-            }
-          }
-        }
-      } else {
-        print("Failed to fetch updates from Telegram: ${response.body}");
-      }
-    } catch (e) {
-      print("Error fetching updates from Telegram: $e");
-    }
-    return null; // Return null if no chat ID is found
-  }
-
-  // Send Telegram message based on userID
-  static Future<void> sendTelegramMessageToUser(
-      String userID, String message) async {
-    final chatId = await getUserChatId(userID);
-    if (chatId != null) {
-      await sendTelegramMessage(chatId, message);
-    } else {
-      print("Chat ID not found for user $userID");
-    }
-  }
-
-  // 1. Notify user of payment confirmation for their parking spot
-  static Future<void> notifyPaymentConfirmation(
-      String chatId, String parkingSpaceID) async {
-    final message =
-        "Your payment for premium parking spot $parkingSpaceID has been confirmed!";
-    await sendTelegramMessage(chatId, message);
-  }
-
-  // 2. Notify user of 5-minute remaining reminder
-  static Future<void> notifyFiveMinutesRemaining(
-      String chatId, String parkingSpaceID) async {
-    final message =
-        "You have 5 minutes remaining for your premium parking spot $parkingSpaceID.";
-    await sendTelegramMessage(chatId, message);
-  }
-
-  // 3. Notify user of parking expiration
-  static Future<void> notifyParkingExpired(
-      String chatId, String parkingSpaceID) async {
-    final message =
-        "Your premium parking spot $parkingSpaceID has expired. Please vacate the spot or renew if needed.";
-    await sendTelegramMessage(chatId, message);
-  }
-
-  // Start the parking notification process
-  static Future<void> startParkingNotification(
-      String userId, String parkingSpaceID) async {
-    final chatId = await getUserChatId(userId);
-
-    if (chatId != null) {
-      print("Chat ID found: $chatId");
-
-      // Notify the user about payment confirmation
-      await notifyPaymentConfirmation(chatId, parkingSpaceID);
-
-      // Changed from 5 minutes to 10 seconds for debugging
-      Timer(const Duration(seconds: 30), () async {
-        print("Sending expiration notification...");
-        await notifyParkingExpired(chatId, parkingSpaceID);
-        // Unlock the parking space
-        await unlockParkingSpace(parkingSpaceID);
-        // Update premium parking status if needed
-        await updatePremiumParkingStatus(parkingSpaceID, false);
-      });
-    } else {
-      print("Chat ID not found for user $userId.");
-
-      // Send welcome message to remind the user to start the bot
-      const welcomeMessage =
-          "Please send '/start' to our bot to receive notifications about your premium parking.";
-      await sendTelegramMessage(chatId, welcomeMessage);
-    }
-  }
-
-  // Add this new method to update premium parking status
-  static Future<bool> updatePremiumParkingStatus(
-      String parkingSpaceID, bool isActive) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/update_premium_status.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'parkingSpaceID': parkingSpaceID,
-          'isActive': isActive ? 1 : 0,
-        }),
-      );
-
-      return response.statusCode == 200;
-    } catch (e) {
-      print('Error updating premium status: $e');
       return false;
     }
   }
@@ -530,24 +374,21 @@ class ApiService {
   static Future<bool> lockParkingSpace(String parkingSpaceID, String userID,
       {required int duration}) async {
     try {
-      // Request to lock the parking space
       final response = await http.post(
         Uri.parse('$_baseUrl/update_parking_space.php'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'parkingSpaceID': parkingSpaceID,
-          'userID': userID, // Include the userID here
-          'isAvailable': 0, // Lock the parking space
+          'userID': userID,
+          'isAvailable': 0,
         }),
       );
 
-      // Handle the server response
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
           print('Parking space $parkingSpaceID locked for $duration minutes.');
 
-          // Schedule to unlock the space after the specified duration
           Future.delayed(Duration(minutes: duration), () async {
             await unlockParkingSpace(parkingSpaceID);
           });
@@ -574,7 +415,7 @@ class ApiService {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'parkingSpaceID': parkingSpaceID,
-          'isAvailable': 1, // Unlock the parking space
+          'isAvailable': 1,
         }),
       );
 
@@ -583,7 +424,6 @@ class ApiService {
         if (data['status'] == 'success') {
           print('Parking space $parkingSpaceID unlocked successfully.');
 
-          // Double-check the space was actually unlocked
           final verifyResponse = await http.get(
             Uri.parse('$_baseUrl/check_parking_space.php?id=$parkingSpaceID'),
           );
@@ -591,7 +431,6 @@ class ApiService {
           if (verifyResponse.statusCode == 200) {
             final verifyData = jsonDecode(verifyResponse.body);
             if (verifyData['isAvailable'] != 1) {
-              // If space is still locked, try unlocking one more time
               await http.post(
                 Uri.parse('$_baseUrl/update_parking_space.php'),
                 headers: {'Content-Type': 'application/json'},
@@ -672,63 +511,174 @@ class ApiService {
     }
   }
 
-  // Helper method to format remaining time
-  static String formatRemainingTime(int seconds) {
-    final minutes = (seconds / 60).floor();
-    final remainingSeconds = seconds % 60;
-    return '$minutes:${remainingSeconds.toString().padLeft(2, '0')}';
+  // Start the parking notification process
+  static Future<void> startParkingNotification(
+      String userId, String parkingSpaceID) async {
+    // Notify the user about payment confirmation
+    await showLocalNotification(
+      title: 'Premium Parking Activated',
+      body: 'Your premium parking spot $parkingSpaceID has been activated.',
+    );
+
+    // Schedule expiration notification
+    Timer(const Duration(seconds: 30), () async {
+      await showLocalNotification(
+        title: 'Premium Parking Expired',
+        body: 'Your premium parking spot $parkingSpaceID has expired.',
+      );
+
+      // Unlock the parking space
+      await unlockParkingSpace(parkingSpaceID);
+      // Update premium parking status if needed
+      await updatePremiumParkingStatus(parkingSpaceID, false);
+    });
   }
 
-  // Add a method to check user's active sessions
-  static Future<Map<String, dynamic>?> checkUserActivePremiumParking(
-      String userID) async {
+  // Update premium parking status
+  static Future<bool> updatePremiumParkingStatus(
+      String parkingSpaceID, bool isActive) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$_baseUrl/update_premium_status.php'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'parkingSpaceID': parkingSpaceID,
+          'isActive': isActive ? 1 : 0,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Error updating premium status: $e');
+      return false;
+    }
+  }
+
+  // Verify ESP8266 connection
+  static Future<bool> verifyEsp8266Connection() async {
+    try {
+      final uri = Uri.parse(esp8266IpAddress);
+      final socket = await Socket.connect(uri.host, ESP8266_PORT,
+          timeout: CONNECTION_TIMEOUT);
+      socket.destroy();
+      print("ESP8266 is reachable at $esp8266IpAddress");
+      return true;
+    } catch (e) {
+      print("ESP8266 connection failed: $e");
+      return false;
+    }
+  }
+
+  // Get location type
+  static Future<String> getLocationType(String lotID) async {
     try {
       final response = await http.get(
-        Uri.parse('$_baseUrl/check_user_premium_parking.php?userId=$userID'),
+        Uri.parse('$_baseUrl/get_location_type.php?lotID=$lotID'),
+      );
+
+      print('Location type API response: ${response.body}');
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final type = data['data']['locationType'].toString().toLowerCase();
+        print('Parsed location type: $type');
+        return type;
+      }
+      return 'indoor';
+    } catch (e) {
+      print('Error getting location type: $e');
+      return 'indoor';
+    }
+  }
+
+  // Fetch parking location data (state -> district -> parking lot)
+  static Future<Map<String, dynamic>> getParkingLocation() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/fetch_parking_location.php'),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          return data['data'];
+          print('Parking data fetched successfully: ${data['data']}');
+          return data;
         }
       }
-      return null;
+      throw Exception('Failed to load parking data');
     } catch (e) {
-      print('Error checking user premium parking: $e');
+      print('Error fetching parking data: $e');
+      throw Exception('Failed to load parking data');
+    }
+  }
+
+  // Fetch the last_used_lotID for a specific user
+  static Future<String?> getLastUsedLotID(String userID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_last_used_lotID.php?userID=$userID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print(
+              'Last used lotID fetched successfully: ${data['data']['last_used_lotID']}');
+          return data['data']['last_used_lotID'];
+        }
+      }
+      throw Exception('Failed to fetch last_used_lotID');
+    } catch (e) {
+      print('Error fetching last_used_lotID: $e');
       return null;
     }
   }
 
-  // Start premium parking
-  static Future<Map<String, dynamic>?> startPremiumParking(
-      String parkingSpaceID, String userID) async {
+  // Update the last_used_lotID for a specific user
+  static Future<void> updateLastUsedLotID(String userID, String lotID) async {
     try {
       final response = await http.post(
-        Uri.parse('$_baseUrl/start_premium_parking.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'parkingSpaceID': parkingSpaceID,
+        Uri.parse('$_baseUrl/update_last_used_lotID.php'),
+        body: {
           'userID': userID,
-          // Change this to 30 seconds
-          'duration': 30, // Duration in seconds
-        }),
+          'last_used_lotID': lotID,
+        },
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          // Start notification process
-          startParkingNotification(userID, parkingSpaceID);
-          return {
-            'remaining_time': 30, // Change this to 30 seconds as well
-            'parking_space_id': parkingSpaceID
-          };
+          print(
+              'Last used lotID updated successfully for user $userID to $lotID');
+        } else {
+          throw Exception('Failed to update last_used_lotID');
+        }
+      } else {
+        throw Exception('Failed to update last_used_lotID');
+      }
+    } catch (e) {
+      print('Error updating last_used_lotID: $e');
+      throw Exception('Failed to update last_used_lotID');
+    }
+  }
+
+  // Fetch the lot name based on the lotID
+  static Future<String?> getLotName(String lotID) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$_baseUrl/get_lot_name.php?lotID=$lotID'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          print('Lot name fetched successfully: ${data['data']['lot_name']}');
+          return data['data']['lot_name'];
         }
       }
-      return null;
+      throw Exception('Failed to fetch lot name');
     } catch (e) {
-      print('Error starting premium parking: $e');
+      print('Error fetching lot name: $e');
       return null;
     }
   }
@@ -798,151 +748,5 @@ class ApiService {
       print('Error fetching parking lot boundary: $e');
       return [];
     }
-  }
-
-  // Add this method to verify ESP8266 connection
-  static Future<bool> verifyEsp8266Connection() async {
-    try {
-      // Parse the IP address from the ESP8266 URL
-      final uri = Uri.parse(esp8266IpAddress);
-      final socket = await Socket.connect(uri.host, ESP8266_PORT,
-          timeout: CONNECTION_TIMEOUT);
-      socket.destroy();
-      return true;
-    } catch (e) {
-      print('ESP8266 connection failed: $e');
-      return false;
-    }
-  }
-
-  static Future<String> getLocationType(String lotID) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/get_location_type.php?lotID=$lotID'),
-      );
-
-      print('Location type API response: ${response.body}'); // Debug print
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final type = data['data']['locationType'].toString().toLowerCase();
-        print('Parsed location type: $type'); // Debug print
-        return type;
-      }
-      return 'indoor'; // Default fallback
-    } catch (e) {
-      print('Error getting location type: $e');
-      return 'indoor';
-    }
-  }
-
-  // Fetch parking location data (state -> district -> parking lot)
-  static Future<Map<String, dynamic>> getParkingLocation() async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/fetch_parking_location.php'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print('Parking data fetched successfully: ${data['data']}');
-          return data; // Return the entire response as a Map
-        }
-      }
-      throw Exception('Failed to load parking data');
-    } catch (e) {
-      print('Error fetching parking data: $e');
-      throw Exception('Failed to load parking data');
-    }
-  }
-
-  // Fetch the last_used_lotID for a specific user
-  static Future<String?> getLastUsedLotID(String userID) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/get_last_used_lotID.php?userID=$userID'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print(
-              'Last used lotID fetched successfully: ${data['data']['last_used_lotID']}');
-          return data['data']['last_used_lotID'];
-        }
-      }
-      throw Exception('Failed to fetch last_used_lotID');
-    } catch (e) {
-      print('Error fetching last_used_lotID: $e');
-      return null;
-    }
-  }
-
-  // Update the last_used_lotID for a specific user
-  static Future<void> updateLastUsedLotID(String userID, String lotID) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$_baseUrl/update_last_used_lotID.php'),
-        body: {
-          'userID': userID,
-          'last_used_lotID': lotID,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print(
-              'Last used lotID updated successfully for user $userID to $lotID');
-        } else {
-          throw Exception('Failed to update last_used_lotID');
-        }
-      } else {
-        throw Exception('Failed to update last_used_lotID');
-      }
-    } catch (e) {
-      print('Error updating last_used_lotID: $e');
-      throw Exception('Failed to update last_used_lotID');
-    }
-  }
-
-// Fetch the lot name based on the lotID
-  static Future<String?> getLotName(String lotID) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$_baseUrl/get_lot_name.php?lotID=$lotID'),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          print('Lot name fetched successfully: ${data['data']['lot_name']}');
-          return data['data']['lot_name'];
-        }
-      }
-      throw Exception('Failed to fetch lot name');
-    } catch (e) {
-      print('Error fetching lot name: $e');
-      return null;
-    }
-  }
-}
-
-// Example usage in your UI
-Future<void> checkPremiumStatus(String parkingSpaceID) async {
-  final status = await ApiService.checkPremiumParkingStatus(parkingSpaceID);
-
-  if (status != null) {
-    // Space has active premium parking
-    final remainingSeconds = status['remaining_seconds'] as int;
-    final formattedTime = ApiService.formatRemainingTime(remainingSeconds);
-
-    print('Premium parking active');
-    print('User: ${status['username']}');
-    print('Time remaining: $formattedTime');
-  } else {
-    // Space is not in premium parking mode
-    print('No active premium parking');
   }
 }

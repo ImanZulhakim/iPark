@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Add SharedPreferences
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:iprsr/services/auth_service.dart';
 import 'package:iprsr/providers/countdown_provider.dart';
 import 'package:iprsr/screens/splash_screen.dart';
@@ -11,7 +11,41 @@ import 'package:iprsr/screens/parking_location_screen.dart';
 import 'package:iprsr/theme/app_theme.dart';
 import 'package:iprsr/providers/theme_provider.dart';
 import 'package:iprsr/providers/tutorial_provider.dart';
-import 'package:iprsr/providers/location_provider.dart'; // Import the LocationProvider
+import 'package:iprsr/providers/location_provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+
+// Initialize Local Notifications
+Future<void> initializeLocalNotifications() async {
+  const AndroidInitializationSettings initializationSettingsAndroid =
+      AndroidInitializationSettings('@mipmap/ic_launcher');
+
+  const InitializationSettings initializationSettings = InitializationSettings(
+    android: initializationSettingsAndroid,
+  );
+
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+}
+
+// Request Notification Permissions (for Android 13+)
+Future<void> requestNotificationPermissions() async {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
+  // Request notification permissions for Android 13+
+  final bool? result = await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin>()
+      ?.requestNotificationsPermission();
+
+  if (result == true) {
+    print('Notification permission granted');
+  } else {
+    print('Notification permission denied');
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -25,11 +59,17 @@ void main() async {
 
   // Initialize the AuthService and restore login status
   final authService = AuthService();
-  await authService.init(prefs); // Initialize SharedPreferences and restore login status
+  await authService.init(prefs);
 
   // Initialize the ThemeProvider and restore the theme
   final themeProvider = ThemeProvider();
-  await themeProvider.init(prefs); // Initialize ThemeProvider with SharedPreferences
+  await themeProvider.init(prefs);
+
+  // Initialize local notifications
+  await initializeLocalNotifications();
+
+  // Request notification permissions
+  await requestNotificationPermissions();
 
   runApp(
     MultiProvider(
@@ -41,7 +81,7 @@ void main() async {
           lazy: false,
         ),
         ChangeNotifierProvider(create: (_) => themeProvider),
-        ChangeNotifierProvider(create: (_) => LocationProvider()), // Add LocationProvider here
+        ChangeNotifierProvider(create: (_) => LocationProvider()),
       ],
       child: const IPRSRApp(),
     ),
@@ -56,6 +96,9 @@ class IPRSRApp extends StatefulWidget {
 }
 
 class _IPRSRAppState extends State<IPRSRApp> with WidgetsBindingObserver {
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+      FlutterLocalNotificationsPlugin();
+
   @override
   void initState() {
     super.initState();
@@ -67,14 +110,14 @@ class _IPRSRAppState extends State<IPRSRApp> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this); // Remove lifecycle observer
     super.dispose();
-     print('Lifecycle observer removed'); // Debugging
+    print('Lifecycle observer removed'); // Debugging
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     print('AppLifecycleState: $state'); // Debugging
-    
+
     // Handle lifecycle events
     if (state == AppLifecycleState.resumed) {
       // Restore app state when the app resumes
