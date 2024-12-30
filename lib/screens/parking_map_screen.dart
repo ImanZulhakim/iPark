@@ -1,3 +1,4 @@
+import 'dart:async'; // For StreamController and Timer
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:iprsr/services/api_service.dart';
@@ -24,11 +25,16 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   List<String> _floors = [];
   Map<String, List<Map<String, dynamic>>> spacesByFloor = {};
 
+  // StreamController for parking spaces
+  final StreamController<List<Map<String, dynamic>>> _parkingSpaceController =
+      StreamController<List<Map<String, dynamic>>>.broadcast();
+
+  // Timer for auto-refresh
+  Timer? _refreshTimer;
+
   // Default location for fallback
   final LatLng defaultLocation =
       const LatLng(6.467067402188159, 100.5076370309702);
-
-  late Future<Map<String, dynamic>> parkingDataFuture;
 
   @override
   void initState() {
@@ -37,9 +43,26 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
       // Handle the case where no lot is selected
       isLoading = false;
     } else {
-      parkingDataFuture = _loadParkingData();
       _fetchLotName(); // Fetch the lot name when the screen initializes
+      _loadParkingData(); // Load initial parking data
+      _startRefreshTimer(); // Start the auto-refresh timer
     }
+  }
+
+  // Start the auto-refresh timer
+  void _startRefreshTimer() {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
+      if (mounted) {
+        _loadParkingData(); // Refresh parking data every 5 seconds
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel(); // Cancel the timer
+    _parkingSpaceController.close(); // Close the stream controller
+    super.dispose();
   }
 
   // Fetch the lot name using the API service
@@ -61,7 +84,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     }
   }
 
-  Future<Map<String, dynamic>> _loadParkingData() async {
+  Future<void> _loadParkingData() async {
     try {
       final parkingSpaces = await ApiService.getParkingData(widget.lotID);
       final locationType = await ApiService.getLocationType(widget.lotID);
@@ -72,13 +95,10 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
         _organizeSpacesByFloor(parkingSpaces); // Organize spaces by floor
       }
 
-      return {
-        'parkingSpaces': parkingSpaces,
-        'locationType': locationType,
-      };
+      // Emit updated parking spaces to the stream
+      _parkingSpaceController.add(parkingSpaces);
     } catch (e) {
       print('Error loading parking data: $e');
-      return {};
     }
   }
 
@@ -460,8 +480,8 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                 const SizedBox(height: 16),
                 // Map or Indoor Layout
                 Expanded(
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: parkingDataFuture,
+                  child: StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: _parkingSpaceController.stream,
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -471,150 +491,124 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                                 'Error: ${snapshot.error ?? "Failed to load data"}'));
                       }
 
-                      final locationType = snapshot.data!['locationType'];
+                      final currentFloorSpaces = _currentFloor != null &&
+                              spacesByFloor.containsKey(_currentFloor)
+                          ? List<Map<String, dynamic>>.from(
+                              spacesByFloor[_currentFloor] ?? [])
+                          : <Map<String, dynamic>>[];
 
-                      if (locationType?.toLowerCase() == 'outdoor') {
-                        // Outdoor layout
-                        return GoogleMap(
-                          initialCameraPosition: CameraPosition(
-                            target: initialCameraTarget ?? defaultLocation,
-                            zoom: 18.0,
-                          ),
-                          mapType: MapType.satellite,
-                          polygons: parkingLotPolygons,
-                          markers: parkingMarkers,
-                          mapToolbarEnabled: false,
-                          myLocationEnabled: true,
-                          myLocationButtonEnabled: true,
-                          onMapCreated: (controller) {
-                            _mapController = controller;
-                            if (pendingBounds != null) {
-                              _moveCameraToFitBounds(pendingBounds!);
-                              pendingBounds = null;
-                            }
-                          },
+                      if (currentFloorSpaces.isEmpty) {
+                        return const Center(
+                          child: Text(
+                              'No parking spaces available on this floor.'),
                         );
-                      } else {
-                        // Indoor layout
-                        final currentFloorSpaces = _currentFloor != null &&
-                                spacesByFloor.containsKey(_currentFloor)
-                            ? List<Map<String, dynamic>>.from(
-                                spacesByFloor[_currentFloor] ?? [])
-                            : <Map<String, dynamic>>[];
+                      }
 
-                        if (currentFloorSpaces.isEmpty) {
-                          return const Center(
-                            child: Text(
-                                'No parking spaces available on this floor.'),
-                          );
-                        }
+                      // Group current floor spaces into wings (10 spaces per wing)
+                      final List<List<Map<String, dynamic>>> wings = [];
+                      for (var i = 0; i < currentFloorSpaces.length; i += 10) {
+                        wings.add(currentFloorSpaces.sublist(
+                          i,
+                          i + 10 > currentFloorSpaces.length
+                              ? currentFloorSpaces.length
+                              : i + 10,
+                        ));
+                      }
 
-                        // Group current floor spaces into wings (10 spaces per wing)
-                        final List<List<Map<String, dynamic>>> wings = [];
-                        for (var i = 0; i < currentFloorSpaces.length; i += 10) {
-                          wings.add(currentFloorSpaces.sublist(
-                            i,
-                            i + 10 > currentFloorSpaces.length
-                                ? currentFloorSpaces.length
-                                : i + 10,
-                          ));
-                        }
-
-                        return InteractiveViewer(
-                          boundaryMargin: const EdgeInsets.all(double.infinity),
-                          minScale: 0.5,
-                          maxScale: 3.0,
+                      return InteractiveViewer(
+                        boundaryMargin: const EdgeInsets.all(double.infinity),
+                        minScale: 0.5,
+                        maxScale: 3.0,
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
                           child: SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.vertical,
-                              child: Center(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return Container(
-                                      width: wings.length * 320.0,
-                                      padding: const EdgeInsets.all(16.0),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey[800],
-                                        borderRadius: BorderRadius.circular(16),
-                                        boxShadow: const [
-                                          BoxShadow(
-                                            color: Colors.black26,
-                                            blurRadius: 4,
-                                            offset: Offset(2, 2),
-                                          ),
-                                        ],
-                                      ),
-                                      child: Stack(
-                                        children: [
-                                          const Positioned(
-                                            top: 0,
-                                            left: 0,
-                                            child: Row(
-                                              children: [
-                                                Icon(Icons.arrow_downward,
-                                                    color: Color.fromARGB(
-                                                        255, 67, 230, 62)),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  'ENTRANCE',
-                                                  style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 67, 230, 62),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
-                                                  ),
+                            scrollDirection: Axis.vertical,
+                            child: Center(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return Container(
+                                    width: wings.length * 320.0,
+                                    padding: const EdgeInsets.all(16.0),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[800],
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: const [
+                                        BoxShadow(
+                                          color: Colors.black26,
+                                          blurRadius: 4,
+                                          offset: Offset(2, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        const Positioned(
+                                          top: 0,
+                                          left: 0,
+                                          child: Row(
+                                            children: [
+                                              Icon(Icons.arrow_downward,
+                                                  color: Color.fromARGB(
+                                                      255, 67, 230, 62)),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                'ENTRANCE',
+                                                style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 67, 230, 62),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
                                                 ),
-                                              ],
-                                            ),
+                                              ),
+                                            ],
                                           ),
-                                          const Positioned(
-                                            bottom: 0,
-                                            right: 0,
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  'EXIT',
-                                                  style: TextStyle(
-                                                    color: Color.fromARGB(
-                                                        255, 209, 45, 45),
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 12,
-                                                  ),
+                                        ),
+                                        const Positioned(
+                                          bottom: 0,
+                                          right: 0,
+                                          child: Row(
+                                            children: [
+                                              Text(
+                                                'EXIT',
+                                                style: TextStyle(
+                                                  color: Color.fromARGB(
+                                                      255, 209, 45, 45),
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 12,
                                                 ),
-                                                SizedBox(width: 4),
-                                                Icon(Icons.arrow_downward,
-                                                    color: Color.fromARGB(
-                                                        255, 209, 45, 45)),
-                                              ],
-                                            ),
+                                              ),
+                                              SizedBox(width: 4),
+                                              Icon(Icons.arrow_downward,
+                                                  color: Color.fromARGB(
+                                                      255, 209, 45, 45)),
+                                            ],
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                top: 32.0, bottom: 32.0),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.spaceEvenly,
-                                              children: List.generate(
-                                                  wings.length, (index) {
-                                                return ParkingWing(
-                                                  title:
-                                                      'Wing ${String.fromCharCode(65 + index)}',
-                                                  spaces: wings[index],
-                                                );
-                                              }),
-                                            ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.only(
+                                              top: 32.0, bottom: 32.0),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: List.generate(
+                                                wings.length, (index) {
+                                              return ParkingWing(
+                                                title:
+                                                    'Wing ${String.fromCharCode(65 + index)}',
+                                                spaces: wings[index],
+                                              );
+                                            }),
                                           ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
-                        );
-                      }
+                        ),
+                      );
                     },
                   ),
                 ),
@@ -707,7 +701,7 @@ class ParkingSpace extends StatelessWidget {
     final String parkingSpaceID = space['parkingSpaceID'];
 
     Color bgColor = _getMarkerColor(isAvailable, parkingType);
-    IconData icon = _getParkingTypeIcon(parkingType);
+    IconData icon = _getParkingTypeIcon(isAvailable, parkingType);
 
     return Container(
       width: 60,
@@ -769,7 +763,11 @@ class ParkingSpace extends StatelessWidget {
     }
   }
 
-  IconData _getParkingTypeIcon(String parkingType) {
+  IconData _getParkingTypeIcon(bool isAvailable, String parkingType) {
+    if (!isAvailable) {
+      return Icons.block; // No entry icon for occupied spaces
+    }
+
     switch (parkingType) {
       case 'Special':
         return Icons.accessible;
