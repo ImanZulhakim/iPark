@@ -716,6 +716,30 @@ static Future<bool> isEsp8266Available() async {
     }
   }
 
+// Get parking lot coordinates for a specific lotID
+static Future<LatLng?> getSpecificParkingLotCoordinates(String lotID) async {
+  try {
+    final response = await http.get(
+      Uri.parse('$_baseUrl/fetch_specific_parking_lot_coordinates.php?lotID=$lotID'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success' && data['coordinates'] != null) {
+        List<String> coords = data['coordinates'].split(',');
+        return LatLng(
+          double.parse(coords[0].trim()),
+          double.parse(coords[1].trim()),
+        );
+      }
+    }
+    return null;
+  } catch (e) {
+    print('Error fetching parking lot coordinates: $e');
+    return null;
+  }
+}
+
   // Get parking lot boundary
   static Future<List<LatLng>> getParkingLotBoundary(String lotID) async {
     try {

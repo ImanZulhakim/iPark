@@ -280,6 +280,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             zoomControlsEnabled: false,
+            mapToolbarEnabled: false,
           );
   }
 }

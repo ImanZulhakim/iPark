@@ -19,7 +19,7 @@ class RecommendationScreen extends StatefulWidget {
     super.key,
     required this.user,
     required this.lotID,
-    required this.lotName, 
+    required this.lotName,
     this.showRecommendationPopup = false,
   });
 
@@ -35,7 +35,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   String? _currentFloor;
   List<String> _floors = [];
   bool _isGateClosed = false;
-  bool _isRecommendationPopupShown = false; // Flag to track if the pop-up has been shown
+  bool _isRecommendationPopupShown =
+      false; // Flag to track if the pop-up has been shown
 
   // StreamController for individual parking space updates
   final StreamController<List<Map<String, dynamic>>> _parkingSpaceController =
@@ -45,7 +46,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-   @override
+  @override
   void initState() {
     super.initState();
     _providerInstance = Provider.of<CountdownProvider>(context, listen: false);
@@ -56,7 +57,8 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
 
     recommendationsFuture.then((data) {
       if (data['parkingSpaces'] != null) {
-        _parkingSpaceController.add(data['parkingSpaces']); // Emit fetched spaces
+        _parkingSpaceController
+            .add(data['parkingSpaces']); // Emit fetched spaces
       }
 
       if (data['floors'] != null) {
@@ -259,8 +261,7 @@ class _RecommendationScreenState extends State<RecommendationScreen> {
     }
   }
 
-  
-void _showRecommendationPopup(String recommendedSpaceID) {
+  void _showRecommendationPopup(String recommendedSpaceID) {
     if (_isRecommendationPopupShown) return; // Do not show if already shown
 
     showDialog(
@@ -286,24 +287,22 @@ void _showRecommendationPopup(String recommendedSpaceID) {
             ),
           ),
           actions: [
-            TextButton(
+            ElevatedButton(
               onPressed: () {
                 Navigator.pop(context);
                 _isRecommendationPopupShown = true; // Mark as shown
               },
-              child: Text(
-                "OK",
-                style: TextStyle(
-                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
-                ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
               ),
+              child: Text("OK"),
             ),
           ],
         );
       },
     );
   }
-  
 
   @override
   Widget build(BuildContext context) {
@@ -354,26 +353,34 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                   elevation: 4,
                   color: Colors.white,
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildLegendItem('Regular', Colors.grey, Icons.local_parking),
-                            _buildLegendItem('Special', const Color(0xFF90CAF9), Icons.accessible),
-                            _buildLegendItem('Female', const Color(0xFFF48FB1), Icons.female),
-                            _buildLegendItem('Family', const Color(0xFFCE93D8), Icons.family_restroom),
+                            _buildLegendItem(
+                                'Regular', Colors.grey, Icons.local_parking),
+                            _buildLegendItem('Special', const Color(0xFF90CAF9),
+                                Icons.accessible),
+                            _buildLegendItem('Female', const Color(0xFFF48FB1),
+                                Icons.female),
+                            _buildLegendItem('Family', const Color(0xFFCE93D8),
+                                Icons.family_restroom),
                           ],
                         ),
                         const SizedBox(height: 8),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildLegendItem('EV Car', const Color(0xFFA5D6A7), Icons.electric_car),
-                            _buildLegendItem('Premium', const Color(0xFFFFD54F), Icons.star),
-                            _buildLegendItem('Occupied', Colors.red, Icons.block),
+                            _buildLegendItem('EV Car', const Color(0xFFA5D6A7),
+                                Icons.electric_car),
+                            _buildLegendItem(
+                                'Premium', const Color(0xFFFFD54F), Icons.star),
+                            _buildLegendItem(
+                                'Occupied', Colors.red, Icons.block),
                           ],
                         ),
                       ],
@@ -389,37 +396,50 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                       return const Center(child: CircularProgressIndicator());
                     } else if (snapshot.hasError) {
                       return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData || snapshot.data!['parkingSpaces'] == null) {
-                      return const Center(child: Text('No parking spaces available.'));
+                    } else if (!snapshot.hasData ||
+                        snapshot.data!['parkingSpaces'] == null) {
+                      return const Center(
+                          child: Text('No parking spaces available.'));
                     }
 
-                    final locationType = snapshot.data?['locationType'] ?? 'indoor';
-                    final parkingSpaces = snapshot.data!['parkingSpaces'] as List<Map<String, dynamic>>;
-                    final String recommendedSpace = snapshot.data!['recommendedSpace'] as String;
+                    final locationType =
+                        snapshot.data?['locationType'] ?? 'indoor';
+                    final parkingSpaces = snapshot.data!['parkingSpaces']
+                        as List<Map<String, dynamic>>;
+                    final String recommendedSpace =
+                        snapshot.data!['recommendedSpace'] as String;
 
                     if (locationType.toLowerCase() == 'outdoor') {
                       return OutdoorParkingView(
                         parkingSpaces: parkingSpaces,
                         recommendedSpace: recommendedSpace,
-                        lotID: snapshot.data!['currentLocation'] ?? widget.lotID,
+                        lotID:
+                            snapshot.data!['currentLocation'] ?? widget.lotID,
                       );
                     }
 
-                    final spacesByFloor = snapshot.data!['spacesByFloor'] as Map<String, List<Map<String, dynamic>>>;
+                    final spacesByFloor = snapshot.data!['spacesByFloor']
+                        as Map<String, List<Map<String, dynamic>>>;
 
-                    final currentFloorSpaces = _currentFloor != null && spacesByFloor.containsKey(_currentFloor)
-                        ? List<Map<String, dynamic>>.from(spacesByFloor[_currentFloor] ?? [])
+                    final currentFloorSpaces = _currentFloor != null &&
+                            spacesByFloor.containsKey(_currentFloor)
+                        ? List<Map<String, dynamic>>.from(
+                            spacesByFloor[_currentFloor] ?? [])
                         : <Map<String, dynamic>>[];
 
                     if (currentFloorSpaces.isEmpty) {
-                      return const Center(child: Text('No parking spaces available on this floor.'));
+                      return const Center(
+                          child: Text(
+                              'No parking spaces available on this floor.'));
                     }
 
                     final List<List<Map<String, dynamic>>> wings = [];
                     for (var i = 0; i < currentFloorSpaces.length; i += 10) {
                       wings.add(currentFloorSpaces.sublist(
                         i,
-                        i + 10 > currentFloorSpaces.length ? currentFloorSpaces.length : i + 10,
+                        i + 10 > currentFloorSpaces.length
+                            ? currentFloorSpaces.length
+                            : i + 10,
                       ));
                     }
 
@@ -430,7 +450,9 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                           children: [
                             IconButton(
                               icon: const Icon(Icons.arrow_upward, size: 30),
-                              onPressed: _currentFloor != null && _floors.indexOf(_currentFloor!) < _floors.length - 1
+                              onPressed: _currentFloor != null &&
+                                      _floors.indexOf(_currentFloor!) <
+                                          _floors.length - 1
                                   ? () => _navigateFloor('up')
                                   : null,
                             ),
@@ -443,7 +465,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                             ),
                             IconButton(
                               icon: const Icon(Icons.arrow_downward, size: 30),
-                              onPressed: _currentFloor != null && _floors.indexOf(_currentFloor!) > 0
+                              onPressed: _currentFloor != null &&
+                                      _floors.indexOf(_currentFloor!) > 0
                                   ? () => _navigateFloor('down')
                                   : null,
                             ),
@@ -452,7 +475,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                         const SizedBox(height: 16),
                         Expanded(
                           child: InteractiveViewer(
-                            boundaryMargin: const EdgeInsets.all(double.infinity),
+                            boundaryMargin:
+                                const EdgeInsets.all(double.infinity),
                             minScale: 0.5,
                             maxScale: 3.0,
                             child: SingleChildScrollView(
@@ -462,13 +486,15 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                                 child: Center(
                                   child: LayoutBuilder(
                                     builder: (context, constraints) {
-                                      final double containerWidth = wings.length * 320.0;
+                                      final double containerWidth =
+                                          wings.length * 320.0;
                                       return Container(
                                         width: containerWidth,
                                         padding: const EdgeInsets.all(16.0),
                                         decoration: BoxDecoration(
                                           color: Colors.grey[800],
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius:
+                                              BorderRadius.circular(16),
                                           boxShadow: const [
                                             BoxShadow(
                                               color: Colors.black26,
@@ -484,13 +510,17 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                                               left: 0,
                                               child: Row(
                                                 children: [
-                                                  Icon(Icons.arrow_downward, color: Color.fromARGB(255, 67, 230, 62)),
+                                                  Icon(Icons.arrow_downward,
+                                                      color: Color.fromARGB(
+                                                          255, 67, 230, 62)),
                                                   SizedBox(width: 4),
                                                   Text(
                                                     'ENTRANCE',
                                                     style: TextStyle(
-                                                      color: Color.fromARGB(255, 67, 230, 62),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 67, 230, 62),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 12,
                                                     ),
                                                   ),
@@ -505,30 +535,44 @@ void _showRecommendationPopup(String recommendedSpaceID) {
                                                   Text(
                                                     'EXIT',
                                                     style: TextStyle(
-                                                      color: Color.fromARGB(255, 209, 45, 45),
-                                                      fontWeight: FontWeight.bold,
+                                                      color: Color.fromARGB(
+                                                          255, 209, 45, 45),
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                       fontSize: 12,
                                                     ),
                                                   ),
                                                   SizedBox(width: 4),
-                                                  Icon(Icons.arrow_downward, color: Color.fromARGB(255, 209, 45, 45)),
+                                                  Icon(Icons.arrow_downward,
+                                                      color: Color.fromARGB(
+                                                          255, 209, 45, 45)),
                                                 ],
                                               ),
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.only(top: 32.0, bottom: 32.0),
+                                              padding: const EdgeInsets.only(
+                                                  top: 32.0, bottom: 32.0),
                                               child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                                                children: List.generate(wings.length, (index) {
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: List.generate(
+                                                    wings.length, (index) {
                                                   return ParkingWing(
-                                                    title: 'Wing ${String.fromCharCode(65 + index)}',
+                                                    title:
+                                                        'Wing ${String.fromCharCode(65 + index)}',
                                                     spaces: wings[index],
-                                                    recommendedSpace: recommendedSpace,
-                                                    onShowPaymentDialog: (space) => _handleParkingSpaceSelection(
+                                                    recommendedSpace:
+                                                        recommendedSpace,
+                                                    onShowPaymentDialog: (space) =>
+                                                        _handleParkingSpaceSelection(
                                                       space['parkingSpaceID'],
-                                                      space['parkingType'] == 'Premium',
+                                                      space['parkingType'] ==
+                                                          'Premium',
                                                     ),
-                                                    stream: _parkingSpaceController.stream,
+                                                    stream:
+                                                        _parkingSpaceController
+                                                            .stream,
                                                   );
                                                 }),
                                               ),
@@ -568,33 +612,66 @@ void _showRecommendationPopup(String recommendedSpaceID) {
           return FloatingActionButton(
             onPressed: () {
               if (snapshot.hasData) {
-                final parkingSpaces = snapshot.data!['parkingSpaces'] as List<Map<String, dynamic>>;
-                final recommendedSpaceId = snapshot.data!['recommendedSpace'] as String;
+                final locationType = snapshot.data!['locationType'] as String;
 
-                final recommendedSpace = parkingSpaces.firstWhere(
-                  (space) => space['parkingSpaceID'] == recommendedSpaceId,
-                  orElse: () => {'coordinates': null},
-                );
+                if (locationType.toLowerCase() == 'indoor') {
+                  // Handle indoor parking
+                  _navigateToParkingLot(widget.lotID);
+                } else {
+                  // Handle outdoor parking
+                  final parkingSpaces = snapshot.data!['parkingSpaces']
+                      as List<Map<String, dynamic>>;
+                  final recommendedSpaceId =
+                      snapshot.data!['recommendedSpace'] as String;
 
-                if (recommendedSpace['coordinates'] != null) {
-                  List<String> coords = recommendedSpace['coordinates'].split(',');
-                  if (coords.length == 2) {
-                    final url = 'https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}';
-                    launchUrl(
-                      Uri.parse(url),
-                      mode: LaunchMode.externalApplication,
-                    );
-                    return;
+                  final recommendedSpace = parkingSpaces.firstWhere(
+                    (space) => space['parkingSpaceID'] == recommendedSpaceId,
+                    orElse: () => {'coordinates': null},
+                  );
+
+                  if (recommendedSpace['coordinates'] != null) {
+                    List<String> coords =
+                        recommendedSpace['coordinates'].split(',');
+                    if (coords.length == 2) {
+                      final url =
+                          'https://www.google.com/maps/search/?api=1&query=${coords[0]},${coords[1]}';
+                      launchUrl(
+                        Uri.parse(url),
+                        mode: LaunchMode.externalApplication,
+                      );
+                    }
                   }
                 }
               }
             },
-            backgroundColor: theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
+            backgroundColor:
+                theme.floatingActionButtonTheme.backgroundColor ?? Colors.teal,
             child: const Icon(Icons.navigation, color: Colors.white),
           );
         },
       ),
     );
+  }
+
+  //For indoor navigation
+  void _navigateToParkingLot(String lotID) async {
+    final coordinates =
+        await ApiService.getSpecificParkingLotCoordinates(lotID);
+    if (coordinates != null) {
+      final url =
+          'https://www.google.com/maps/search/?api=1&query=${coordinates.latitude},${coordinates.longitude}';
+      launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Parking lot coordinates not available.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   Future<Map<String, dynamic>> fetchRecommendationsAndSpaces() async {
@@ -609,7 +686,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
       _parkingSpaceController.add(parkingSpaces);
 
       // Fetch recommendations for the user and current lot
-      final recommendations = await ApiService.getRecommendations(widget.user.userID, widget.lotID);
+      final recommendations =
+          await ApiService.getRecommendations(widget.user.userID, widget.lotID);
       print('Fetched Recommendations: $recommendations');
 
       // Fetch the location type (e.g., indoor/outdoor)
@@ -621,12 +699,15 @@ void _showRecommendationPopup(String recommendedSpaceID) {
 
       // Check if an alternative location is needed (e.g., original location is full)
       if (recommendations['alternativeLocation'] != null) {
-        final altParkingSpaces = await ApiService.getParkingData(recommendations['alternativeLocation']);
-        final altLocationType = await ApiService.getLocationType(recommendations['alternativeLocation']);
+        final altParkingSpaces = await ApiService.getParkingData(
+            recommendations['alternativeLocation']);
+        final altLocationType = await ApiService.getLocationType(
+            recommendations['alternativeLocation']);
 
         recommendations['parkingSpaces'] = altParkingSpaces;
         recommendations['locationType'] = altLocationType;
-        recommendations['currentLocation'] = recommendations['alternativeLocation'];
+        recommendations['currentLocation'] =
+            recommendations['alternativeLocation'];
 
         // Emit updated parking spaces for the alternative location
         _parkingSpaceController.add(altParkingSpaces);
@@ -635,7 +716,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Original location full. Found parking at ${recommendations['alternativeLocation']}'),
+              content: Text(
+                  'Original location full. Found parking at ${recommendations['alternativeLocation']}'),
               duration: const Duration(seconds: 5),
               action: SnackBarAction(
                 label: 'OK',
@@ -659,8 +741,10 @@ void _showRecommendationPopup(String recommendedSpaceID) {
 
       for (var space in recommendations['parkingSpaces']) {
         // Extract the floor name from the space's coordinates
-        String? floorName = space['coordinates']?.toString().toLowerCase().split('|').first;
-        if (floorName == null || !(floorName.startsWith('floor') || floorName.startsWith('level'))) {
+        String? floorName =
+            space['coordinates']?.toString().toLowerCase().split('|').first;
+        if (floorName == null ||
+            !(floorName.startsWith('floor') || floorName.startsWith('level'))) {
           floorName = 'Unknown';
         }
         if (!spacesByFloor.containsKey(floorName)) {
@@ -720,7 +804,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
 
       final bool isEsp8266Connected = await ApiService.isEsp8266Available();
       if (!isEsp8266Connected) {
-        throw Exception('Gate control system is not accessible. Please try again later.');
+        throw Exception(
+            'Gate control system is not accessible. Please try again later.');
       }
 
       print('Calling API to create premium parking');
@@ -746,7 +831,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
           if (!gateSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Warning: Gate control system not responding. Please contact staff if needed.'),
+                content: Text(
+                    'Warning: Gate control system not responding. Please contact staff if needed.'),
                 backgroundColor: Colors.orange,
                 duration: Duration(seconds: 5),
               ),
@@ -791,13 +877,15 @@ void _showRecommendationPopup(String recommendedSpaceID) {
         );
 
         // Store the timer in a variable
-        _premiumParkingExpirationTimer = Timer(const Duration(seconds: 30), () async {
+        _premiumParkingExpirationTimer =
+            Timer(const Duration(seconds: 30), () async {
           try {
             final openSuccess = await ApiService.safeControlGate('open');
             if (!openSuccess && mounted) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Warning: Unable to open gate automatically. Please contact staff.'),
+                  content: Text(
+                      'Warning: Unable to open gate automatically. Please contact staff.'),
                   backgroundColor: Colors.orange,
                   duration: Duration(seconds: 5),
                 ),
@@ -896,7 +984,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
     );
   }
 
-  void _handleParkingSpaceSelection(String parkingSpaceID, bool isPremium) async {
+  void _handleParkingSpaceSelection(
+      String parkingSpaceID, bool isPremium) async {
     if (isPremium) {
       // Fetch the current state of the parking space
       final parkingSpaces = await ApiService.getParkingData(widget.lotID);
@@ -978,7 +1067,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
   }
 
   Future<void> _handleRecommendationButton() async {
-    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
+    final activeSession =
+        await ApiService.checkPremiumParkingStatus(widget.user.userID);
 
     if (activeSession != null) {
       if (mounted) {
@@ -1018,7 +1108,8 @@ void _showRecommendationPopup(String recommendedSpaceID) {
   }
 
   Future<void> checkAndRestoreSession() async {
-    final activeSession = await ApiService.checkPremiumParkingStatus(widget.user.userID);
+    final activeSession =
+        await ApiService.checkPremiumParkingStatus(widget.user.userID);
 
     if (activeSession != null && activeSession['remaining_time'] > 0) {
       _providerInstance.restoreCountdown(
@@ -1079,8 +1170,11 @@ class ParkingWing extends StatelessWidget {
                     child: ParkingSpace(
                       parkingSpaceID: leftColumnSpaces[index]['parkingSpaceID'],
                       stream: stream,
-                      isRecommended: leftColumnSpaces[index]['parkingSpaceID'] == recommendedSpace,
-                      onShowPaymentDialog: () => onShowPaymentDialog(leftColumnSpaces[index]),
+                      isRecommended: leftColumnSpaces[index]
+                              ['parkingSpaceID'] ==
+                          recommendedSpace,
+                      onShowPaymentDialog: () =>
+                          onShowPaymentDialog(leftColumnSpaces[index]),
                     ),
                   ),
                 ),
@@ -1096,10 +1190,14 @@ class ParkingWing extends StatelessWidget {
                   (index) => RotatedBox(
                     quarterTurns: 1,
                     child: ParkingSpace(
-                      parkingSpaceID: rightColumnSpaces[index]['parkingSpaceID'],
+                      parkingSpaceID: rightColumnSpaces[index]
+                          ['parkingSpaceID'],
                       stream: stream,
-                      isRecommended: rightColumnSpaces[index]['parkingSpaceID'] == recommendedSpace,
-                      onShowPaymentDialog: () => onShowPaymentDialog(rightColumnSpaces[index]),
+                      isRecommended: rightColumnSpaces[index]
+                              ['parkingSpaceID'] ==
+                          recommendedSpace,
+                      onShowPaymentDialog: () =>
+                          onShowPaymentDialog(rightColumnSpaces[index]),
                     ),
                   ),
                 ),
@@ -1174,7 +1272,8 @@ class ParkingSpace extends StatelessWidget {
         final bool isAvailable = space['isAvailable'] == true ||
             space['isAvailable'] == 1 ||
             space['isAvailable'] == '1';
-        final String parkingType = space['parkingType']?.toString() ?? 'Regular';
+        final String parkingType =
+            space['parkingType']?.toString() ?? 'Regular';
 
         // Check if the parking space is in premium mode and counting down
         bool isPremiumAndCountingDown = countdownProvider.isCountingDown &&

@@ -483,6 +483,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                           mapType: MapType.satellite,
                           polygons: parkingLotPolygons,
                           markers: parkingMarkers,
+                          mapToolbarEnabled: false,
                           myLocationEnabled: true,
                           myLocationButtonEnabled: true,
                           onMapCreated: (controller) {
