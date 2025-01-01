@@ -24,6 +24,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
   String? _currentFloor;
   List<String> _floors = [];
   Map<String, List<Map<String, dynamic>>> spacesByFloor = {};
+  String? _locationType; // Added to store location type
 
   // StreamController for parking spaces
   final StreamController<List<Map<String, dynamic>>> _parkingSpaceController =
@@ -88,6 +89,10 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     try {
       final parkingSpaces = await ApiService.getParkingData(widget.lotID);
       final locationType = await ApiService.getLocationType(widget.lotID);
+
+      setState(() {
+        _locationType = locationType; // Update location type
+      });
 
       if (locationType.toLowerCase() == 'outdoor') {
         await _loadPolygonsAndMarkers();
@@ -448,170 +453,173 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                     ),
                   ),
                 ),
-                // Floor Navigation (for indoor parking)
-                if (_floors.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.arrow_upward, size: 30),
-                        onPressed: _currentFloor != null &&
-                                _floors.indexOf(_currentFloor!) <
-                                    _floors.length - 1
-                            ? () => _navigateFloor('up')
-                            : null,
-                      ),
-                      Text(
-                        _currentFloor?.toUpperCase() ?? 'No Floors',
-                        style: const TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.arrow_downward, size: 30),
-                        onPressed: _currentFloor != null &&
-                                _floors.indexOf(_currentFloor!) > 0
-                            ? () => _navigateFloor('down')
-                            : null,
-                      ),
-                    ],
-                  ),
-                const SizedBox(height: 16),
-                // Map or Indoor Layout
-                Expanded(
-                  child: StreamBuilder<List<Map<String, dynamic>>>(
-                    stream: _parkingSpaceController.stream,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(child: CircularProgressIndicator());
-                      } else if (snapshot.hasError || !snapshot.hasData) {
-                        return Center(
+                // Conditional rendering based on location type
+                if (_locationType?.toLowerCase() == 'indoor')
+                  Expanded(
+                    child: StreamBuilder<List<Map<String, dynamic>>>(
+                      stream: _parkingSpaceController.stream,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        } else if (snapshot.hasError || !snapshot.hasData) {
+                          return Center(
+                              child: Text(
+                                  'Error: ${snapshot.error ?? "Failed to load data"}'));
+                        }
+
+                        final currentFloorSpaces = _currentFloor != null &&
+                                spacesByFloor.containsKey(_currentFloor)
+                            ? List<Map<String, dynamic>>.from(
+                                spacesByFloor[_currentFloor] ?? [])
+                            : <Map<String, dynamic>>[];
+
+                        if (currentFloorSpaces.isEmpty) {
+                          return const Center(
                             child: Text(
-                                'Error: ${snapshot.error ?? "Failed to load data"}'));
-                      }
+                                'No parking spaces available on this floor.'),
+                          );
+                        }
 
-                      final currentFloorSpaces = _currentFloor != null &&
-                              spacesByFloor.containsKey(_currentFloor)
-                          ? List<Map<String, dynamic>>.from(
-                              spacesByFloor[_currentFloor] ?? [])
-                          : <Map<String, dynamic>>[];
+                        // Group current floor spaces into wings (10 spaces per wing)
+                        final List<List<Map<String, dynamic>>> wings = [];
+                        for (var i = 0; i < currentFloorSpaces.length; i += 10) {
+                          wings.add(currentFloorSpaces.sublist(
+                            i,
+                            i + 10 > currentFloorSpaces.length
+                                ? currentFloorSpaces.length
+                                : i + 10,
+                          ));
+                        }
 
-                      if (currentFloorSpaces.isEmpty) {
-                        return const Center(
-                          child: Text(
-                              'No parking spaces available on this floor.'),
-                        );
-                      }
-
-                      // Group current floor spaces into wings (10 spaces per wing)
-                      final List<List<Map<String, dynamic>>> wings = [];
-                      for (var i = 0; i < currentFloorSpaces.length; i += 10) {
-                        wings.add(currentFloorSpaces.sublist(
-                          i,
-                          i + 10 > currentFloorSpaces.length
-                              ? currentFloorSpaces.length
-                              : i + 10,
-                        ));
-                      }
-
-                      return InteractiveViewer(
-                        boundaryMargin: const EdgeInsets.all(double.infinity),
-                        minScale: 0.5,
-                        maxScale: 3.0,
-                        child: SingleChildScrollView(
-                          scrollDirection: Axis.horizontal,
-                          child: SingleChildScrollView(
-                            scrollDirection: Axis.vertical,
-                            child: Center(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return Container(
-                                    width: wings.length * 320.0,
-                                    padding: const EdgeInsets.all(16.0),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[800],
-                                      borderRadius: BorderRadius.circular(16),
-                                      boxShadow: const [
-                                        BoxShadow(
-                                          color: Colors.black26,
-                                          blurRadius: 4,
-                                          offset: Offset(2, 2),
+                        return Container(
+                          height: MediaQuery.of(context).size.height * 0.7, // Fixed height
+                          child: InteractiveViewer(
+                            boundaryMargin:
+                                const EdgeInsets.all(double.infinity),
+                            minScale: 0.5,
+                            maxScale: 3.0,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.vertical,
+                                child: Center(
+                                  child: LayoutBuilder(
+                                    builder: (context, constraints) {
+                                      return Container(
+                                        width: wings.length * 320.0,
+                                        padding: const EdgeInsets.all(16.0),
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[800],
+                                          borderRadius:
+                                              BorderRadius.circular(16),
+                                          boxShadow: const [
+                                            BoxShadow(
+                                              color: Colors.black26,
+                                              blurRadius: 4,
+                                              offset: Offset(2, 2),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    child: Stack(
-                                      children: [
-                                        const Positioned(
-                                          top: 0,
-                                          left: 0,
-                                          child: Row(
-                                            children: [
-                                              Icon(Icons.arrow_downward,
-                                                  color: Color.fromARGB(
-                                                      255, 67, 230, 62)),
-                                              SizedBox(width: 4),
-                                              Text(
-                                                'ENTRANCE',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 67, 230, 62),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                ),
+                                        child: Stack(
+                                          children: [
+                                            const Positioned(
+                                              top: 0,
+                                              left: 0,
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.arrow_downward,
+                                                      color: Color.fromARGB(
+                                                          255, 67, 230, 62)),
+                                                  SizedBox(width: 4),
+                                                  Text(
+                                                    'ENTRANCE',
+                                                    style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 67, 230, 62),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                        ),
-                                        const Positioned(
-                                          bottom: 0,
-                                          right: 0,
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                'EXIT',
-                                                style: TextStyle(
-                                                  color: Color.fromARGB(
-                                                      255, 209, 45, 45),
-                                                  fontWeight: FontWeight.bold,
-                                                  fontSize: 12,
-                                                ),
+                                            ),
+                                            const Positioned(
+                                              bottom: 0,
+                                              right: 0,
+                                              child: Row(
+                                                children: [
+                                                  Text(
+                                                    'EXIT',
+                                                    style: TextStyle(
+                                                      color: Color.fromARGB(
+                                                          255, 209, 45, 45),
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 12,
+                                                    ),
+                                                  ),
+                                                  SizedBox(width: 4),
+                                                  Icon(Icons.arrow_downward,
+                                                      color: Color.fromARGB(
+                                                          255, 209, 45, 45)),
+                                                ],
                                               ),
-                                              SizedBox(width: 4),
-                                              Icon(Icons.arrow_downward,
-                                                  color: Color.fromARGB(
-                                                      255, 209, 45, 45)),
-                                            ],
-                                          ),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                  top: 32.0, bottom: 32.0),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceEvenly,
+                                                children: List.generate(
+                                                    wings.length, (index) {
+                                                  return ParkingWing(
+                                                    title:
+                                                        'Wing ${String.fromCharCode(65 + index)}',
+                                                    spaces: wings[index],
+                                                  );
+                                                }),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                              top: 32.0, bottom: 32.0),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: List.generate(
-                                                wings.length, (index) {
-                                              return ParkingWing(
-                                                title:
-                                                    'Wing ${String.fromCharCode(65 + index)}',
-                                                spaces: wings[index],
-                                              );
-                                            }),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  );
-                                },
+                                      );
+                                    },
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
+                  )
+                else if (_locationType?.toLowerCase() == 'outdoor')
+                  Expanded(
+                    child: GoogleMap(
+                      onMapCreated: (controller) {
+                        _mapController = controller;
+                        if (pendingBounds != null) {
+                          _moveCameraToFitBounds(pendingBounds!);
+                        }
+                      },
+                      initialCameraPosition: CameraPosition(
+                        target: initialCameraTarget ?? defaultLocation,
+                        zoom: 15,
+                      ),
+                      polygons: parkingLotPolygons,
+                      markers: parkingMarkers,
+                      mapType: MapType.satellite, // Set to satellite view
+                    ),
+                  )
+                else
+                  const Center(
+                    child: CircularProgressIndicator(),
                   ),
-                ),
               ],
             ),
     );

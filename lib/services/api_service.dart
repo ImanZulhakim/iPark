@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this import
 
 class ApiService {
-  static const ip = '192.168.1.3'; // ip wifi
+  static const ip = '172.20.10.3'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
   static const String esp8266IpAddress = "http://192.168.1.27/"; //esp punya ip

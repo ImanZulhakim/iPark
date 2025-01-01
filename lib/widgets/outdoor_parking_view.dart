@@ -156,6 +156,11 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
                   snippet:
                       '$parkingType${isAvailable ? " - Available" : " - Occupied"}',
                 ),
+                onTap: () {
+                  if (parkingType == 'Premium' && isAvailable) {
+                    _showPaymentDialog(context, spaceId);
+                  }
+                },
               ),
             );
           }
@@ -257,6 +262,65 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
         return Icons.local_parking;
     }
   }
+
+  void _showPaymentDialog(BuildContext context, String parkingSpaceID) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
+        return AlertDialog(
+          backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+          title: Text(
+            "Premium Parking",
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          content: Text(
+            "This is a premium parking spot. Proceed with payment?",
+            style: TextStyle(
+              fontSize: 16,
+              color: isDarkMode ? Colors.white : Colors.black,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  color: isDarkMode ? Colors.grey[400] : Colors.grey,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _handlePremiumParking(parkingSpaceID);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text("Pay"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+ Future<void> _handlePremiumParking(String parkingSpaceID) async {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Your parking $parkingSpaceID is now locked'),
+      backgroundColor: Colors.green,
+    ),
+  );
+}
 
   @override
   Widget build(BuildContext context) {
