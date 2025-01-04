@@ -296,7 +296,7 @@
                   backgroundColor: Theme.of(context).primaryColor,
                   foregroundColor: Colors.white,
                 ),
-                child: Text("OK"),
+                child: const Text("OK"),
               ),
             ],
           );

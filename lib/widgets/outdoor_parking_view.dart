@@ -204,7 +204,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
     final paint = Paint()..color = color;
 
     const circleRadius = width / 2;
-    final circleCenter = const Offset(width / 2, circleRadius);
+    const circleCenter = Offset(width / 2, circleRadius);
     canvas.drawCircle(circleCenter, circleRadius, paint);
 
     final path = Path()

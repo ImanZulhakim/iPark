@@ -305,7 +305,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     final paint = Paint()..color = color;
 
     const circleRadius = width / 2;
-    final circleCenter = const Offset(width / 2, circleRadius);
+    const circleCenter = Offset(width / 2, circleRadius);
     canvas.drawCircle(circleCenter, circleRadius, paint);
 
     final path = Path()
@@ -493,7 +493,7 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
                           ));
                         }
 
-                        return Container(
+                        return SizedBox(
                           height: MediaQuery.of(context).size.height * 0.7, // Fixed height
                           child: InteractiveViewer(
                             boundaryMargin:

@@ -113,7 +113,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                     ),
                     color: isDarkMode
                         ? const Color.fromARGB(255, 29, 29, 29) // Dark theme color
-                        : Theme.of(context).colorScheme.secondary, // Light theme color
+                        :  Colors.white, // Light theme color
                     child: Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
