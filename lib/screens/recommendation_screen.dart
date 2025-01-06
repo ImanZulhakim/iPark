@@ -270,7 +270,7 @@
           final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
 
           return AlertDialog(
-            backgroundColor: isDarkMode ? Colors.grey[900] : Colors.white,
+            backgroundColor: isDarkMode ? const Color.fromARGB(255, 74, 74, 74) : Colors.white,
             title: Text(
               "Recommended Parking Space",
               style: TextStyle(

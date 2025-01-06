@@ -364,35 +364,37 @@ class _ParkingMapScreenState extends State<ParkingMapScreen> {
     }
   }
 
-  Widget _buildLegendItem(String label, Color color, IconData icon) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: Colors.black26),
-          ),
-          child: Icon(
-            icon,
-            size: 14,
-            color: Colors.white,
-          ),
+Widget _buildLegendItem(String label, Color color, IconData icon) {
+  final bool isDarkMode = Theme.of(context).brightness == Brightness.dark;
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Container(
+        width: 20,
+        height: 20,
+        decoration: BoxDecoration(
+          color: color,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(color: Colors.black26),
         ),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Icon(
+          icon,
+          size: 14,
+          color: Colors.white,
         ),
-      ],
-    );
-  }
+      ),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+          color: isDarkMode ? Colors.black : Colors.black,
+        ),
+      ),
+    ],
+  );
+}
 
   @override
   Widget build(BuildContext context) {
@@ -679,7 +681,7 @@ class ParkingWing extends StatelessWidget {
                   (index) => RotatedBox(
                     quarterTurns: 1,
                     child: ParkingSpace(
-                      space: spaces[index + (spaces.length / 2).ceil()],
+                      space: spaces[spaces.length - 1 - index],
                     ),
                   ),
                 ),
@@ -691,6 +693,7 @@ class ParkingWing extends StatelessWidget {
     );
   }
 }
+
 
 class ParkingSpace extends StatelessWidget {
   final Map<String, dynamic> space;
