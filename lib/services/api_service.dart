@@ -4,13 +4,13 @@ import 'dart:convert';
 import 'package:iprsr/models/user.dart';
 import 'dart:async';
 import 'dart:io';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart'; // Add this import
+import 'package:flutter_local_notifications/flutter_local_notifications.dart'; 
 
 class ApiService {
   static const ip = '172.20.10.3'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
-  static const String esp8266IpAddress = "http://192.168.1.27/"; //esp punya ip
+  static const String esp8266IpAddress = "http:/172.20.10.9/"; //esp punya ip
   static const int ESP8266_PORT = 80; // Default HTTP port
   static const Duration CONNECTION_TIMEOUT = Duration(seconds: 2);
 
@@ -169,7 +169,7 @@ static Future<void> showLocalNotification({
       String userID, String lotID) async {
     try {
       final response = await http.post(
-        Uri.parse('$_flaskUrl/suggest-parking'),
+        Uri.parse('$_flaskUrl/recommend-parking'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'userID': userID,
