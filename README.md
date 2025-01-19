@@ -1,11 +1,11 @@
+---
+
 # iPARK - Intelligent Parking Recommendation System (Mobile App)
 
 [![Flutter](https://img.shields.io/badge/Flutter-Framework-blue)](https://flutter.dev/)  
 iPARK is a smart parking recommendation system designed to make parking efficient and hassle-free for users. This repository contains the source code for the **iPARK mobile application**, developed using Dart and Flutter. The app leverages personalized user preferences, real-time data, and advanced algorithms to recommend the most suitable parking spaces, including features for individuals with special requirements.
 
 ## Features
-![image](https://github.com/user-attachments/assets/c9131f83-221b-48a4-a7ac-c112e9f3adff)
-
 
 - **Personalized Parking Recommendations**  
   Get parking suggestions based on your preferences, such as EV charging, wheelchair access, covered parking, and more.
@@ -25,20 +25,31 @@ iPARK is a smart parking recommendation system designed to make parking efficien
 ## Tech Stack
 
 - **Frontend Framework**: Flutter (Dart)
-- **Backend**: Flask REST API (Deployed separately at [iPARK Backend Repository](https://github.com/ImanZulhakim/iPark-Backend))  
+- **Backend**: 
+  - Flask REST API ([iPARK Python Backend](https://github.com/ImanZulhakim/iParkPythonBackend))  
   *(Requires Flask and MySQL for database integration.)*
+  - PHP APIs ([iPARK PHP Backend](https://github.com/ImanZulhakim/iPark_Web))  
+  *(Designed to handle administrative tasks and real-time parking data with MySQL.)*
+
+---
 
 ## Screenshots
 
-*Add screenshots here to showcase your app (e.g., home screen, recommendation screen, parking details screen).*
+![image](https://github.com/user-attachments/assets/c9131f83-221b-48a4-a7ac-c112e9f3adff)
+
+---
 
 ## Getting Started
 
 ### Prerequisites
 
-- Flutter SDK installed ([Install Flutter](https://flutter.dev/docs/get-started/install))
-- Android Studio or VS Code with Flutter extension
-- A connected MySQL database for real-time updates (Backend required: [iPARK Backend](https://github.com/ImanZulhakim/iPark-Backend))
+- **Flutter SDK**: Installed ([Install Flutter](https://flutter.dev/docs/get-started/install))
+- **Android Studio or VS Code**: With Flutter extensions for development
+- **Backend**:
+  - Flask Backend: Required for parking recommendations and user management ([iPARK Python Backend](https://github.com/ImanZulhakim/iParkPythonBackend)).
+  - PHP Backend: Required for administrative tasks and real-time updates ([iPARK PHP Backend](https://github.com/ImanZulhakim/iPark_Web)).
+
+---
 
 ### Installation
 
@@ -57,7 +68,8 @@ iPARK is a smart parking recommendation system designed to make parking efficien
    - Open the `lib/constants/api.dart` file (or equivalent configuration file).
    - Replace the base URL with your backend API endpoint:
      ```dart
-     const String BASE_URL = "http://<your-backend-host>:5000";
+     const String BASE_URL = "http://<your-backend-host>:5000"; // Flask
+     const String PHP_BASE_URL = "http://<your-server>/iPark_Web"; // PHP
      ```
 
 4. **Run the app**:
@@ -66,6 +78,8 @@ iPARK is a smart parking recommendation system designed to make parking efficien
      ```bash
      flutter run
      ```
+
+---
 
 ### Building APK/IPA
 
@@ -80,9 +94,11 @@ iPARK is a smart parking recommendation system designed to make parking efficien
   flutter build ios --release
   ```
 
+---
+
 ## API Endpoints (Backend Integration)
 
-- **Parking Recommendation**:
+- **Parking Recommendation** (Flask Backend):
   - **Endpoint**: `/recommend-parking`
   - **Method**: `POST`
   - **Payload**:
@@ -99,6 +115,11 @@ iPARK is a smart parking recommendation system designed to make parking efficien
       "parkingSpaceID": "A1"
     }
     ```
+
+- **Administrative APIs** (PHP Backend):
+  - Refer to the [iPARK PHP Backend repository](https://github.com/ImanZulhakim/iPark_Web) for documentation on the available endpoints for administrative purposes and real-time updates.
+
+---
 
 ## Folder Structure
 
@@ -118,6 +139,15 @@ iPark/
 └── README.md            # Project README file
 ```
 
+---
+
+## Related Repositories
+
+- [iPARK Python Backend](https://github.com/ImanZulhakim/iParkPythonBackend): Handles parking recommendations and user management (Flask + MySQL).
+- [iPARK PHP Backend](https://github.com/ImanZulhakim/iPark_Web): Administrative APIs and real-time data synchronization (PHP + MySQL).
+
+---
+
 ## Contributing
 
 Contributions are welcome! Follow these steps to contribute:
@@ -126,6 +156,8 @@ Contributions are welcome! Follow these steps to contribute:
 3. Commit your changes (`git commit -m 'Add your feature'`).
 4. Push to the branch (`git push origin feature/YourFeature`).
 5. Open a pull request.
+
+---
 
 ## License
 
