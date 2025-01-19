@@ -1,5 +1,3 @@
----
-
 # iPARK - Intelligent Parking Recommendation System (Mobile App)
 
 [![Flutter](https://img.shields.io/badge/Flutter-Framework-blue)](https://flutter.dev/)  
