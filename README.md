@@ -3,6 +3,8 @@
 [![Flutter](https://img.shields.io/badge/Flutter-Framework-blue)](https://flutter.dev/)  
 iPARK is a smart parking recommendation system designed to make parking efficient and hassle-free for users. This repository contains the source code for the **iPARK mobile application**, developed using Dart and Flutter. The app leverages personalized user preferences, real-time data, and advanced algorithms to recommend the most suitable parking spaces, including features for individuals with special requirements.
 
+---
+
 ## Features
 
 - **Personalized Parking Recommendations**  
@@ -20,6 +22,8 @@ iPARK is a smart parking recommendation system designed to make parking efficien
 - **Specialized Parking Options**  
   Recommendations for users with disabilities, EV vehicles, or family parking needs.
 
+---
+
 ## Tech Stack
 
 - **Frontend Framework**: Flutter (Dart)
@@ -34,6 +38,30 @@ iPARK is a smart parking recommendation system designed to make parking efficien
 ## Screenshots
 
 ![image](https://github.com/user-attachments/assets/c9131f83-221b-48a4-a7ac-c112e9f3adff)
+
+---
+
+## SQL Setup
+
+To ensure the mobile app works seamlessly with the PHP APIs and MySQL database, you must import the provided SQL file into your MySQL server.
+
+### Steps to Import the SQL File:
+
+1. Go to the **[iPARK PHP Backend repository](https://github.com/ImanZulhakim/iParkPHP)**.
+2. Download the SQL file (`iPark.sql`) located in the repository under (`database`) file.
+3. Open **phpMyAdmin** (accessible via XAMPP at `http://localhost/phpmyadmin`).
+4. Create a new database:
+   - Click on **"New"** in phpMyAdmin.
+   - Enter `ipark` as the database name and click **"Create"**.
+5. Import the SQL file:
+   - Select the newly created `ipark` database.
+   - Navigate to the **"Import"** tab.
+   - Click **"Choose File"** and select the downloaded `iPark.sql` file.
+   - Click **"Go"** to execute the import.
+6. Verify the database:
+   - Check that the tables have been created and populated with the required data.
+
+Once the SQL file is imported, the mobile app and PHP APIs can work seamlessly with the MySQL database.
 
 ---
 
@@ -160,3 +188,5 @@ Contributions are welcome! Follow these steps to contribute:
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
+---
