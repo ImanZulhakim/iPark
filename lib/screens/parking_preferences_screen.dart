@@ -97,7 +97,7 @@ class _ParkingPreferencesScreenState extends State<ParkingPreferencesScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'Update your preferences',
+                    'Choose your preferences',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.w600,

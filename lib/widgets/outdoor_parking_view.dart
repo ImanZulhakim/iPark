@@ -185,7 +185,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
         return const Color(0xFFF48FB1);
       case 'Family':
         return const Color(0xFFCE93D8);
-      case 'EV Car':
+      case 'EV':
         return const Color(0xFFA5D6A7);
       case 'Premium':
         return const Color(0xFFFFD54F);
@@ -254,7 +254,7 @@ class _OutdoorParkingViewState extends State<OutdoorParkingView> {
         return Icons.female;
       case 'Family':
         return Icons.family_restroom;
-      case 'EV Car':
+      case 'EV':
         return Icons.electric_car;
       case 'Premium':
         return Icons.star;

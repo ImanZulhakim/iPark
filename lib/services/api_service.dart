@@ -7,10 +7,10 @@ import 'dart:io';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart'; 
 
 class ApiService {
-  static const ip = '172.20.10.3'; // ip wifi
+  static const ip = '192.168.0.105'; // ip wifi
   static const String _baseUrl = 'http://$ip/iprsr';
   static const String _flaskUrl = 'http://$ip:5000';
-  static const String esp8266IpAddress = "http:/172.20.10.9/"; //esp punya ip
+  static const String esp8266IpAddress = "http://172.20.10.9/"; //esp punya ip
   static const int ESP8266_PORT = 80; // Default HTTP port
   static const Duration CONNECTION_TIMEOUT = Duration(seconds: 2);
 
@@ -298,7 +298,7 @@ static Future<void> showLocalNotification({
 static Future<bool> isEsp8266Available() async {
   try {
     final response = await http.get(
-      Uri.parse("http://192.168.1.27/"), // Use the root endpoint
+      Uri.parse("http://172.20.10.9/"), // Use the root endpoint
       headers: {'Accept': '*/*'},
     ).timeout(const Duration(seconds: 5)); // Increased timeout
 
@@ -313,51 +313,38 @@ static Future<bool> isEsp8266Available() async {
 }
 
   // Function to send HTTP request to ESP8266 to control the gate
-  static Future<void> controlGate(String action) async {
-    final bool isConnected = await verifyEsp8266Connection();
-    if (!isConnected) {
-      throw Exception(
-          'ESP8266 is not accessible. Please check the device connection.');
+ static Future<void> controlGate(String action) async {
+  final String endpoint = action == "close" ? "close_gate" : "open_gate";
+  final String url = "http://172.20.10.9/$endpoint"; // Ensure this matches the ESP8266's IP
+  print("Attempting to control gate - URL: $url");
+
+  try {
+    final response = await http.get(
+      Uri.parse(url),
+      headers: {
+        'Accept': '*/*',
+        'Connection': 'keep-alive',
+      },
+    ).timeout(
+      const Duration(seconds: 10), // Increase timeout to 10 seconds
+      onTimeout: () {
+        throw TimeoutException('Gate control request timed out');
+      },
+    );
+
+    print("Gate control response status: ${response.statusCode}");
+    print("Gate control response body: ${response.body}");
+
+    if (response.statusCode == 200) {
+      print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
+    } else {
+      throw Exception("Failed to $action gate: Status ${response.statusCode} - ${response.body}");
     }
-
-    final String endpoint = action == "close" ? "close_gate" : "open_gate";
-    final String url = "$esp8266IpAddress$endpoint";
-
-    print("Attempting to control gate - URL: $url");
-
-    try {
-      final response = await http.get(
-        Uri.parse(url),
-        headers: {
-          'Accept': '*/*',
-          'Connection': 'keep-alive',
-        },
-      ).timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          throw TimeoutException('Gate control request timed out');
-        },
-      );
-
-      print("Gate control response status: ${response.statusCode}");
-      print("Gate control response body: ${response.body}");
-
-      if (response.statusCode == 200) {
-        print("Gate ${action == 'close' ? 'closed' : 'opened'} successfully.");
-      } else {
-        if (response.body.contains("<!DOCTYPE HTML")) {
-          throw Exception(
-              "ESP8266 endpoint not found. Please verify the URL: $url");
-        } else {
-          throw Exception(
-              "Failed to $action gate: Status ${response.statusCode} - ${response.body}");
-        }
-      }
-    } catch (e) {
-      print("Error controlling gate: $e");
-      rethrow;
-    }
+  } catch (e) {
+    print("Error controlling gate: $e");
+    rethrow;
   }
+}
 
   // Add a method to handle gate control with proper error handling
   static Future<bool> safeControlGate(String action) async {
